@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}성남 민원 AI 코파일럿 — 데모{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  <script defer src="{{ url_for('static', path='/app.js') }}"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span>
+        <strong>성남 민원 AI 코파일럿</strong>
+        <small>Human-in-the-loop prototype</small>
+      </span>
+    </a>
+    <nav aria-label="주요 메뉴">
+      <a href="/">민원 접수</a>
+      <a href="/docs">API 문서</a>
+      <a href="/health">상태</a>
+    </nav>
+  </header>
+
+  <main class="page-shell">
+    <aside class="demo-banner" role="note">
+      <strong>시연용 시스템</strong>
+      실제 성남시·국민신문고와 연결되어 있지 않습니다. 부서와 지침은 데모 데이터이며,
+      접수·배정·답변은 행정 처리 효력이 없습니다.
+    </aside>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <span>성남 민원 AI 코파일럿 MVP</span>
+    <span>자동 종결·자동 처분 없음 · 담당자 승인 필수</span>
+  </footer>
+</body>
+</html>

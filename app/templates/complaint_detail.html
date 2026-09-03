@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}{{ complaint.redacted_title }} · 민원 검토{% endblock %}
+{% block content %}
+<div class="detail-header">
+  <div>
+    <a class="back-link" href="/">← 접수 목록</a>
+    <p class="eyebrow">COMPLAINT REVIEW</p>
+    <h1>{{ complaint.redacted_title }}</h1>
+    <p class="mono">ID {{ complaint.id }}</p>
+  </div>
+  <div class="detail-status">
+    <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
+    <span class="urgency urgency-{{ complaint.urgency }}">긴급도 {{ complaint.urgency }}</span>
+  </div>
+</div>
+
+{% if complaint.status == 'urgent_review' %}
+<section class="urgent-banner" role="alert">
+  <strong>긴급 안전 신호가 감지되었습니다.</strong>
+  이 데모는 긴급기관에 신고하지 않습니다. 실제 위험이 진행 중이면 이 화면에 의존하지 말고
+  112 또는 119 등 적절한 긴급 신고 경로를 이용해야 합니다.
+</section>
+{% endif %}
+
+<div class="detail-grid">
+  <div class="detail-main">
+    <section class="panel detail-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">REDACTED INTAKE</p>
+          <h2>비식별 민원 내용</h2>
+        </div>
+        <span class="tag">{{ complaint.channel }}</span>
+      </div>
+      <div class="complaint-copy">{{ complaint.redacted_content }}</div>
+      <dl class="info-grid">
+        <div><dt>발생 위치</dt><dd>{{ complaint.redacted_location_text or '입력되지 않음' }}</dd></div>
+        <div><dt>접수 시각</dt><dd>{{ complaint.created_at.strftime('%Y-%m-%d %H:%M') }}</dd></div>
+        <div><dt>감지된 개인정보</dt><dd>{{ complaint.pii_types|join(', ') if complaint.pii_types else '없음' }}</dd></div>
+        <div><dt>긴급 신호</dt><dd>{{ complaint.emergency_signals|join(', ') if complaint.emergency_signals else '없음' }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel detail-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">AI TRIAGE</p>
+          <h2>분류 및 배정 제안</h2>
+        </div>
+        <span class="confidence">{{ '%.0f'|format(complaint.routing_confidence * 100) }}%</span>
+      </div>
+      <div class="classification-summary">
+        <div><span>대분류</span><strong>{{ complaint.category or '-' }}</strong></div>
+        <div><span>세부분류</span><strong>{{ complaint.subcategory or '-' }}</strong></div>
+        <div><span>제공자</span><strong>{{ complaint.classifier_provider }}</strong></div>
+        <div><span>사람 검토</span><strong>{{ '필수' if complaint.requires_human_review else '정책상 선택' }}</strong></div>
+      </div>
+      <p class="evidence"><b>관찰 근거:</b> {{ complaint.classifier_evidence or '없음' }}</p>
+
+      <h3 class="section-subtitle">담당 후보</h3>
+      <div class="candidate-list">
+        {% for candidate in complaint.candidate_departments %}
+          {% set department = department_map.get(candidate.department_id) %}
+          <article class="candidate-card">
+            <div>
+              <strong>{{ department.name if department else candidate.department_id }}</strong>
+              <p>{{ candidate.reason }}</p>
+            </div>
+            <span>{{ '%.0f'|format(candidate.confidence * 100) }}%</span>
+          </article>
+        {% endfor %}
+      </div>
+
+      {% if complaint.missing_information %}
+        <div class="missing-box">
+          <strong>추가 확인 필요</strong>
+          <ul>{% for item in complaint.missing_information %}<li>{{ item }}</li>{% endfor %}</ul>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="panel detail-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">HUMAN APPROVAL</p>
+          <h2>담당자 검토·승인</h2>
+        </div>
+        {% if complaint.reviewed_by %}<span class="tag">검토자 {{ complaint.reviewed_by }}</span>{% endif %}
+      </div>
+      <form class="review-form" action="/complaints/{{ complaint.id }}/approve" method="post">
+        <label>
+          <span>최종 데모 업무 그룹</span>
+          <select name="department_id" required>
+            {% set suggested = complaint.assigned_department_id or (complaint.candidate_departments[0].department_id if complaint.candidate_departments else '') %}
+            {% for department in departments %}
+              <option value="{{ department.id }}" {% if department.id == suggested %}selected{% endif %}>
+                {{ department.name }} — {{ department.id }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>답변 초안</span>
+          <textarea name="answer_draft" rows="13" required>{{ complaint.answer_draft }}</textarea>
+          <small>승인은 데모 DB 상태만 변경하며 외부로 발송하지 않습니다.</small>
+        </label>
+        <label>
+          <span>검토자 식별자</span>
+          <input name="actor_id" value="demo-officer" required maxlength="120">
+        </label>
+        <div class="button-row">
+          <button class="primary-button" type="submit"><span>검토 완료로 표시</span><span>✓</span></button>
+        </div>
+      </form>
+      <form action="/complaints/{{ complaint.id }}/reprocess" method="post">
+        <button class="secondary-button" type="submit">현재 설정으로 다시 분류</button>
+      </form>
+    </section>
+  </div>
+
+  <aside class="detail-side">
+    <section class="panel side-panel">
+      <p class="eyebrow">GROUNDING</p>
+      <h2>참고 지식</h2>
+      {% if complaint.knowledge_source_ids %}
+        <ul class="source-list">
+          {% for source_id in complaint.knowledge_source_ids %}<li><code>{{ source_id }}</code></li>{% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">일치하는 승인 데모 지식이 없습니다.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel side-panel">
+      <p class="eyebrow">AUDIT TRAIL</p>
+      <h2>처리 이력</h2>
+      <ol class="timeline">
+        {% for event in complaint.audit_events %}
+          <li>
+            <span class="timeline-dot" aria-hidden="true"></span>
+            <div>
+              <strong>{{ event.action }}</strong>
+              <time>{{ event.created_at.strftime('%m/%d %H:%M:%S') }}</time>
+              <details>
+                <summary>세부 정보</summary>
+                <pre>{{ event.details | tojson(indent=2) }}</pre>
+              </details>
+            </div>
+          </li>
+        {% endfor %}
+      </ol>
+    </section>
+  </aside>
+</div>
+{% endblock %}

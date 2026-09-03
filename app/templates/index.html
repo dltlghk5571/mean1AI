@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}민원 접수 · 성남 민원 AI 코파일럿{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">CIVIC TRIAGE MVP</p>
+    <h1>민원은 쉽게 쓰고,<br>분류와 초안은 AI가 돕습니다.</h1>
+    <p class="hero-copy">
+      직접 식별자를 마스킹한 뒤 긴급 신호, 민원 유형, 담당 후보, 부족한 정보를 분석합니다.
+      최종 판단과 외부 발송은 사람이 담당합니다.
+    </p>
+  </div>
+  <div class="hero-steps" aria-label="처리 단계">
+    <span><b>1</b> 접수</span>
+    <span><b>2</b> 비식별</span>
+    <span><b>3</b> 분류</span>
+    <span><b>4</b> 사람 검토</span>
+  </div>
+</section>
+
+<div class="dashboard-grid">
+  <section class="panel intake-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">NEW COMPLAINT</p>
+        <h2>데모 민원 접수</h2>
+      </div>
+      <span class="tag">로컬 DB</span>
+    </div>
+
+    <div class="examples" aria-label="예시 불러오기">
+      <button type="button" class="example-chip" data-example="streetlight">가로등 고장</button>
+      <button type="button" class="example-chip" data-example="road">포트홀</button>
+      <button type="button" class="example-chip" data-example="welfare">복지 자격</button>
+      <button type="button" class="example-chip" data-example="urgent">긴급 안전</button>
+    </div>
+
+    <form class="intake-form" action="/submit" method="post">
+      <label>
+        <span>제목</span>
+        <input id="title" name="title" required minlength="2" maxlength="200"
+               placeholder="예: 정자동 공원 입구 가로등 고장">
+      </label>
+      <label>
+        <span>민원 내용</span>
+        <textarea id="content" name="content" required minlength="5" maxlength="20000" rows="8"
+                  placeholder="언제, 어디서, 무엇이 불편한지 적어 주세요."></textarea>
+        <small>전화번호·이메일·주민등록번호는 AI 처리 전에 마스킹됩니다.</small>
+      </label>
+      <div class="form-row">
+        <label>
+          <span>발생 위치</span>
+          <input id="location_text" name="location_text" maxlength="300"
+                 placeholder="예: 정자동 ○○공원 동문">
+        </label>
+        <label>
+          <span>접수 채널</span>
+          <select name="channel">
+            <option value="web">웹</option>
+            <option value="sms">문자</option>
+            <option value="call_center">콜센터</option>
+            <option value="national_portal">국민신문고</option>
+            <option value="other">기타</option>
+          </select>
+        </label>
+      </div>
+      <button class="primary-button" type="submit">
+        <span>AI 분류 데모 실행</span>
+        <span aria-hidden="true">→</span>
+      </button>
+    </form>
+  </section>
+
+  <section class="panel queue-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">REVIEW QUEUE</p>
+        <h2>최근 접수</h2>
+      </div>
+      <span class="count-badge">{{ complaints|length }}</span>
+    </div>
+
+    {% if complaints %}
+      <div class="queue-list">
+        {% for complaint in complaints %}
+          <a class="queue-item" href="/complaints/{{ complaint.id }}">
+            <div class="queue-item-top">
+              <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
+              <time>{{ complaint.created_at.strftime('%m/%d %H:%M') }}</time>
+            </div>
+            <h3>{{ complaint.redacted_title or '처리 중인 민원' }}</h3>
+            <p>{{ complaint.subcategory or '분류 대기' }}</p>
+            <div class="queue-meta">
+              <span>{{ complaint.redacted_location_text or '위치 미입력' }}</span>
+              <span>신뢰도 {{ '%.0f'|format(complaint.routing_confidence * 100) }}%</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div aria-hidden="true">◎</div>
+        <h3>아직 접수된 데모 민원이 없습니다.</h3>
+        <p>왼쪽 양식이나 예시 버튼으로 첫 흐름을 확인해 보세요.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

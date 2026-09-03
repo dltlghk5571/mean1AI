@@ -1,0 +1,65 @@
+[
+  {
+    "id": "ROAD_LIGHTING",
+    "name": "도로·조명 데모팀",
+    "category": "streetlight",
+    "description": "가로등·보안등 고장과 야간 조명 시설 민원의 데모 라우팅 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "ROAD_MAINTENANCE",
+    "name": "도로 유지보수 데모팀",
+    "category": "road_damage",
+    "description": "포트홀·보도블록·도로 파손 민원의 데모 라우팅 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "WASTE_MANAGEMENT",
+    "name": "청소·자원순환 데모팀",
+    "category": "waste",
+    "description": "쓰레기 수거·무단투기·재활용 민원의 데모 라우팅 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "PARKS",
+    "name": "공원관리 데모팀",
+    "category": "park",
+    "description": "공원·놀이터·운동기구 시설 민원의 데모 라우팅 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "TRAFFIC",
+    "name": "교통행정 데모팀",
+    "category": "traffic",
+    "description": "신호·버스·주정차 등 교통 민원의 데모 라우팅 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "WATER_SEWER",
+    "name": "상하수도 데모팀",
+    "category": "water_sewer",
+    "description": "누수·하수도·배수 시설 민원의 데모 라우팅 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "WELFARE_REVIEW",
+    "name": "복지 검토 데모팀",
+    "category": "welfare",
+    "description": "복지 상담·자격 관련 민원을 사람에게 연결하는 데모 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "SAFETY_DUTY",
+    "name": "긴급 안전 검토 데모팀",
+    "category": "safety",
+    "description": "안전 위험 신호를 즉시 사람에게 표시하는 데모 그룹",
+    "jurisdiction": "성남시 데모"
+  },
+  {
+    "id": "CIVIL_COORDINATION",
+    "name": "민원 조정 데모팀",
+    "category": "other",
+    "description": "소관이 불명확하거나 여러 분야에 걸친 민원의 데모 조정 그룹",
+    "jurisdiction": "성남시 데모"
+  }
+]

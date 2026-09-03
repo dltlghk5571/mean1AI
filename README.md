@@ -1,0 +1,100 @@
+# 성남 민원 AI 코파일럿 — MVP
+
+한국어 생활민원을 접수해 개인정보를 마스킹하고, 긴급도를 탐지하고, 민원 유형과 담당 **데모 업무 그룹**을 추천하며, 승인된 지식 문서를 근거로 답변 초안을 만드는 인간검토형 프로토타입입니다.
+
+> 주의: 이 저장소의 부서명·업무분장·처리 지침은 시연용 데이터입니다. 실제 성남시 조직·정책·국민신문고와 연결되어 있지 않으며, 자동 처분·자동 종결 기능도 없습니다. 로그인과 운영 보안이 없는 로컬 데모이므로 인터넷에 공개 배포하지 마세요.
+
+## 지금 되는 것
+
+- 시민용 웹 폼과 JSON API로 민원 접수
+- 주민등록번호·전화번호·이메일 마스킹
+- 화재·가스·붕괴·침수 등 긴급 안전 표현 탐지
+- API 키 없는 규칙 기반 분류 또는 선택적 OpenAI 구조화 출력 분류
+- 신뢰도·민감 분야 규칙에 따른 자동 배정/사람 검토 분기
+- 로컬 Markdown 지식 검색과 답변 초안
+- 담당자의 배정·초안 승인
+- 모든 주요 상태 변화의 감사 로그
+- SQLite 기반 로컬 실행과 Docker 실행
+
+## 1. 가장 빠른 실행
+
+Python 3.11 이상이 필요합니다.
+
+```bash
+cd seongnam-civic-ai
+python -m venv .venv
+```
+
+Windows PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+copy .env.example .env
+uvicorn app.main:app --reload
+```
+
+macOS/Linux:
+
+```bash
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+cp .env.example .env
+uvicorn app.main:app --reload
+```
+
+브라우저에서 `http://127.0.0.1:8000`을 엽니다. API 문서는 `/docs`, 상태 확인은 `/health`입니다.
+
+## 2. OpenAI 분류기 켜기
+
+`.env`를 다음처럼 수정합니다.
+
+```dotenv
+AI_PROVIDER=openai
+OPENAI_API_KEY=your-key-here
+OPENAI_MODEL=gpt-5.6
+```
+
+모델에 전달되는 본문은 직접 식별자를 마스킹한 뒤의 텍스트입니다. 모델 호출에 실패하면 해당 요청을 자동 처리하지 않고 사람 검토 상태로 남깁니다.
+
+## 3. 테스트와 정적 검사
+
+```bash
+pytest
+ruff check .
+ruff format --check .
+```
+
+## 4. 주요 API
+
+```text
+POST /api/v1/complaints
+GET  /api/v1/complaints
+GET  /api/v1/complaints/{complaint_id}
+POST /api/v1/complaints/{complaint_id}/reprocess
+POST /api/v1/complaints/{complaint_id}/approve
+GET  /api/v1/departments
+```
+
+예시:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/complaints \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "가로등 고장",
+    "content": "정자동 공원 입구 가로등 두 개가 꺼져 밤에 위험합니다. 연락처는 010-1234-5678입니다.",
+    "location_text": "정자동 공원 입구",
+    "channel": "web"
+  }'
+```
+
+## 5. Codex로 이어서 개발하기
+
+이 저장소 루트에서 Codex를 실행하면 `AGENTS.md`의 안전·검증 규칙을 자동으로 읽습니다. 첫 작업은 `codex-prompts/01-evaluation-harness.md`를 그대로 붙여 넣는 것을 권장합니다.
+
+```bash
+codex
+```
+
+한 번에 전체 서비스를 맡기기보다 평가셋 → 분류 개선 → 지식 검색 → 관리자 화면 → 외부 연계 순서로 작은 PR을 반복하는 편이 안전합니다. 자세한 단계는 `TASKS.md`에 있습니다.
