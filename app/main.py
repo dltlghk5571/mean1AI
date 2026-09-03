@@ -9,7 +9,7 @@ from app.api import complaints, departments, pages
 from app.config import Settings, get_settings
 from app.database import Base, make_engine, make_session_factory
 from app.seed import seed_departments
-from app.services.classifier import DepartmentCatalog, RuleBasedClassifier
+from app.services.classifier import Classifier, DepartmentCatalog, RuleBasedClassifier
 from app.services.knowledge import KnowledgeRetriever
 from app.services.openai_classifier import OpenAIClassifier
 from app.services.pipeline import ComplaintPipeline
@@ -18,6 +18,7 @@ from app.services.pipeline import ComplaintPipeline
 def build_pipeline(settings: Settings) -> ComplaintPipeline:
     catalog = DepartmentCatalog.from_json(settings.departments_path)
     retriever = KnowledgeRetriever(settings.knowledge_dir)
+    classifier: Classifier
 
     if settings.ai_provider == "openai" and settings.openai_api_key is not None:
         classifier = OpenAIClassifier(

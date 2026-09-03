@@ -16,4 +16,6 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
+      - run: mypy app evals tests
       - run: pytest
+      - run: python -m evals.run

@@ -31,10 +31,11 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["app*"]
+include = ["app*", "evals*"]
 
 [tool.setuptools.package-data]
 app = ["templates/*.html", "static/*", "data/*.json", "data/knowledge/*.md"]
+evals = ["fixtures/*.jsonl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

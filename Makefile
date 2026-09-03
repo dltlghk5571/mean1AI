@@ -1,4 +1,4 @@
-.PHONY: install run test lint format check seed clean
+.PHONY: install run test lint typecheck format format-check eval check seed clean
 
 install:
 	python -m pip install -e ".[dev]"
@@ -12,10 +12,19 @@ test:
 lint:
 	ruff check .
 
+typecheck:
+	mypy app evals tests
+
 format:
 	ruff format .
 
-check: lint test
+format-check:
+	ruff format --check .
+
+eval:
+	python -m evals.run
+
+check: lint format-check typecheck test eval
 
 seed:
 	python scripts/seed_demo.py

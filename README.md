@@ -63,7 +63,14 @@ OPENAI_MODEL=gpt-5.6
 pytest
 ruff check .
 ruff format --check .
+mypy app evals tests
+python -m evals.run
 ```
+
+`python -m evals.run`은 네트워크나 API 키 없이 `rules` 제공자만 사용합니다. 버전이 고정된
+합성 JSONL 평가셋에서 라우팅 Top-1/Top-3, 긴급 탐지, 개인정보 마스킹, 사람검토 회피 여부를
+측정하며 안전 게이트가 하나라도 실패하면 종료 코드 1을 반환합니다. 지표 정의와 현재 게이트는
+`docs/EVALS.md`에 있습니다.
 
 ## 4. 주요 API
 
