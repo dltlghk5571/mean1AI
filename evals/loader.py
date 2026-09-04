@@ -8,10 +8,12 @@ from evals.models import (
     EvaluationSuite,
     PiiCase,
     RoutingCase,
+    RoutingThresholdConfig,
     UrgencyCase,
 )
 
 DEFAULT_FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
+DEFAULT_THRESHOLDS_PATH = Path(__file__).resolve().parent / "thresholds.json"
 CaseT = TypeVar("CaseT", bound=BaseModel)
 
 
@@ -58,3 +60,18 @@ def load_suite(directory: Path = DEFAULT_FIXTURES_DIR) -> EvaluationSuite:
     if len(all_ids) != len(set(all_ids)):
         raise ValueError("Evaluation fixture ids must be unique across all suites")
     return suite
+
+
+def load_routing_thresholds(path: Path = DEFAULT_THRESHOLDS_PATH) -> RoutingThresholdConfig:
+    try:
+        raw_config = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ValueError(f"Unable to read evaluation thresholds: {path}") from exc
+
+    try:
+        config = RoutingThresholdConfig.model_validate_json(raw_config)
+    except ValidationError as exc:
+        raise ValueError(f"Invalid evaluation thresholds at {path}: {exc}") from exc
+    if not config.categories:
+        raise ValueError(f"Evaluation thresholds contain no categories: {path}")
+    return config

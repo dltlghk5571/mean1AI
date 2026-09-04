@@ -35,7 +35,7 @@ include = ["app*", "evals*"]
 
 [tool.setuptools.package-data]
 app = ["templates/*.html", "static/*", "data/*.json", "data/knowledge/*.md"]
-evals = ["fixtures/*.jsonl"]
+evals = ["fixtures/*.jsonl", "thresholds.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

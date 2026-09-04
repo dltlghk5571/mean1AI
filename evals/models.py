@@ -1,6 +1,6 @@
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas import Channel, Urgency
 
@@ -92,12 +92,43 @@ class RoutingCategoryMetrics(BaseModel):
     top3_accuracy: RatioMetric
 
 
+class RoutingCategoryThreshold(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    minimum_cases: int = Field(ge=1)
+    minimum_top1_accuracy: float = Field(ge=0.0, le=1.0)
+    minimum_top3_accuracy: float = Field(ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def top3_threshold_cannot_be_lower_than_top1(self) -> Self:
+        if self.minimum_top3_accuracy < self.minimum_top1_accuracy:
+            raise ValueError("minimum_top3_accuracy must be at least minimum_top1_accuracy")
+        return self
+
+
+class RoutingThresholdConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    thresholds_version: str = Field(min_length=3, max_length=80)
+    dataset_version: Literal["2026-09-03.v1"]
+    categories: dict[str, RoutingCategoryThreshold]
+
+
+class RoutingConfusionMatrix(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    labels: list[str]
+    rows: dict[str, dict[str, int]]
+    total_cases: int = Field(ge=0)
+
+
 class EvaluationMetrics(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     routing_top1_accuracy: RatioMetric
     routing_top3_accuracy: RatioMetric
     routing_by_category: dict[str, RoutingCategoryMetrics]
+    routing_confusion_matrix: RoutingConfusionMatrix
     emergency_recall: RatioMetric
     emergency_false_positive_rate: RatioMetric
     pii_masking_recall: RatioMetric
@@ -132,10 +163,12 @@ class EvaluationReport(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     dataset_version: str
+    thresholds_version: str
     provider: Literal["rules"]
     case_counts: dict[str, int]
     total_cases: int = Field(ge=0)
     metrics: EvaluationMetrics
+    routing_thresholds: RoutingThresholdConfig
     failures: list[CaseFailure]
     gate_failures: list[GateFailure]
     passed: bool

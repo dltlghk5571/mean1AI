@@ -1,5 +1,7 @@
+import json
 import re
 from collections import Counter
+from pathlib import Path
 
 import pytest
 
@@ -9,15 +11,16 @@ from evals.evaluator import (
     evaluate,
     ranked_routing_hits,
 )
-from evals.loader import load_suite
+from evals.loader import load_routing_thresholds, load_suite
 from evals.models import (
     DATASET_VERSION,
     CaseFailure,
     EvaluationReport,
     GateFailure,
     RatioMetric,
+    RoutingCategoryMetrics,
 )
-from evals.run import main
+from evals.run import format_markdown, main
 
 
 @pytest.fixture(scope="module")
@@ -54,6 +57,26 @@ def test_v1_fixture_coverage_cannot_silently_shrink() -> None:
     )
 
 
+def test_routing_thresholds_are_versioned_and_cover_each_category() -> None:
+    suite = load_suite()
+    thresholds = load_routing_thresholds()
+
+    assert thresholds.dataset_version == DATASET_VERSION
+    assert thresholds.thresholds_version == "2026-09-04.v1"
+    assert set(thresholds.categories) == {case.expected_category for case in suite.routing}
+    assert all(threshold.minimum_cases >= 10 for threshold in thresholds.categories.values())
+
+
+def test_evaluation_rejects_threshold_category_mismatch(tmp_path: Path) -> None:
+    thresholds = load_routing_thresholds().model_dump(mode="json")
+    del thresholds["categories"]["park"]
+    incomplete_path = tmp_path / "incomplete-thresholds.json"
+    incomplete_path.write_text(json.dumps(thresholds), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="must exactly match the dataset"):
+        evaluate(thresholds_path=incomplete_path)
+
+
 def test_pii_fixture_tokens_follow_synthetic_conventions() -> None:
     suite = load_suite()
 
@@ -82,6 +105,19 @@ def test_full_evaluation_meets_every_release_gate(evaluation_report: EvaluationR
     assert report.provider == "rules"
     assert report.metrics.routing_top1_accuracy.value == 1.0
     assert report.metrics.routing_top3_accuracy.value == 1.0
+    assert report.thresholds_version == "2026-09-04.v1"
+    assert report.routing_thresholds.dataset_version == report.dataset_version
+    matrix = report.metrics.routing_confusion_matrix
+    assert matrix.total_cases == 96
+    assert sum(sum(row.values()) for row in matrix.rows.values()) == 96
+    for category in matrix.labels:
+        assert matrix.rows[category][category] == 12
+        assert (
+            sum(
+                count for predicted, count in matrix.rows[category].items() if predicted != category
+            )
+            == 0
+        )
     assert report.metrics.emergency_recall.value == 1.0
     assert report.metrics.emergency_false_positive_rate.value == 0.0
     assert report.metrics.pii_masking_recall.value == 1.0
@@ -158,6 +194,66 @@ def test_case_level_safety_failure_is_a_release_gate(
     assert "case_level_safety_failures" in {failure.gate for failure in failures}
 
 
+def test_per_category_accuracy_gate_catches_regression_hidden_by_overall_score(
+    evaluation_report: EvaluationReport,
+) -> None:
+    category = "road_damage"
+    regressed_by_category = dict(evaluation_report.metrics.routing_by_category)
+    regressed_by_category[category] = RoutingCategoryMetrics(
+        cases=12,
+        top1_accuracy=RatioMetric.from_counts(10, 12),
+        top3_accuracy=RatioMetric.from_counts(12, 12),
+    )
+    regressed_metrics = evaluation_report.metrics.model_copy(
+        update={"routing_by_category": regressed_by_category}
+    )
+
+    failures = build_gate_failures(
+        regressed_metrics,
+        evaluation_report.total_cases,
+        routing_thresholds=evaluation_report.routing_thresholds,
+    )
+
+    assert f"routing_{category}_top1_accuracy" in {failure.gate for failure in failures}
+    assert "routing_top1_accuracy" not in {failure.gate for failure in failures}
+
+
+def test_per_category_minimum_case_gate_prevents_silent_coverage_shrink(
+    evaluation_report: EvaluationReport,
+) -> None:
+    category = "park"
+    regressed_by_category = dict(evaluation_report.metrics.routing_by_category)
+    regressed_by_category[category] = RoutingCategoryMetrics(
+        cases=9,
+        top1_accuracy=RatioMetric.from_counts(9, 9),
+        top3_accuracy=RatioMetric.from_counts(9, 9),
+    )
+    regressed_metrics = evaluation_report.metrics.model_copy(
+        update={"routing_by_category": regressed_by_category}
+    )
+
+    failures = build_gate_failures(
+        regressed_metrics,
+        evaluation_report.total_cases,
+        routing_thresholds=evaluation_report.routing_thresholds,
+    )
+
+    assert f"routing_{category}_minimum_cases" in {failure.gate for failure in failures}
+
+
+def test_markdown_report_contains_category_gates_and_confusion_matrix(
+    evaluation_report: EvaluationReport,
+) -> None:
+    markdown = format_markdown(evaluation_report)
+
+    assert "# Offline evaluation report" in markdown
+    assert "## Routing category gates" in markdown
+    assert "## Routing confusion matrix" in markdown
+    assert "Rows are expected categories; columns are predicted categories." in markdown
+    assert "`road_damage`" in markdown
+    assert "| Emergency recall | 100.0% |" in markdown
+
+
 def test_cli_returns_nonzero_for_a_failed_gate(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -169,7 +265,20 @@ def test_cli_returns_nonzero_for_a_failed_gate(
             "passed": False,
         }
     )
-    monkeypatch.setattr("evals.run.evaluate", lambda _: failed_report)
+    monkeypatch.setattr("evals.run.evaluate", lambda *_: failed_report)
 
     assert main([]) == 1
     assert '"passed": false' in capsys.readouterr().out
+
+
+def test_cli_can_render_markdown_report(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    evaluation_report: EvaluationReport,
+) -> None:
+    monkeypatch.setattr("evals.run.evaluate", lambda *_: evaluation_report)
+
+    assert main(["--format", "markdown"]) == 0
+    output = capsys.readouterr().out
+    assert "## Routing category gates" in output
+    assert "## Routing confusion matrix" in output

@@ -1,0 +1,46 @@
+{
+  "thresholds_version": "2026-09-04.v1",
+  "dataset_version": "2026-09-03.v1",
+  "categories": {
+    "other": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 0.9,
+      "minimum_top3_accuracy": 1.0
+    },
+    "park": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 0.9,
+      "minimum_top3_accuracy": 1.0
+    },
+    "road_damage": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 0.9,
+      "minimum_top3_accuracy": 1.0
+    },
+    "streetlight": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 0.9,
+      "minimum_top3_accuracy": 1.0
+    },
+    "traffic": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 0.9,
+      "minimum_top3_accuracy": 1.0
+    },
+    "waste": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 0.9,
+      "minimum_top3_accuracy": 1.0
+    },
+    "water_sewer": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 0.9,
+      "minimum_top3_accuracy": 1.0
+    },
+    "welfare": {
+      "minimum_cases": 10,
+      "minimum_top1_accuracy": 1.0,
+      "minimum_top3_accuracy": 1.0
+    }
+  }
+}

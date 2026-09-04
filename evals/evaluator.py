@@ -18,7 +18,12 @@ from app.services.emergency import detect_emergency
 from app.services.knowledge import KnowledgeRetriever
 from app.services.pii import redact_pii
 from app.services.pipeline import ComplaintPipeline
-from evals.loader import DEFAULT_FIXTURES_DIR, load_suite
+from evals.loader import (
+    DEFAULT_FIXTURES_DIR,
+    DEFAULT_THRESHOLDS_PATH,
+    load_routing_thresholds,
+    load_suite,
+)
 from evals.models import (
     AbstentionCase,
     CaseFailure,
@@ -29,6 +34,8 @@ from evals.models import (
     RatioMetric,
     RoutingCase,
     RoutingCategoryMetrics,
+    RoutingConfusionMatrix,
+    RoutingThresholdConfig,
     UrgencyCase,
 )
 
@@ -104,10 +111,20 @@ def ranked_routing_hits(
 
 def _evaluate_routing(
     cases: list[RoutingCase], classifier: RuleBasedClassifier
-) -> tuple[RatioMetric, RatioMetric, dict[str, RoutingCategoryMetrics], list[CaseFailure]]:
+) -> tuple[
+    RatioMetric,
+    RatioMetric,
+    dict[str, RoutingCategoryMetrics],
+    RoutingConfusionMatrix,
+    list[CaseFailure],
+]:
     top1_hits = 0
     top3_hits = 0
     category_counts: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0, 0])
+    confusion_counts: defaultdict[str, defaultdict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    predicted_categories: set[str] = set()
     failures: list[CaseFailure] = []
 
     for case in cases:
@@ -124,6 +141,8 @@ def _evaluate_routing(
         counts[0] += 1
         counts[1] += int(top1_hit)
         counts[2] += int(top3_hit)
+        confusion_counts[case.expected_category][result.category] += 1
+        predicted_categories.add(result.category)
 
         if not top1_hit:
             failures.append(
@@ -164,10 +183,20 @@ def _evaluate_routing(
         )
         for category, counts in sorted(category_counts.items())
     }
+    labels = sorted(set(category_counts) | predicted_categories)
+    confusion_matrix = RoutingConfusionMatrix(
+        labels=labels,
+        rows={
+            expected: {predicted: confusion_counts[expected][predicted] for predicted in labels}
+            for expected in labels
+        },
+        total_cases=len(cases),
+    )
     return (
         RatioMetric.from_counts(top1_hits, len(cases)),
         RatioMetric.from_counts(top3_hits, len(cases)),
         by_category,
+        confusion_matrix,
         failures,
     )
 
@@ -386,8 +415,10 @@ def build_gate_failures(
     metrics: EvaluationMetrics,
     total_cases: int,
     case_failures: Sequence[CaseFailure] = (),
+    routing_thresholds: RoutingThresholdConfig | None = None,
 ) -> list[GateFailure]:
     gates: list[GateFailure] = []
+    effective_routing_thresholds = routing_thresholds or load_routing_thresholds()
 
     def minimum(name: str, actual: float, expected: float) -> None:
         if actual < expected:
@@ -411,6 +442,35 @@ def build_gate_failures(
         )
     minimum("routing_top1_accuracy", metrics.routing_top1_accuracy.value, MINIMUM_ROUTING_TOP1)
     minimum("routing_top3_accuracy", metrics.routing_top3_accuracy.value, MINIMUM_ROUTING_TOP3)
+    for category, threshold in sorted(effective_routing_thresholds.categories.items()):
+        category_metrics = metrics.routing_by_category.get(category)
+        if category_metrics is None:
+            gates.append(
+                GateFailure(
+                    gate=f"routing_{category}_metrics_present",
+                    expected="present",
+                    actual="missing",
+                )
+            )
+            continue
+        if category_metrics.cases < threshold.minimum_cases:
+            gates.append(
+                GateFailure(
+                    gate=f"routing_{category}_minimum_cases",
+                    expected=f">= {threshold.minimum_cases}",
+                    actual=str(category_metrics.cases),
+                )
+            )
+        minimum(
+            f"routing_{category}_top1_accuracy",
+            category_metrics.top1_accuracy.value,
+            threshold.minimum_top1_accuracy,
+        )
+        minimum(
+            f"routing_{category}_top3_accuracy",
+            category_metrics.top3_accuracy.value,
+            threshold.minimum_top3_accuracy,
+        )
     minimum("emergency_recall", metrics.emergency_recall.value, 1.0)
     maximum(
         "emergency_false_positive_rate",
@@ -448,14 +508,31 @@ def build_gate_failures(
     return gates
 
 
-def evaluate(fixtures_dir: Path = DEFAULT_FIXTURES_DIR) -> EvaluationReport:
+def evaluate(
+    fixtures_dir: Path = DEFAULT_FIXTURES_DIR,
+    thresholds_path: Path = DEFAULT_THRESHOLDS_PATH,
+) -> EvaluationReport:
     suite = load_suite(fixtures_dir)
+    routing_thresholds = load_routing_thresholds(thresholds_path)
+    expected_categories = {case.expected_category for case in suite.routing}
+    configured_categories = set(routing_thresholds.categories)
+    if configured_categories != expected_categories:
+        missing = sorted(expected_categories - configured_categories)
+        unexpected = sorted(configured_categories - expected_categories)
+        raise ValueError(
+            "Routing threshold categories must exactly match the dataset; "
+            f"missing={missing}, unexpected={unexpected}"
+        )
     failures: list[CaseFailure] = []
 
     with EvaluationRuntime() as runtime:
-        routing_top1, routing_top3, routing_by_category, routing_failures = _evaluate_routing(
-            suite.routing, runtime.classifier
-        )
+        (
+            routing_top1,
+            routing_top3,
+            routing_by_category,
+            routing_confusion_matrix,
+            routing_failures,
+        ) = _evaluate_routing(suite.routing, runtime.classifier)
         failures.extend(routing_failures)
 
         (
@@ -484,6 +561,7 @@ def evaluate(fixtures_dir: Path = DEFAULT_FIXTURES_DIR) -> EvaluationReport:
         routing_top1_accuracy=routing_top1,
         routing_top3_accuracy=routing_top3,
         routing_by_category=routing_by_category,
+        routing_confusion_matrix=routing_confusion_matrix,
         emergency_recall=emergency_recall,
         emergency_false_positive_rate=emergency_false_positive_rate,
         pii_masking_recall=pii_recall,
@@ -495,9 +573,15 @@ def evaluate(fixtures_dir: Path = DEFAULT_FIXTURES_DIR) -> EvaluationReport:
         urgent_not_reviewed_count=urgent_not_reviewed,
         unaudited_processing_count=urgency_unaudited + abstention_unaudited,
     )
-    gate_failures = build_gate_failures(metrics, suite.total_cases, failures)
+    gate_failures = build_gate_failures(
+        metrics,
+        suite.total_cases,
+        failures,
+        routing_thresholds,
+    )
     return EvaluationReport(
         dataset_version=suite.routing[0].dataset_version,
+        thresholds_version=routing_thresholds.thresholds_version,
         provider="rules",
         case_counts={
             "routing": len(suite.routing),
@@ -507,6 +591,7 @@ def evaluate(fixtures_dir: Path = DEFAULT_FIXTURES_DIR) -> EvaluationReport:
         },
         total_cases=suite.total_cases,
         metrics=metrics,
+        routing_thresholds=routing_thresholds,
         failures=failures,
         gate_failures=gate_failures,
         passed=not gate_failures,

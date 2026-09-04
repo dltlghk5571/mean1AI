@@ -16,7 +16,7 @@
 
 - [x] Create a versioned, de-identified evaluation dataset with at least 200 examples
 - [x] Add top-1/top-3 routing, urgent recall, PII recall, and abstention metrics
-- [ ] Add per-category thresholds and confusion reports
+- [x] Add per-category thresholds and confusion reports
 - [x] Prevent a deployment when safety-regression gates fail
 
 ## M2 — Better routing and duplicate detection
