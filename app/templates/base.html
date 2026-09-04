@@ -7,7 +7,7 @@
   <meta name="description" content="사람이 최종 판단하는 성남 생활민원 분류 데모">
   <title>{% block title %}성남 민원 업무지원 — 시연{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}?v=20260904-ui">
   <script defer src="{{ url_for('static', path='/app.js') }}"></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -114,7 +114,7 @@
           </div>
         </div>
         <div class="topbar-actions">
-          <span class="engine-pill"><i></i> 분류 방식: 규칙 기반</span>
+          <span class="engine-pill"><i></i> 로컬 안전모드</span>
           {% if current_user.can_write %}
             <a class="topbar-new" href="/#new-complaint">
               <span aria-hidden="true">＋</span> 민원 접수
@@ -127,7 +127,7 @@
 
       <div class="demo-banner" role="note">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 21 20H3zM12 9v4M12 16.5h.01"/></svg>
-        <p><strong>시연용 시스템</strong> 실제 성남시·국민신문고와 연결되지 않으며, 표시되는 부서와 지침은 데모 데이터입니다.</p>
+        <p><strong>시연 환경</strong> 합성 데이터만 사용하며 실제 성남시·국민신문고에는 저장·전송되지 않습니다.</p>
       </div>
 
       <main id="main-content" class="page-shell">
