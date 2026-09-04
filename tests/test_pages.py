@@ -66,3 +66,37 @@ def test_review_queue_filter_only_shows_human_review_cases(client: TestClient) -
     assert "검토 대기 민원" in response.text
     assert review_title in response.text
     assert assigned_title not in response.text
+
+
+def test_detail_page_explains_local_duplicate_candidates(client: TestClient) -> None:
+    earlier_title = "가상 같은 장소 첫 도로 신고"
+    earlier = client.post(
+        "/api/v1/complaints",
+        json={
+            "title": earlier_title,
+            "content": "보도블록이 들떠 있어 시설 점검을 요청합니다.",
+            "location_text": "가상 화면시험동 7번 지점",
+            "channel": "web",
+        },
+    ).json()
+    current = client.post(
+        "/api/v1/complaints",
+        json={
+            "title": "가상 같은 장소 두 번째 도로 신고",
+            "content": "아스팔트 도로 파임이 있어 보행이 불편합니다.",
+            "location_text": "가상 화면시험동, 7번 지점",
+            "channel": "web",
+        },
+    ).json()
+
+    response = client.get(f"/complaints/{current['id']}")
+
+    assert response.status_code == 200
+    assert "위치 확인 및 유사 민원 후보" in response.text
+    assert "외부 지도 없이" in response.text
+    assert "자동 병합·자동 종결 없음" in response.text
+    assert "정규화 위치 일치" in response.text
+    assert earlier_title in response.text
+    assert f"/complaints/{earlier['id']}" in response.text
+    assert "중복 후보로 확인" in response.text
+    assert "서로 다른 민원" in response.text

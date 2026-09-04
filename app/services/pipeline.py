@@ -16,6 +16,7 @@ from app.schemas import (
 from app.services.audit import record_audit
 from app.services.classifier import Classifier, ClassifierError, DepartmentCatalog
 from app.services.draft import GroundedTemplateDrafter
+from app.services.duplicates import refresh_duplicate_candidates, sync_location_review
 from app.services.emergency import detect_emergency
 from app.services.knowledge import KnowledgeRetriever
 from app.services.pii import redact_pii
@@ -229,3 +230,5 @@ class ComplaintPipeline:
             actor_type="system",
             details=audit_details,
         )
+        sync_location_review(db, complaint)
+        refresh_duplicate_candidates(db, complaint)

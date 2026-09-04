@@ -4,7 +4,17 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -91,3 +101,56 @@ class AuditEvent(Base):
     details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
 
     complaint: Mapped[Complaint] = relationship(back_populates="audit_events")
+
+
+class ComplaintLocationReview(Base):
+    __tablename__ = "complaint_location_reviews"
+
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("complaints.id", ondelete="CASCADE"), primary_key=True
+    )
+    normalized_location_text: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    normalization_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(24), nullable=False, default="unconfirmed", index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now
+    )
+    confirmed_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class DuplicateCandidate(Base):
+    __tablename__ = "duplicate_candidates"
+    __table_args__ = (
+        UniqueConstraint(
+            "complaint_id",
+            "candidate_complaint_id",
+            name="uq_duplicate_candidate_pair",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("complaints.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    candidate_complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("complaints.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    total_score: Mapped[float] = mapped_column(Float, nullable=False)
+    category_score: Mapped[float] = mapped_column(Float, nullable=False)
+    location_score: Mapped[float] = mapped_column(Float, nullable=False)
+    time_score: Mapped[float] = mapped_column(Float, nullable=False)
+    text_score: Mapped[float] = mapped_column(Float, nullable=False)
+    evidence: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    scoring_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="suggested", index=True)
+    reviewed_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -22,8 +22,10 @@
 ## M2 — Better routing and duplicate detection
 
 - [ ] Import a versioned department/work-assignment catalog
-- [ ] Add district/jurisdiction rules and location confirmation
-- [ ] Add text + distance + time duplicate scoring
+- [x] Add local location normalization and human confirmation
+- [ ] Add district/jurisdiction rules and an approved coordinate source
+- [x] Add text + normalized-location + time duplicate-candidate scoring
+- [ ] Add coordinate-distance scoring after privacy and source review
 - [ ] Introduce a queue for expensive AI calls
 
 ## M3 — RAG and officer console

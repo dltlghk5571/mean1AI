@@ -42,7 +42,13 @@ def test_create_streetlight_complaint_redacts_and_auto_routes(client: TestClient
     detail = client.get(f"/api/v1/complaints/{body['id']}")
     assert detail.status_code == 200
     actions = [event["action"] for event in detail.json()["audit_events"]]
-    assert actions == ["complaint_received", "pii_redacted", "triage_completed"]
+    assert actions == [
+        "complaint_received",
+        "pii_redacted",
+        "triage_completed",
+        "location_normalized",
+        "duplicate_candidates_scored",
+    ]
 
 
 def test_sensitive_welfare_case_never_auto_routes(client: TestClient) -> None:

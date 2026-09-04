@@ -6,8 +6,18 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Complaint, Department
-from app.schemas import Channel, ComplaintApproval, ComplaintCreate
+from app.models import Complaint, ComplaintLocationReview, Department
+from app.schemas import (
+    Channel,
+    ComplaintApproval,
+    ComplaintCreate,
+    DuplicateDecision,
+)
+from app.services.duplicates import (
+    confirm_location,
+    decide_duplicate_candidate,
+    list_duplicate_candidates,
+)
 from app.services.pipeline import ComplaintPipeline
 
 router = APIRouter(include_in_schema=False)
@@ -48,6 +58,11 @@ AUDIT_LABELS = {
     "complaint_received": "민원 접수",
     "pii_redacted": "개인정보 비식별",
     "triage_completed": "자동 분류 완료",
+    "location_normalized": "위치 문구 정규화",
+    "location_confirmed": "담당자 위치 확인",
+    "duplicate_candidates_scored": "유사 민원 후보 조회",
+    "duplicate_candidate_confirmed": "중복 후보 확인",
+    "duplicate_candidate_rejected": "중복 후보 제외",
     "human_review_approved": "담당자 검토 완료",
 }
 
@@ -137,6 +152,8 @@ def submit_complaint(
 @router.get("/complaints/{complaint_id}", response_class=HTMLResponse)
 def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTMLResponse:
     complaint = _get_complaint(db, complaint_id)
+    location_review = db.get(ComplaintLocationReview, complaint_id)
+    duplicate_candidates = list_duplicate_candidates(db, complaint_id)
     departments = list(
         db.scalars(
             select(Department).where(Department.active.is_(True)).order_by(Department.name)
@@ -148,6 +165,8 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
         name="complaint_detail.html",
         context={
             "complaint": complaint,
+            "location_review": location_review,
+            "duplicate_candidates": duplicate_candidates,
             "departments": departments,
             "department_map": department_map,
             "status_labels": STATUS_LABELS,
@@ -191,3 +210,41 @@ def reprocess_complaint_form(
     complaint = _get_complaint(db, complaint_id)
     _get_pipeline(request).reprocess(db, complaint)
     return RedirectResponse(url=f"/complaints/{complaint_id}", status_code=303)
+
+
+@router.post("/complaints/{complaint_id}/location/confirm")
+def confirm_complaint_location_form(
+    complaint_id: str,
+    db: DbSession,
+    actor_id: Annotated[str, Form(min_length=1, max_length=120)],
+) -> RedirectResponse:
+    complaint = _get_complaint(db, complaint_id)
+    try:
+        confirm_location(db, complaint, actor_id=actor_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    db.commit()
+    return RedirectResponse(url=f"/complaints/{complaint_id}#duplicate-review", status_code=303)
+
+
+@router.post("/complaints/{complaint_id}/duplicate-candidates/{candidate_complaint_id}/decision")
+def review_duplicate_candidate_form(
+    complaint_id: str,
+    candidate_complaint_id: str,
+    db: DbSession,
+    decision: Annotated[DuplicateDecision, Form()],
+    actor_id: Annotated[str, Form(min_length=1, max_length=120)],
+) -> RedirectResponse:
+    complaint = _get_complaint(db, complaint_id)
+    try:
+        decide_duplicate_candidate(
+            db,
+            complaint,
+            candidate_complaint_id=candidate_complaint_id,
+            decision=decision,
+            actor_id=actor_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    db.commit()
+    return RedirectResponse(url=f"/complaints/{complaint_id}#duplicate-review", status_code=303)

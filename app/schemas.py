@@ -86,6 +86,59 @@ class ComplaintApproval(BaseModel):
     actor_id: str = Field(min_length=1, max_length=120)
 
 
+class LocationConfirmation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actor_id: str = Field(min_length=1, max_length=120)
+
+
+class LocationReviewRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    normalized_location_text: str | None
+    normalization_version: str
+    status: str
+    confirmed_by: str | None
+    confirmed_at: datetime | None
+
+
+class DuplicateDecision(StrEnum):
+    CONFIRMED = "confirmed"
+    REJECTED = "rejected"
+
+
+class DuplicateDecisionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    decision: DuplicateDecision
+    actor_id: str = Field(min_length=1, max_length=120)
+
+
+class DuplicateScoreBreakdown(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    category: float = Field(ge=0.0, le=1.0)
+    location: float = Field(ge=0.0, le=1.0)
+    time: float = Field(ge=0.0, le=1.0)
+    text: float = Field(ge=0.0, le=1.0)
+
+
+class DuplicateCandidateRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    candidate_complaint_id: str
+    redacted_title: str
+    redacted_location_text: str | None
+    category: str | None
+    created_at: datetime
+    total_score: float = Field(ge=0.0, le=1.0)
+    score_breakdown: DuplicateScoreBreakdown
+    evidence: list[str]
+    review_status: str
+    reviewed_by: str | None
+    reviewed_at: datetime | None
+
+
 class DepartmentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

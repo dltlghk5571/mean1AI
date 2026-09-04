@@ -5,8 +5,22 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Complaint
-from app.schemas import ComplaintApproval, ComplaintCreate, ComplaintDetail, ComplaintRead
+from app.models import Complaint, ComplaintLocationReview
+from app.schemas import (
+    ComplaintApproval,
+    ComplaintCreate,
+    ComplaintDetail,
+    ComplaintRead,
+    DuplicateCandidateRead,
+    DuplicateDecisionRequest,
+    LocationConfirmation,
+    LocationReviewRead,
+)
+from app.services.duplicates import (
+    confirm_location,
+    decide_duplicate_candidate,
+    list_duplicate_candidates,
+)
 from app.services.pipeline import ComplaintPipeline
 
 router = APIRouter(prefix="/api/v1/complaints", tags=["complaints"])
@@ -48,6 +62,69 @@ def list_complaints(db: DbSession, limit: int = 50) -> list[Complaint]:
 @router.get("/{complaint_id}", response_model=ComplaintDetail)
 def get_complaint(complaint_id: str, db: DbSession) -> Complaint:
     return _get_complaint(db, complaint_id)
+
+
+@router.get("/{complaint_id}/location", response_model=LocationReviewRead)
+def get_location_review(complaint_id: str, db: DbSession) -> ComplaintLocationReview:
+    _get_complaint(db, complaint_id)
+    location_review = db.get(ComplaintLocationReview, complaint_id)
+    if location_review is None:
+        raise HTTPException(
+            status_code=404, detail="Location review not found; reprocess complaint"
+        )
+    return location_review
+
+
+@router.post("/{complaint_id}/location/confirm", response_model=LocationReviewRead)
+def confirm_complaint_location(
+    complaint_id: str,
+    payload: LocationConfirmation,
+    db: DbSession,
+) -> ComplaintLocationReview:
+    complaint = _get_complaint(db, complaint_id)
+    try:
+        location_review = confirm_location(db, complaint, actor_id=payload.actor_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    db.commit()
+    db.refresh(location_review)
+    return location_review
+
+
+@router.get("/{complaint_id}/duplicate-candidates", response_model=list[DuplicateCandidateRead])
+def get_duplicate_candidates(complaint_id: str, db: DbSession) -> list[DuplicateCandidateRead]:
+    _get_complaint(db, complaint_id)
+    return list_duplicate_candidates(db, complaint_id)
+
+
+@router.post(
+    "/{complaint_id}/duplicate-candidates/{candidate_complaint_id}/decision",
+    response_model=DuplicateCandidateRead,
+)
+def review_duplicate_candidate(
+    complaint_id: str,
+    candidate_complaint_id: str,
+    payload: DuplicateDecisionRequest,
+    db: DbSession,
+) -> DuplicateCandidateRead:
+    complaint = _get_complaint(db, complaint_id)
+    try:
+        decide_duplicate_candidate(
+            db,
+            complaint,
+            candidate_complaint_id=candidate_complaint_id,
+            decision=payload.decision,
+            actor_id=payload.actor_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    db.commit()
+    candidates = list_duplicate_candidates(db, complaint_id)
+    return next(
+        candidate
+        for candidate in candidates
+        if candidate.candidate_complaint_id == candidate_complaint_id
+    )
 
 
 @router.post("/{complaint_id}/reprocess", response_model=ComplaintRead)
