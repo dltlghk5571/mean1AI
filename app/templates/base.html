@@ -4,38 +4,136 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>{% block title %}성남 민원 AI 코파일럿 — 데모{% endblock %}</title>
+  <meta name="description" content="사람이 최종 판단하는 성남 생활민원 분류 데모">
+  <title>{% block title %}성남 민원 업무지원 — 시연{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
   <script defer src="{{ url_for('static', path='/app.js') }}"></script>
 </head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="/">
-      <span class="brand-mark" aria-hidden="true">S</span>
-      <span>
-        <strong>성남 민원 AI 코파일럿</strong>
-        <small>Human-in-the-loop prototype</small>
-      </span>
-    </a>
-    <nav aria-label="주요 메뉴">
-      <a href="/">민원 접수</a>
-      <a href="/docs">API 문서</a>
-      <a href="/health">상태</a>
-    </nav>
-  </header>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#main-content">본문으로 바로가기</a>
 
-  <main class="page-shell">
-    <aside class="demo-banner" role="note">
-      <strong>시연용 시스템</strong>
-      실제 성남시·국민신문고와 연결되어 있지 않습니다. 부서와 지침은 데모 데이터이며,
-      접수·배정·답변은 행정 처리 효력이 없습니다.
+  <div class="app-layout">
+    <aside class="sidebar" id="app-sidebar" aria-label="민원 업무 메뉴">
+      <a class="brand" href="/" aria-label="성남 민원 업무지원 홈">
+        <span class="brand-mark" aria-hidden="true">SN</span>
+        <span class="brand-copy">
+          <strong>성남 민원 업무지원</strong>
+          <small>시연 환경</small>
+        </span>
+      </a>
+
+      <nav class="side-nav" aria-label="민원 대기열">
+        <p class="nav-label">민원 업무</p>
+        <a href="/" class="{{ 'is-active' if active_filter|default('') == 'all' else '' }}">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 5.5h6v6H4zM14 5.5h6v6h-6zM4 15.5h6v3H4zM14 15.5h6v3h-6z"/>
+          </svg>
+          <span>업무 홈</span>
+        </a>
+        <a href="/?status=review#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'review' else '' }}">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 3.5h9l3 3V20.5H6zM9 10h6M9 14h6"/>
+          </svg>
+          <span>검토 대기</span>
+          {% if stats is defined and stats.review %}<b class="nav-count">{{ stats.review }}</b>{% endif %}
+        </a>
+        <a href="/?status=urgent#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'urgent' else '' }}">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3.5 21 20H3zM12 9v4.5M12 17h.01"/>
+          </svg>
+          <span>긴급 확인</span>
+          {% if stats is defined and stats.urgent %}<b class="nav-count nav-count-danger">{{ stats.urgent }}</b>{% endif %}
+        </a>
+        <a href="/?status=assigned#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'assigned' else '' }}">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7.5h16v11H4zM8 7.5V5h8v2.5M4 12h16"/>
+          </svg>
+          <span>배정 완료</span>
+        </a>
+        <a href="/?status=reviewed#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'reviewed' else '' }}">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12.5 9.5 17 19 7.5"/>
+          </svg>
+          <span>검토 완료</span>
+        </a>
+
+        <p class="nav-label nav-label-secondary">시스템</p>
+        <a href="/docs" target="_blank" rel="noreferrer">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 4.5h14v15H5zM8.5 8h7M8.5 12h7M8.5 16h4"/>
+          </svg>
+          <span>API 문서</span>
+          <span class="external-mark" aria-hidden="true">↗</span>
+        </a>
+        <a href="/health" target="_blank" rel="noreferrer">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3.5 12h4l2-5 4 10 2-5h5"/>
+          </svg>
+          <span>시스템 상태</span>
+          <span class="external-mark" aria-hidden="true">↗</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <section class="safety-card" aria-label="안전 운영 모드">
+        <span class="safety-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3 19 6v5.5c0 4.5-3 7.5-7 9.5-4-2-7-5-7-9.5V6zM9 12l2 2 4-4"/></svg>
+        </span>
+        <div>
+          <strong>안전 운영 모드</strong>
+          <p>자동 종결·외부 발송 없음</p>
+        </div>
+      </section>
+      <div class="officer-card">
+        <span class="avatar" aria-hidden="true">담</span>
+        <span><strong>데모 담당자</strong><small>로컬 환경</small></span>
+        <span class="presence-dot" title="로컬 시스템 정상"></span>
+      </div>
     </aside>
-    {% block content %}{% endblock %}
-  </main>
 
-  <footer>
-    <span>성남 민원 AI 코파일럿 MVP</span>
-    <span>자동 종결·자동 처분 없음 · 담당자 승인 필수</span>
-  </footer>
+    <button class="sidebar-scrim" type="button" data-sidebar-close aria-label="메뉴 닫기"></button>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-button" type="button" data-sidebar-toggle
+                  aria-controls="app-sidebar" aria-expanded="false" aria-label="메뉴 열기">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <div class="topbar-copy">
+            <span>{% block topbar_title %}민원 처리 지원{% endblock %}</span>
+            <small>{% block topbar_subtitle %}접수·분류·검토 현황{% endblock %}</small>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="engine-pill"><i></i> 분류 방식: 규칙 기반</span>
+          <a class="topbar-new" href="/#new-complaint">
+            <span aria-hidden="true">＋</span> 민원 접수
+          </a>
+        </div>
+      </header>
+
+      <div class="demo-banner" role="note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 21 20H3zM12 9v4M12 16.5h.01"/></svg>
+        <p><strong>시연용 시스템</strong> 실제 성남시·국민신문고와 연결되지 않으며, 표시되는 부서와 지침은 데모 데이터입니다.</p>
+      </div>
+
+      <main id="main-content" class="page-shell">
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="site-footer">
+        <span>성남 민원 업무지원 시연 화면</span>
+        <span>개인정보 선 비식별 · 사람의 최종 판단 · 모든 처리 이력 기록</span>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>

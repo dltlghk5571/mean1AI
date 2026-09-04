@@ -5,8 +5,13 @@ def test_home_page_loads(client: TestClient) -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "성남 민원 AI 코파일럿" in response.text
+    assert "성남 민원 업무지원" in response.text
     assert "시연용 시스템" in response.text
+    assert "민원 처리 현황" in response.text
+    assert "처리 원칙" in response.text
+    assert "data-open-intake" in response.text
+    assert "분류 방식: 규칙 기반" in response.text
+    assert "외부 시스템 연결 없음" in response.text
 
 
 def test_html_flow_does_not_render_raw_phone(client: TestClient) -> None:
@@ -16,7 +21,7 @@ def test_html_flow_does_not_render_raw_phone(client: TestClient) -> None:
         data={
             "title": f"가로등 문의 {phone}",
             "content": f"가로등 불이 꺼졌습니다. {phone}",
-            "location_text": "정자동 데모 위치",
+            "location_text": "가상 시험동 데모 위치",
             "channel": "web",
         },
         follow_redirects=True,
@@ -26,3 +31,38 @@ def test_html_flow_does_not_render_raw_phone(client: TestClient) -> None:
     assert phone not in response.text
     assert "[전화번호]" in response.text
     assert "담당자 검토·승인" in response.text
+    assert "외부 발송 없음" in response.text
+    assert "data-preview-draft" in response.text
+    assert "data-confirm-approval" in response.text
+    assert "[답변 초안 — 담당자 검토 및 수정 필요]" in response.text
+    assert "REDACTED INTAKE" not in response.text
+
+
+def test_review_queue_filter_only_shows_human_review_cases(client: TestClient) -> None:
+    assigned_title = "자동 배정 전용 가로등 사례"
+    review_title = "사람 검토 전용 복지 사례"
+    client.post(
+        "/submit",
+        data={
+            "title": assigned_title,
+            "content": "가로등 조명이 모두 불이 꺼져 있습니다.",
+            "location_text": "가상 시험동 1번 위치",
+            "channel": "web",
+        },
+    )
+    client.post(
+        "/submit",
+        data={
+            "title": review_title,
+            "content": "기초생활 복지 지원 대상인지 검토해 주세요.",
+            "location_text": "",
+            "channel": "web",
+        },
+    )
+
+    response = client.get("/?status=review")
+
+    assert response.status_code == 200
+    assert "검토 대기 민원" in response.text
+    assert review_title in response.text
+    assert assigned_title not in response.text

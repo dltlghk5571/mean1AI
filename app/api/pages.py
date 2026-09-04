@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
@@ -12,6 +12,51 @@ from app.services.pipeline import ComplaintPipeline
 
 router = APIRouter(include_in_schema=False)
 DbSession = Annotated[Session, Depends(get_db)]
+
+STATUS_LABELS = {
+    "received": "접수됨",
+    "needs_review": "검토 대기",
+    "urgent_review": "긴급 검토",
+    "assigned": "배정 완료",
+    "reviewed": "검토 완료",
+}
+URGENCY_LABELS = {"normal": "일반", "high": "높음", "critical": "긴급"}
+CHANNEL_LABELS = {
+    "web": "시민 웹",
+    "sms": "문자 데모",
+    "call_center": "콜센터 데모",
+    "national_portal": "국민신문고 데모",
+    "other": "기타",
+}
+CATEGORY_LABELS = {
+    "streetlight": "가로등·보안등",
+    "road_damage": "도로·보도",
+    "waste": "청소·폐기물",
+    "park": "공원·녹지",
+    "traffic": "교통",
+    "water_sewer": "상하수도",
+    "welfare": "복지",
+    "other": "소관 확인",
+}
+PII_LABELS = {
+    "resident_registration_number": "주민등록번호",
+    "mobile_phone": "휴대전화번호",
+    "landline_phone": "유선전화번호",
+    "email": "이메일",
+}
+AUDIT_LABELS = {
+    "complaint_received": "민원 접수",
+    "pii_redacted": "개인정보 비식별",
+    "triage_completed": "자동 분류 완료",
+    "human_review_approved": "담당자 검토 완료",
+}
+
+QUEUE_FILTERS: dict[str, tuple[str, ...]] = {
+    "review": ("needs_review", "urgent_review"),
+    "urgent": ("urgent_review",),
+    "assigned": ("assigned",),
+    "reviewed": ("reviewed",),
+}
 
 
 def _get_pipeline(request: Request) -> ComplaintPipeline:
@@ -30,14 +75,43 @@ def _get_complaint(db: Session, complaint_id: str) -> Complaint:
 
 
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request, db: DbSession) -> HTMLResponse:
-    complaints = list(
-        db.scalars(select(Complaint).order_by(Complaint.created_at.desc()).limit(12)).all()
-    )
+def index(
+    request: Request,
+    db: DbSession,
+    status: str | None = None,
+) -> HTMLResponse:
+    active_filter = status if status in QUEUE_FILTERS else "all"
+    complaint_query = select(Complaint).order_by(Complaint.created_at.desc())
+    if active_filter != "all":
+        complaint_query = complaint_query.where(Complaint.status.in_(QUEUE_FILTERS[active_filter]))
+    complaints = list(db.scalars(complaint_query.limit(30)).all())
+
+    count_rows = db.execute(
+        select(Complaint.status, func.count(Complaint.id)).group_by(Complaint.status)
+    ).all()
+    status_counts = {row_status: int(count) for row_status, count in count_rows}
+    total_count = sum(status_counts.values())
+    review_count = status_counts.get("needs_review", 0) + status_counts.get("urgent_review", 0)
+
     return request.app.state.templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"complaints": complaints},
+        context={
+            "complaints": complaints,
+            "active_filter": active_filter,
+            "stats": {
+                "total": total_count,
+                "review": review_count,
+                "urgent": status_counts.get("urgent_review", 0),
+                "reviewed": status_counts.get("reviewed", 0),
+            },
+            "status_labels": STATUS_LABELS,
+            "channel_labels": CHANNEL_LABELS,
+            "category_labels": CATEGORY_LABELS,
+            "classifier_provider": getattr(
+                request.app.state.pipeline.classifier, "provider_name", "unknown"
+            ),
+        },
     )
 
 
@@ -76,6 +150,12 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
             "complaint": complaint,
             "departments": departments,
             "department_map": department_map,
+            "status_labels": STATUS_LABELS,
+            "urgency_labels": URGENCY_LABELS,
+            "channel_labels": CHANNEL_LABELS,
+            "category_labels": CATEGORY_LABELS,
+            "pii_labels": PII_LABELS,
+            "audit_labels": AUDIT_LABELS,
         },
     )
 

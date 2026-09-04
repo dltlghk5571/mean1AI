@@ -1,148 +1,279 @@
 {% extends "base.html" %}
 {% block title %}{{ complaint.redacted_title }} · 민원 검토{% endblock %}
+{% block body_class %}detail-page{% endblock %}
+{% block topbar_title %}민원 상세 검토{% endblock %}
+{% block topbar_subtitle %}분류 근거와 답변 초안을 확인합니다{% endblock %}
+
 {% block content %}
-<div class="detail-header">
-  <div>
-    <a class="back-link" href="/">← 접수 목록</a>
-    <p class="eyebrow">COMPLAINT REVIEW</p>
-    <h1>{{ complaint.redacted_title }}</h1>
-    <p class="mono">ID {{ complaint.id }}</p>
+<header class="detail-titlebar">
+  <div class="detail-breadcrumb">
+    <a href="/#complaint-queue">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+      민원 대기열
+    </a>
+    <span>/</span>
+    <b>#{{ complaint.id[:8] }}</b>
   </div>
-  <div class="detail-status">
-    <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
-    <span class="urgency urgency-{{ complaint.urgency }}">긴급도 {{ complaint.urgency }}</span>
+  <div class="detail-heading-row">
+    <div>
+      <div class="detail-kicker">
+        <span class="status-badge status-{{ complaint.status }}"><i></i>{{ status_labels.get(complaint.status, complaint.status) }}</span>
+        <span class="urgency-badge urgency-{{ complaint.urgency }}">긴급도 {{ urgency_labels.get(complaint.urgency, complaint.urgency) }}</span>
+        <span>{{ complaint.created_at.strftime('%Y.%m.%d %H:%M') }} 접수</span>
+      </div>
+      <h1>{{ complaint.redacted_title }}</h1>
+      <p>민원 ID <code>{{ complaint.id }}</code></p>
+    </div>
+    <div class="detail-heading-actions">
+      <form action="/complaints/{{ complaint.id }}/reprocess" method="post" data-reprocess-form>
+        <button class="button button-secondary" type="submit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8V4l-2 2a8 8 0 1 0 2.2 8M19 4h-4"/></svg>
+          다시 분석
+        </button>
+      </form>
+      <a class="button button-ghost" href="/docs" target="_blank" rel="noreferrer">API 보기 ↗</a>
+    </div>
   </div>
-</div>
+
+  <ol class="review-progress" aria-label="현재 처리 단계">
+    <li class="is-complete"><span>✓</span><div><strong>민원 접수</strong><small>원문 안전 저장</small></div></li>
+    <li class="is-complete"><span>✓</span><div><strong>자동 분류</strong><small>비식별·분류 완료</small></div></li>
+    <li class="{{ 'is-complete' if complaint.status == 'reviewed' else 'is-current' }}">
+      <span>{{ '✓' if complaint.status == 'reviewed' else '3' }}</span>
+      <div><strong>담당자 검토</strong><small>{{ '검토 기록 완료' if complaint.status == 'reviewed' else '현재 단계' }}</small></div>
+    </li>
+    <li class="is-locked"><span>4</span><div><strong>외부 처리</strong><small>프로토타입에서 비활성</small></div></li>
+  </ol>
+</header>
 
 {% if complaint.status == 'urgent_review' %}
-<section class="urgent-banner" role="alert">
-  <strong>긴급 안전 신호가 감지되었습니다.</strong>
-  이 데모는 긴급기관에 신고하지 않습니다. 실제 위험이 진행 중이면 이 화면에 의존하지 말고
-  112 또는 119 등 적절한 긴급 신고 경로를 이용해야 합니다.
-</section>
+  <section class="alert-banner alert-danger" role="alert">
+    <span class="alert-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 20H3zM12 9v4M12 17h.01"/></svg>
+    </span>
+    <div>
+      <strong>긴급 안전 신호가 감지되어 자동 배정을 차단했습니다.</strong>
+      <p>이 데모는 긴급기관에 신고하지 않습니다. 실제 위험이 진행 중이면 이 화면에 의존하지 말고 112 또는 119 등 적절한 긴급 신고 경로를 이용하세요.</p>
+    </div>
+  </section>
+{% elif complaint.status == 'reviewed' %}
+  <section class="alert-banner alert-success" role="status">
+    <span class="alert-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5"/></svg>
+    </span>
+    <div>
+      <strong>{{ complaint.reviewed_by }} 담당자가 내부 검토를 완료했습니다.</strong>
+      <p>이 상태 변경은 로컬 데모 DB에만 기록되었으며 답변은 외부로 발송되지 않았습니다.</p>
+    </div>
+  </section>
+{% elif complaint.requires_human_review %}
+  <section class="alert-banner alert-warning" role="status">
+    <span class="alert-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v8M12 16.5h.01M4 4.5h16v15H4z"/></svg>
+    </span>
+    <div>
+      <strong>사람 검토가 반드시 필요한 민원입니다.</strong>
+      <p>민감 분야, 정보 부족 또는 안전 정책이 자동 배정을 차단했습니다. 근거와 초안을 확인해 주세요.</p>
+    </div>
+  </section>
 {% endif %}
 
-<div class="detail-grid">
+<form id="review-form" action="/complaints/{{ complaint.id }}/approve" method="post" data-review-form></form>
+
+<div class="detail-workspace">
   <div class="detail-main">
-    <section class="panel detail-panel">
-      <div class="panel-heading">
+    <section class="content-card complaint-card">
+      <header class="card-heading">
         <div>
-          <p class="eyebrow">REDACTED INTAKE</p>
+          <p class="section-label">접수 내용</p>
           <h2>비식별 민원 내용</h2>
+          <p>직접 식별자를 제거한 뒤의 업무용 화면입니다.</p>
         </div>
-        <span class="tag">{{ complaint.channel }}</span>
-      </div>
-      <div class="complaint-copy">{{ complaint.redacted_content }}</div>
-      <dl class="info-grid">
-        <div><dt>발생 위치</dt><dd>{{ complaint.redacted_location_text or '입력되지 않음' }}</dd></div>
-        <div><dt>접수 시각</dt><dd>{{ complaint.created_at.strftime('%Y-%m-%d %H:%M') }}</dd></div>
-        <div><dt>감지된 개인정보</dt><dd>{{ complaint.pii_types|join(', ') if complaint.pii_types else '없음' }}</dd></div>
-        <div><dt>긴급 신호</dt><dd>{{ complaint.emergency_signals|join(', ') if complaint.emergency_signals else '없음' }}</dd></div>
+        <span class="privacy-chip">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5z"/></svg>
+          개인정보 보호 적용
+        </span>
+      </header>
+
+      <blockquote class="complaint-copy">{{ complaint.redacted_content }}</blockquote>
+
+      <dl class="intake-meta">
+        <div>
+          <dt><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11ZM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>발생 위치</dt>
+          <dd>{{ complaint.redacted_location_text or '입력되지 않음' }}</dd>
+        </div>
+        <div>
+          <dt><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 9l8 5 8-5"/></svg>접수 채널</dt>
+          <dd>{{ channel_labels.get(complaint.channel, complaint.channel) }}</dd>
+        </div>
+        <div>
+          <dt><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5.5c0 4.5-3 7.5-7 9.5-4-2-7-5-7-9.5V6z"/></svg>감지된 개인정보</dt>
+          <dd>
+            {% if complaint.pii_types %}
+              {% for pii_type in complaint.pii_types %}<span class="meta-token">{{ pii_labels.get(pii_type, pii_type) }}</span>{% endfor %}
+            {% else %}감지 없음{% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 20H3zM12 9v4"/></svg>긴급 신호</dt>
+          <dd>
+            {% if complaint.emergency_signals %}
+              {% for signal in complaint.emergency_signals %}<span class="meta-token token-danger">{{ signal }}</span>{% endfor %}
+            {% else %}감지 없음{% endif %}
+          </dd>
+        </div>
       </dl>
     </section>
 
-    <section class="panel detail-panel">
-      <div class="panel-heading">
+    <section class="content-card analysis-card">
+      <header class="card-heading">
         <div>
-          <p class="eyebrow">AI TRIAGE</p>
+          <p class="section-label">분류 결과</p>
           <h2>분류 및 배정 제안</h2>
+          <p>분류 규칙에 따른 제안이며 행정적 결정이 아닙니다.</p>
         </div>
-        <span class="confidence">{{ '%.0f'|format(complaint.routing_confidence * 100) }}%</span>
-      </div>
-      <div class="classification-summary">
-        <div><span>대분류</span><strong>{{ complaint.category or '-' }}</strong></div>
-        <div><span>세부분류</span><strong>{{ complaint.subcategory or '-' }}</strong></div>
-        <div><span>제공자</span><strong>{{ complaint.classifier_provider }}</strong></div>
-        <div><span>사람 검토</span><strong>{{ '필수' if complaint.requires_human_review else '정책상 선택' }}</strong></div>
-      </div>
-      <p class="evidence"><b>관찰 근거:</b> {{ complaint.classifier_evidence or '없음' }}</p>
+        <div class="confidence-value">
+          <strong>{{ '%.0f'|format(complaint.routing_confidence * 100) }}%</strong>
+          <small>분류 신뢰도</small>
+        </div>
+      </header>
 
-      <h3 class="section-subtitle">담당 후보</h3>
+      <div class="analysis-summary">
+        <div><span>민원 분야</span><strong>{{ category_labels.get(complaint.category, complaint.category or '분류 대기') }}</strong></div>
+        <div><span>세부 유형</span><strong>{{ complaint.subcategory or '소관 확인 필요' }}</strong></div>
+        <div><span>분류 방식</span><strong>{{ '규칙 기반' if complaint.classifier_provider == 'rules' else complaint.classifier_provider }}</strong></div>
+        <div><span>사람 검토</span><strong class="{{ 'text-warning' if complaint.requires_human_review else 'text-success' }}">{{ '필수' if complaint.requires_human_review else '완료 또는 선택' }}</strong></div>
+      </div>
+
+      <div class="evidence-box">
+        <span class="evidence-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a7 7 0 0 0-4 12.7V20h8v-3.8A7 7 0 0 0 12 3.5ZM9 20h6M9 12h6"/></svg></span>
+        <div><strong>분류 근거</strong><p>{{ complaint.classifier_evidence or '충분한 분류 근거를 찾지 못했습니다.' }}</p></div>
+      </div>
+
+      <div class="subsection-heading">
+        <div><h3>담당 업무 그룹 후보</h3><p>후보를 누르면 우측 최종 선택에 반영됩니다.</p></div>
+        <span>최대 {{ complaint.candidate_departments|length }}개 제안</span>
+      </div>
       <div class="candidate-list">
         {% for candidate in complaint.candidate_departments %}
           {% set department = department_map.get(candidate.department_id) %}
-          <article class="candidate-card">
-            <div>
+          <button class="candidate-card {{ 'is-recommended' if loop.first else '' }}" type="button"
+                  data-department-choice="{{ candidate.department_id }}">
+            <span class="candidate-rank">{{ loop.index }}</span>
+            <span class="candidate-copy">
               <strong>{{ department.name if department else candidate.department_id }}</strong>
-              <p>{{ candidate.reason }}</p>
-            </div>
-            <span>{{ '%.0f'|format(candidate.confidence * 100) }}%</span>
-          </article>
+              <small>{{ candidate.reason }}</small>
+            </span>
+            <span class="candidate-score"><strong>{{ '%.0f'|format(candidate.confidence * 100) }}%</strong><small>{{ '추천' if loop.first else '후보' }}</small></span>
+            <span class="candidate-select" aria-hidden="true">✓</span>
+          </button>
         {% endfor %}
       </div>
 
       {% if complaint.missing_information %}
         <div class="missing-box">
-          <strong>추가 확인 필요</strong>
-          <ul>{% for item in complaint.missing_information %}<li>{{ item }}</li>{% endfor %}</ul>
+          <span aria-hidden="true">!</span>
+          <div><strong>추가 확인이 필요합니다</strong><ul>{% for item in complaint.missing_information %}<li>{{ item }}</li>{% endfor %}</ul></div>
         </div>
       {% endif %}
     </section>
 
-    <section class="panel detail-panel">
-      <div class="panel-heading">
+    <section class="content-card draft-card">
+      <header class="card-heading">
         <div>
-          <p class="eyebrow">HUMAN APPROVAL</p>
-          <h2>담당자 검토·승인</h2>
+          <p class="section-label">답변 검토</p>
+          <h2>답변 초안 검토</h2>
+          <p>승인 전 반드시 사실관계와 표현을 직접 확인하세요.</p>
         </div>
-        {% if complaint.reviewed_by %}<span class="tag">검토자 {{ complaint.reviewed_by }}</span>{% endif %}
+        <span class="draft-label">시스템 작성 · 편집 가능</span>
+      </header>
+
+      <label class="field-group draft-field">
+        <span class="sr-only">답변 초안</span>
+        <textarea name="answer_draft" rows="13" required maxlength="20000" form="review-form"
+                  data-draft-input data-counted-input>{{ complaint.answer_draft|replace('[AI 작성 초안', '[답변 초안') }}</textarea>
+        <small class="field-help"><span>초안은 외부로 자동 발송되지 않습니다.</span><b data-character-count>0 / 20,000</b></small>
+      </label>
+      <div class="draft-tools">
+        <button class="button button-secondary" type="button" data-preview-draft>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+          시민 화면 미리보기
+        </button>
+        <span><i></i> 저장 시 감사 로그가 추가됩니다</span>
       </div>
-      <form class="review-form" action="/complaints/{{ complaint.id }}/approve" method="post">
-        <label>
-          <span>최종 데모 업무 그룹</span>
-          <select name="department_id" required>
-            {% set suggested = complaint.assigned_department_id or (complaint.candidate_departments[0].department_id if complaint.candidate_departments else '') %}
-            {% for department in departments %}
-              <option value="{{ department.id }}" {% if department.id == suggested %}selected{% endif %}>
-                {{ department.name }} — {{ department.id }}
-              </option>
-            {% endfor %}
-          </select>
-        </label>
-        <label>
-          <span>답변 초안</span>
-          <textarea name="answer_draft" rows="13" required>{{ complaint.answer_draft }}</textarea>
-          <small>승인은 데모 DB 상태만 변경하며 외부로 발송하지 않습니다.</small>
-        </label>
-        <label>
-          <span>검토자 식별자</span>
-          <input name="actor_id" value="demo-officer" required maxlength="120">
-        </label>
-        <div class="button-row">
-          <button class="primary-button" type="submit"><span>검토 완료로 표시</span><span>✓</span></button>
-        </div>
-      </form>
-      <form action="/complaints/{{ complaint.id }}/reprocess" method="post">
-        <button class="secondary-button" type="submit">현재 설정으로 다시 분류</button>
-      </form>
     </section>
   </div>
 
   <aside class="detail-side">
-    <section class="panel side-panel">
-      <p class="eyebrow">GROUNDING</p>
-      <h2>참고 지식</h2>
+    <section class="action-card">
+      <div class="action-card-heading">
+        <span class="action-number">03</span>
+        <div><p class="section-label">담당자 확인</p><h2>담당자 검토·승인</h2></div>
+      </div>
+      <p class="action-description">분류 근거와 안전 정책을 확인한 담당자만 내부 검토를 완료할 수 있습니다.</p>
+
+      {% set suggested = complaint.assigned_department_id or (complaint.candidate_departments[0].department_id if complaint.candidate_departments else '') %}
+      <label class="field-group">
+        <span>최종 데모 업무 그룹</span>
+        <select name="department_id" required form="review-form" data-department-select>
+          {% for department in departments %}
+            <option value="{{ department.id }}" {% if department.id == suggested %}selected{% endif %}>{{ department.name }}</option>
+          {% endfor %}
+        </select>
+        <small>{{ suggested or '후보 없음' }}</small>
+      </label>
+      <label class="field-group">
+        <span>검토자 식별자</span>
+        <input name="actor_id" value="{{ complaint.reviewed_by or 'demo-officer' }}" required maxlength="120"
+               form="review-form" data-actor-input autocomplete="off">
+        <small>합성 식별자만 사용하세요.</small>
+      </label>
+
+      <div class="review-checklist" aria-label="승인 전 확인 사항">
+        <strong>승인 전 확인</strong>
+        <label><input type="checkbox" checked disabled><span>비식별된 민원 내용 확인</span></label>
+        <label><input type="checkbox" checked disabled><span>긴급·민감 정책 적용 확인</span></label>
+        <label><input type="checkbox" checked disabled><span>외부 발송 없음 확인</span></label>
+      </div>
+
+      <button class="button button-primary button-block" type="submit" form="review-form">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5"/></svg>
+        {{ '검토 내용 다시 저장' if complaint.status == 'reviewed' else '내부 검토 완료' }}
+      </button>
+      <p class="action-footnote"><span>i</span> 행정 처분·민원 종결·시민 발송은 수행하지 않습니다.</p>
+    </section>
+
+    <section class="side-card compact-card">
+      <div class="side-card-heading compact">
+        <span class="side-card-icon book-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7a3 3 0 0 1 3 3v11H7a3 3 0 0 0-3 1zM20 5h-3a3 3 0 0 0-3 3v11h3a3 3 0 0 1 3 1z"/></svg></span>
+        <div><p class="section-label">참고 자료</p><h2>참고 지식</h2></div>
+      </div>
       {% if complaint.knowledge_source_ids %}
         <ul class="source-list">
-          {% for source_id in complaint.knowledge_source_ids %}<li><code>{{ source_id }}</code></li>{% endfor %}
+          {% for source_id in complaint.knowledge_source_ids %}
+            <li><span>DOC</span><code>{{ source_id }}</code><b>승인 데모</b></li>
+          {% endfor %}
         </ul>
       {% else %}
-        <p class="muted">일치하는 승인 데모 지식이 없습니다.</p>
+        <div class="mini-empty"><span>—</span><p>일치하는 승인 데모 지식이 없습니다.</p></div>
       {% endif %}
     </section>
 
-    <section class="panel side-panel">
-      <p class="eyebrow">AUDIT TRAIL</p>
-      <h2>처리 이력</h2>
+    <section class="side-card compact-card audit-card">
+      <div class="side-card-heading compact">
+        <span class="side-card-icon history-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.5M4 4v4.5h4.5M12 7v5l3 2"/></svg></span>
+        <div><p class="section-label">처리 기록</p><h2>처리 이력</h2></div>
+        <span class="audit-count">{{ complaint.audit_events|length }}</span>
+      </div>
       <ol class="timeline">
-        {% for event in complaint.audit_events %}
+        {% for event in complaint.audit_events|reverse %}
           <li>
-            <span class="timeline-dot" aria-hidden="true"></span>
-            <div>
-              <strong>{{ event.action }}</strong>
-              <time>{{ event.created_at.strftime('%m/%d %H:%M:%S') }}</time>
+            <span class="timeline-dot {{ 'is-human' if event.actor_type == 'officer' else '' }}" aria-hidden="true"></span>
+            <div class="timeline-copy">
+              <strong>{{ audit_labels.get(event.action, event.action) }}</strong>
+              <span>{{ '담당자' if event.actor_type == 'officer' else ('시민 접수' if event.actor_type == 'citizen' else '시스템') }} · {{ event.created_at.strftime('%m.%d %H:%M:%S') }}</span>
               <details>
-                <summary>세부 정보</summary>
+                <summary>기술 세부정보 보기</summary>
                 <pre>{{ event.details | tojson(indent=2) }}</pre>
               </details>
             </div>
@@ -152,4 +283,36 @@
     </section>
   </aside>
 </div>
+
+<dialog class="confirm-dialog" id="approval-dialog" aria-labelledby="approval-dialog-title">
+  <div class="confirm-icon">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5.5c0 4.5-3 7.5-7 9.5-4-2-7-5-7-9.5V6zM9 12l2 2 4-4"/></svg>
+  </div>
+  <p class="section-label">최종 확인</p>
+  <h2 id="approval-dialog-title">내부 검토를 완료할까요?</h2>
+  <p>선택한 업무 그룹과 수정한 답변 초안이 감사 로그와 함께 로컬 DB에 저장됩니다.</p>
+  <dl>
+    <div><dt>업무 그룹</dt><dd data-confirm-department>—</dd></div>
+    <div><dt>검토자</dt><dd data-confirm-actor>—</dd></div>
+  </dl>
+  <div class="confirm-notice"><strong>외부 발송 없음</strong><span>이 작업은 시민에게 메시지를 보내거나 실제 행정 시스템을 변경하지 않습니다.</span></div>
+  <div class="dialog-actions">
+    <button class="button button-secondary" type="button" data-close-approval>돌아가서 확인</button>
+    <button class="button button-primary" type="button" data-confirm-approval>검토 완료 저장</button>
+  </div>
+</dialog>
+
+<dialog class="preview-dialog" id="preview-dialog" aria-labelledby="preview-dialog-title">
+  <header>
+    <div><p class="section-label">민원인 화면</p><h2 id="preview-dialog-title">답변 미리보기</h2></div>
+    <button class="icon-button" type="button" data-close-preview aria-label="미리보기 닫기">×</button>
+  </header>
+  <div class="citizen-preview">
+    <div class="preview-brand"><span>SN</span><div><strong>성남 민원 안내</strong><small>시연용 화면</small></div></div>
+    <p class="preview-greeting">접수하신 민원에 대한 답변 초안입니다.</p>
+    <div class="preview-copy" data-preview-copy></div>
+    <p class="preview-warning">본 화면은 시연용이며 실제 행정 처리 결과가 아닙니다.</p>
+  </div>
+  <footer><button class="button button-primary" type="button" data-close-preview>확인</button></footer>
+</dialog>
 {% endblock %}

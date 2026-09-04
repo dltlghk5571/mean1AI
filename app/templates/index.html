@@ -1,109 +1,284 @@
 {% extends "base.html" %}
-{% block title %}민원 접수 · 성남 민원 AI 코파일럿{% endblock %}
+{% block title %}민원 처리 현황 · 성남 민원 업무지원{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+{% block topbar_title %}민원 업무 홈{% endblock %}
+{% block topbar_subtitle %}접수부터 담당자 검토까지 한 화면에서 관리합니다{% endblock %}
+
 {% block content %}
-<section class="hero">
+<section class="page-overview">
   <div>
-    <p class="eyebrow">CIVIC TRIAGE MVP</p>
-    <h1>민원은 쉽게 쓰고,<br>분류와 초안은 AI가 돕습니다.</h1>
-    <p class="hero-copy">
-      직접 식별자를 마스킹한 뒤 긴급 신호, 민원 유형, 담당 후보, 부족한 정보를 분석합니다.
-      최종 판단과 외부 발송은 사람이 담당합니다.
-    </p>
+    <p class="page-path">민원 업무 <span>›</span> 통합 현황</p>
+    <h1>민원 처리 현황</h1>
+    <p>접수된 민원의 분류 결과와 검토 상태를 확인합니다.</p>
   </div>
-  <div class="hero-steps" aria-label="처리 단계">
-    <span><b>1</b> 접수</span>
-    <span><b>2</b> 비식별</span>
-    <span><b>3</b> 분류</span>
-    <span><b>4</b> 사람 검토</span>
+  <div class="overview-actions">
+    <span data-current-date>오늘</span>
+    <button class="button button-primary" type="button" data-open-intake>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      민원 접수
+    </button>
   </div>
 </section>
 
-<div class="dashboard-grid">
-  <section class="panel intake-panel">
-    <div class="panel-heading">
+{% if stats.review %}
+<section class="operational-notice" role="status">
+  <span class="notice-icon" aria-hidden="true">!</span>
+  <div>
+    <strong>담당자 확인이 필요한 민원이 {{ stats.review }}건 있습니다.</strong>
+    <p>민감 분야와 긴급 민원은 자동 배정하지 않습니다.</p>
+  </div>
+  <a href="/?status=review#complaint-queue">목록 확인</a>
+</section>
+{% endif %}
+
+<section class="metric-grid" aria-label="민원 처리 현황">
+  <a class="metric-card metric-total" href="/#complaint-queue">
+    <span class="metric-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>
+    </span>
+    <span class="metric-copy"><small>전체 접수</small><strong>{{ stats.total }}</strong></span>
+    <span class="metric-note">누적 접수</span>
+  </a>
+  <a class="metric-card metric-review" href="/?status=review#complaint-queue">
+    <span class="metric-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/></svg>
+    </span>
+    <span class="metric-copy"><small>사람 검토 필요</small><strong>{{ stats.review }}</strong></span>
+    <span class="metric-note">긴급 포함</span>
+  </a>
+  <a class="metric-card metric-urgent" href="/?status=urgent#complaint-queue">
+    <span class="metric-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 20H3zM12 9v4M12 17h.01"/></svg>
+    </span>
+    <span class="metric-copy"><small>긴급 확인</small><strong>{{ stats.urgent }}</strong></span>
+    <span class="metric-note">즉시 확인</span>
+  </a>
+  <a class="metric-card metric-done" href="/?status=reviewed#complaint-queue">
+    <span class="metric-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5"/></svg>
+    </span>
+    <span class="metric-copy"><small>검토 완료</small><strong>{{ stats.reviewed }}</strong></span>
+    <span class="metric-note">담당자 확인</span>
+  </a>
+</section>
+
+<div class="workspace-grid">
+  <section class="queue-panel" id="complaint-queue">
+    <header class="section-heading queue-heading">
       <div>
-        <p class="eyebrow">NEW COMPLAINT</p>
-        <h2>데모 민원 접수</h2>
+        <p class="section-label">민원 목록</p>
+        <h2>
+          {% if active_filter == 'review' %}검토 대기 민원
+          {% elif active_filter == 'urgent' %}긴급 확인 민원
+          {% elif active_filter == 'assigned' %}배정 완료 민원
+          {% elif active_filter == 'reviewed' %}검토 완료 민원
+          {% else %}최근 접수 민원{% endif %}
+        </h2>
+        <p>개인정보가 제거된 내용만 업무 화면에 표시됩니다.</p>
       </div>
-      <span class="tag">로컬 DB</span>
+      <span class="section-count"><strong>{{ complaints|length }}</strong>건 표시</span>
+    </header>
+
+    <div class="queue-toolbar">
+      <div class="filter-tabs" role="navigation" aria-label="민원 상태 필터">
+        <a href="/#complaint-queue" class="{{ 'is-active' if active_filter == 'all' else '' }}">전체</a>
+        <a href="/?status=review#complaint-queue" class="{{ 'is-active' if active_filter == 'review' else '' }}">검토 필요</a>
+        <a href="/?status=urgent#complaint-queue" class="{{ 'is-active' if active_filter == 'urgent' else '' }}">긴급</a>
+        <a href="/?status=assigned#complaint-queue" class="{{ 'is-active' if active_filter == 'assigned' else '' }}">배정 완료</a>
+        <a href="/?status=reviewed#complaint-queue" class="{{ 'is-active' if active_filter == 'reviewed' else '' }}">검토 완료</a>
+      </div>
+      <label class="queue-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.3-4.3M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
+        <span class="sr-only">현재 목록 검색</span>
+        <input type="search" placeholder="제목·위치 검색" data-queue-search autocomplete="off">
+      </label>
     </div>
 
-    <div class="examples" aria-label="예시 불러오기">
-      <button type="button" class="example-chip" data-example="streetlight">가로등 고장</button>
-      <button type="button" class="example-chip" data-example="road">포트홀</button>
-      <button type="button" class="example-chip" data-example="welfare">복지 자격</button>
-      <button type="button" class="example-chip" data-example="urgent">긴급 안전</button>
+    {% if complaints %}
+      <div class="queue-column-head" aria-hidden="true">
+        <span>민원 내용</span><span>분류 결과</span><span>신뢰도</span><span></span>
+      </div>
+      <div class="queue-list" data-queue-list>
+        {% for complaint in complaints %}
+          <a class="queue-row {{ 'is-urgent' if complaint.status == 'urgent_review' else '' }}"
+             href="/complaints/{{ complaint.id }}" data-queue-item
+             data-search-value="{{ complaint.redacted_title }} {{ complaint.redacted_location_text or '' }} {{ complaint.subcategory or '' }}">
+            <span class="queue-status-mark" aria-hidden="true"></span>
+            <div class="queue-primary">
+              <div class="queue-row-top">
+                <span class="status-badge status-{{ complaint.status }}">
+                  <i></i>{{ status_labels.get(complaint.status, complaint.status) }}
+                </span>
+                <span class="queue-id">#{{ complaint.id[:8] }}</span>
+                <time datetime="{{ complaint.created_at.isoformat() }}">{{ complaint.created_at.strftime('%m.%d %H:%M') }}</time>
+              </div>
+              <h3>{{ complaint.redacted_title or '처리 중인 민원' }}</h3>
+              <p>{{ complaint.redacted_content|truncate(92, true, '…') }}</p>
+              <div class="queue-tags">
+                <span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11ZM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+                  {{ complaint.redacted_location_text or '위치 확인 필요' }}
+                </span>
+                <span>{{ channel_labels.get(complaint.channel, complaint.channel) }}</span>
+              </div>
+            </div>
+            <div class="queue-routing">
+              <small>분류 제안</small>
+              <strong>{{ category_labels.get(complaint.category, '분류 대기') }}</strong>
+              <span>{{ complaint.subcategory or '소관 확인 중' }}</span>
+            </div>
+            <div class="queue-confidence" style="--confidence: {{ '%.0f'|format(complaint.routing_confidence * 100) }}%">
+              <div><span>{{ '%.0f'|format(complaint.routing_confidence * 100) }}</span><small>%</small></div>
+              <i><b></b></i>
+              <small>분류 신뢰도</small>
+            </div>
+            <span class="queue-arrow" aria-hidden="true">→</span>
+          </a>
+        {% endfor %}
+      </div>
+      <div class="search-empty" data-search-empty hidden>
+        <span aria-hidden="true">⌕</span>
+        <strong>검색 결과가 없습니다.</strong>
+        <p>제목이나 위치의 다른 단어로 검색해 보세요.</p>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span class="empty-illustration" aria-hidden="true">
+          <svg viewBox="0 0 72 72"><path d="M15 20h42v36H15zM24 15h24v10H24zM25 36h22M25 45h14"/></svg>
+        </span>
+        <h3>{% if active_filter == 'all' %}아직 접수된 데모 민원이 없습니다.{% else %}이 상태의 민원이 없습니다.{% endif %}</h3>
+        <p>합성 예시로 접수부터 사람 검토까지 전체 흐름을 확인할 수 있습니다.</p>
+        {% if active_filter == 'all' %}
+          <button class="button button-primary" type="button" data-open-intake>첫 민원 접수하기</button>
+        {% else %}
+          <a class="button button-secondary" href="/#complaint-queue">전체 민원 보기</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <aside class="workspace-side">
+    <section class="side-card safety-overview">
+      <div class="side-card-heading">
+        <span class="side-card-icon shield-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5.5c0 4.5-3 7.5-7 9.5-4-2-7-5-7-9.5V6zM9 12l2 2 4-4"/></svg>
+        </span>
+        <div><p class="section-label">운영 기준</p><h2>처리 원칙</h2></div>
+      </div>
+      <ul class="control-list">
+        <li><span class="control-check">✓</span><div><strong>개인정보 선 비식별</strong><small>분류 전에 직접 식별자 제거</small></div></li>
+        <li><span class="control-check">✓</span><div><strong>민감 민원 자동 배정 차단</strong><small>복지·처분·보상 등 사람 검토</small></div></li>
+        <li><span class="control-check">✓</span><div><strong>긴급 신호 별도 대기열</strong><small>일반 자동 배정 경로에 진입 금지</small></div></li>
+        <li><span class="control-check">✓</span><div><strong>외부 시스템 연결 없음</strong><small>승인은 로컬 기록만 변경</small></div></li>
+      </ul>
+      <div class="provider-row"><span><i></i> 현재 분류 방식</span><strong>규칙 기반 · 로컬</strong></div>
+    </section>
+
+    <section class="side-card status-guide">
+      <div class="side-card-heading compact">
+        <div><p class="section-label">업무 참고</p><h2>상태 안내</h2></div>
+      </div>
+      <dl class="status-guide-list">
+        <div><dt><i class="guide-dot review"></i>검토 대기</dt><dd>담당자 확인 후 배정</dd></div>
+        <div><dt><i class="guide-dot urgent"></i>긴급 검토</dt><dd>일반 대기열과 분리</dd></div>
+        <div><dt><i class="guide-dot assigned"></i>배정 완료</dt><dd>업무 그룹 제안 완료</dd></div>
+        <div><dt><i class="guide-dot reviewed"></i>검토 완료</dt><dd>담당자 확인 기록 완료</dd></div>
+      </dl>
+    </section>
+  </aside>
+</div>
+
+<dialog class="intake-dialog" id="intake-dialog" aria-labelledby="intake-title">
+  <div class="dialog-shell">
+    <header class="dialog-header">
+      <div>
+        <p class="section-label">민원 접수</p>
+        <h2 id="intake-title">새 민원 접수</h2>
+        <p>실제 개인정보가 아닌 합성 예시로 처리 흐름을 체험하세요.</p>
+      </div>
+      <button class="icon-button dialog-close" type="button" data-close-intake aria-label="접수 창 닫기">×</button>
+    </header>
+
+    <div class="dialog-steps" aria-label="접수 처리 단계">
+      <span class="is-active"><b>1</b><em>민원 입력</em></span><i></i>
+      <span><b>2</b><em>안전 분석</em></span><i></i>
+      <span><b>3</b><em>검토 화면</em></span>
     </div>
 
-    <form class="intake-form" action="/submit" method="post">
-      <label>
-        <span>제목</span>
+    <form class="intake-form" action="/submit" method="post" data-intake-form>
+      <div class="intake-form-body">
+      <div class="example-picker">
+        <div><strong>빠른 예시</strong><small>버튼을 누르면 합성 민원이 입력됩니다.</small></div>
+        <div class="example-buttons" aria-label="합성 예시 불러오기">
+          <button type="button" data-example="streetlight">가로등</button>
+          <button type="button" data-example="road">포트홀</button>
+          <button type="button" data-example="welfare">복지 문의</button>
+          <button type="button" data-example="urgent">긴급 안전</button>
+        </div>
+      </div>
+
+      <label class="field-group">
+        <span>민원 제목 <b>필수</b></span>
         <input id="title" name="title" required minlength="2" maxlength="200"
-               placeholder="예: 정자동 공원 입구 가로등 고장">
+               placeholder="예: 데모 공원 입구 가로등 고장" autocomplete="off">
       </label>
-      <label>
-        <span>민원 내용</span>
-        <textarea id="content" name="content" required minlength="5" maxlength="20000" rows="8"
-                  placeholder="언제, 어디서, 무엇이 불편한지 적어 주세요."></textarea>
-        <small>전화번호·이메일·주민등록번호는 AI 처리 전에 마스킹됩니다.</small>
+
+      <label class="field-group">
+        <span>민원 내용 <b>필수</b></span>
+        <textarea id="content" name="content" required minlength="5" maxlength="20000" rows="7"
+                  placeholder="언제, 어디서, 무엇이 불편한지 구체적으로 적어 주세요."
+                  data-counted-input></textarea>
+        <small class="field-help"><span>전화번호·이메일·주민등록번호는 분석 전에 마스킹됩니다.</span><b data-character-count>0 / 20,000</b></small>
       </label>
+
       <div class="form-row">
-        <label>
-          <span>발생 위치</span>
+        <label class="field-group">
+          <span>발생 위치 <em>선택</em></span>
           <input id="location_text" name="location_text" maxlength="300"
-                 placeholder="예: 정자동 ○○공원 동문">
+                 placeholder="예: 데모 공원 동문 앞" autocomplete="off">
         </label>
-        <label>
+        <label class="field-group">
           <span>접수 채널</span>
           <select name="channel">
-            <option value="web">웹</option>
-            <option value="sms">문자</option>
-            <option value="call_center">콜센터</option>
-            <option value="national_portal">국민신문고</option>
+            <option value="web">시민 웹</option>
+            <option value="sms">문자 데모</option>
+            <option value="call_center">콜센터 데모</option>
+            <option value="national_portal">국민신문고 데모</option>
             <option value="other">기타</option>
           </select>
         </label>
       </div>
-      <button class="primary-button" type="submit">
-        <span>AI 분류 데모 실행</span>
-        <span aria-hidden="true">→</span>
-      </button>
+
+      <div class="privacy-notice">
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5zM12 14v2"/></svg>
+        </span>
+        <p><strong>데모 데이터 안내</strong> 입력 내용은 로컬 DB에만 저장됩니다. 실제 시민의 개인정보나 실제 민원 내용을 입력하지 마세요.</p>
+      </div>
+      </div>
+
+      <footer class="dialog-actions">
+        <button class="button button-secondary" type="button" data-close-intake>취소</button>
+        <button class="button button-primary submit-analysis" type="submit">
+          안전 분석 시작
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+        </button>
+      </footer>
     </form>
-  </section>
 
-  <section class="panel queue-panel">
-    <div class="panel-heading">
-      <div>
-        <p class="eyebrow">REVIEW QUEUE</p>
-        <h2>최근 접수</h2>
+    <div class="processing-view" data-processing-view hidden>
+      <div class="processing-symbol" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M6 3.5h9l3 3V20.5H6zM9 10h6M9 14h6"/></svg>
       </div>
-      <span class="count-badge">{{ complaints|length }}</span>
+      <p class="section-label">민원 분석 중</p>
+      <h2>민원을 안전하게 분석하고 있습니다</h2>
+      <p>외부 서비스 연결 없이 로컬 규칙 엔진에서 처리합니다.</p>
+      <ol class="processing-list">
+        <li class="is-active" data-processing-stage><span>1</span><div><strong>직접 식별자 비식별</strong><small>전화번호·이메일·주민등록번호 탐지</small></div><b>•••</b></li>
+        <li data-processing-stage><span>2</span><div><strong>긴급·민감 신호 확인</strong><small>자동 배정 차단 정책 우선 적용</small></div><b>•••</b></li>
+        <li data-processing-stage><span>3</span><div><strong>민원 유형과 담당 후보 분석</strong><small>근거·신뢰도·답변 초안 생성</small></div><b>•••</b></li>
+      </ol>
     </div>
-
-    {% if complaints %}
-      <div class="queue-list">
-        {% for complaint in complaints %}
-          <a class="queue-item" href="/complaints/{{ complaint.id }}">
-            <div class="queue-item-top">
-              <span class="status status-{{ complaint.status }}">{{ complaint.status }}</span>
-              <time>{{ complaint.created_at.strftime('%m/%d %H:%M') }}</time>
-            </div>
-            <h3>{{ complaint.redacted_title or '처리 중인 민원' }}</h3>
-            <p>{{ complaint.subcategory or '분류 대기' }}</p>
-            <div class="queue-meta">
-              <span>{{ complaint.redacted_location_text or '위치 미입력' }}</span>
-              <span>신뢰도 {{ '%.0f'|format(complaint.routing_confidence * 100) }}%</span>
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty-state">
-        <div aria-hidden="true">◎</div>
-        <h3>아직 접수된 데모 민원이 없습니다.</h3>
-        <p>왼쪽 양식이나 예시 버튼으로 첫 흐름을 확인해 보세요.</p>
-      </div>
-    {% endif %}
-  </section>
-</div>
+  </div>
+</dialog>
 {% endblock %}

@@ -28,7 +28,7 @@ class GroundedTemplateDrafter:
         department_name = department.name if department else "민원 조정 데모팀"
 
         lines = [
-            "[AI 작성 초안 — 담당자 검토 및 수정 필요]",
+            "[답변 초안 — 담당자 검토 및 수정 필요]",
             "",
             f"'{title}' 민원을 접수했습니다.",
             (

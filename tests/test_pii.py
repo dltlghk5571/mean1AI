@@ -27,3 +27,11 @@ def test_leaves_non_identifier_numbers_untouched() -> None:
 
     assert result.text == "가로등 2개가 3일째 꺼져 있습니다."
     assert result.detected_types == []
+
+
+def test_redacts_email_next_to_korean_postposition() -> None:
+    result = redact_pii("합성 이메일은 citizen@example.com입니다.")
+
+    assert result.text == "합성 이메일은 [이메일]입니다."
+    assert result.detected_types == ["email"]
+    assert result.counts == {"email": 1}
