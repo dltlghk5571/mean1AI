@@ -13,6 +13,9 @@
 - Do not log complaint title, body, or raw provider prompt at INFO level.
 - Use synthetic data in tests and screenshots.
 - Store only what is necessary for the demo.
+- Retrieve only approved, currently effective, non-superseded local knowledge documents.
+- Persist source IDs and document-governance metadata snapshots, not hidden prompts or raw model
+  reasoning. Exclude unsupported or unsafe provider sentences before rendering a draft.
 - Compute duplicate candidates only from redacted text and local records; never send location or
   complaint data to a map or other external service.
 - Treat duplicate confirmation as a review annotation only. It must not merge, close, assign, or

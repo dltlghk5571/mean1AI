@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -52,6 +52,75 @@ class ClassificationResult(BaseModel):
         cls, candidates: list[ClassificationCandidate]
     ) -> list[ClassificationCandidate]:
         return sorted(candidates, key=lambda item: item.confidence, reverse=True)
+
+
+class GroundedDraftSentence(BaseModel):
+    """One provider-produced sentence and its explicit knowledge support."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text: str = Field(min_length=1, max_length=2_000)
+    substantive: bool
+    source_ids: list[str] = Field(default_factory=list, max_length=5)
+
+    @field_validator("text")
+    @classmethod
+    def strip_sentence(cls, value: str) -> str:
+        return value.strip()
+
+    @field_validator("source_ids")
+    @classmethod
+    def source_ids_are_unique(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("source_ids must be unique")
+        return value
+
+
+class StructuredDraftOutput(BaseModel):
+    """Provider boundary: free-form draft output is not accepted."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider: str = Field(min_length=1, max_length=40)
+    sentences: list[GroundedDraftSentence] = Field(min_length=1, max_length=30)
+
+
+class RejectedDraftSentence(GroundedDraftSentence):
+    reason: str = Field(min_length=1, max_length=160)
+
+
+class KnowledgeSourceRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    category: str
+    version: str
+    effective_from: date
+    effective_until: date | None
+    approval_status: str
+    retrieval_score: float = Field(ge=0.0, le=1.0)
+
+
+class RetrievalExclusionRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    document_id: str
+    reason: str
+
+
+class GroundedDraftRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    complaint_id: str
+    provider: str
+    validation_status: str
+    sentences: list[GroundedDraftSentence]
+    rejected_sentences: list[RejectedDraftSentence]
+    retrieved_documents: list[KnowledgeSourceRead]
+    retrieval_exclusions: list[RetrievalExclusionRead]
+    created_at: datetime
+    updated_at: datetime
 
 
 class ComplaintCreate(BaseModel):

@@ -14,8 +14,9 @@ ComplaintPipeline
   |-- safety policy override
   |-- local location normalizer
   |-- duplicate-candidate scorer
-  |-- local knowledge retriever
-  |-- grounded template drafter
+  |-- approved/effective lexical knowledge retriever
+  |-- structured draft provider
+  |-- sentence-level citation validator
   `-- audit recorder
         |
         v
@@ -65,8 +66,23 @@ Scoring and every human confirmation/rejection create audit events. A duplicate 
 changes either complaint's workflow status or department, and never merges, closes, or finalizes a
 record.
 
-### Retrieval
+### Grounded retrieval and draft validation
 
-Markdown files have stable IDs and category metadata. The retriever is intentionally simple for the
-starter; production should add effective dates, approver identity, supersession, hybrid retrieval, and
-citation validation.
+Every Markdown knowledge document has a stable ID, category, version, inclusive effective-date
+window, approval status, and optional `superseded_by` link. Retrieval fails during startup for broken
+metadata or unknown supersession targets. At request time it excludes non-approved, not-yet-effective,
+expired, actively superseded, category-mismatched, known instruction-injection, and automatic-
+disposition content before ranking by lexical overlap. No embedding service or network call is used.
+
+The draft provider returns `StructuredDraftOutput`: an ordered list of sentences, a substantive flag,
+and source IDs. `CitationEnforcedDrafter` accepts a substantive sentence only when every source ID is
+among the retrieved documents and the cited text provides sufficient lexical support. Unsafe,
+unmapped, unknown-source, and unsupported sentences are removed from the rendered draft and force
+human review. Accepted substantive sentences display inline source IDs.
+
+`GroundedDraftRecord` stores the current structured sentences, rejected-sentence reasons, selected
+document metadata snapshot, and retrieval exclusions separately from `Complaint`. This additive table
+keeps existing prototype SQLite files usable. Retrieval and validation each create body-free audit
+events. If an officer edits the generated text, its status becomes `human_modified_unverified`; the
+human approval remains a separate audit event and never sends the response externally. See
+`docs/RAG.md` for metrics and exact verification commands.

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Complaint, ComplaintLocationReview
+from app.models import Complaint, ComplaintLocationReview, GroundedDraftRecord
 from app.schemas import (
     ComplaintApproval,
     ComplaintCreate,
@@ -13,6 +13,7 @@ from app.schemas import (
     ComplaintRead,
     DuplicateCandidateRead,
     DuplicateDecisionRequest,
+    GroundedDraftRead,
     LocationConfirmation,
     LocationReviewRead,
 )
@@ -62,6 +63,18 @@ def list_complaints(db: DbSession, limit: int = 50) -> list[Complaint]:
 @router.get("/{complaint_id}", response_model=ComplaintDetail)
 def get_complaint(complaint_id: str, db: DbSession) -> Complaint:
     return _get_complaint(db, complaint_id)
+
+
+@router.get("/{complaint_id}/grounding", response_model=GroundedDraftRead)
+def get_grounded_draft(complaint_id: str, db: DbSession) -> GroundedDraftRecord:
+    _get_complaint(db, complaint_id)
+    grounding = db.get(GroundedDraftRecord, complaint_id)
+    if grounding is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Grounding record not found; reprocess complaint",
+        )
+    return grounding
 
 
 @router.get("/{complaint_id}/location", response_model=LocationReviewRead)

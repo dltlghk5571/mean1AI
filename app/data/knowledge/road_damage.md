@@ -3,7 +3,10 @@ id: KB-ROAD-001
 title: 도로 파손 접수 데모 지침
 category: road_damage
 version: demo-1
-approved: true
+effective_from: 2026-01-01
+effective_until: 2099-12-31
+approval_status: approved
+superseded_by:
 ---
 도로 파손 민원은 위치, 진행 방향, 차로 또는 보도 여부, 파손 규모, 사진 촬영 시점을 확인한다.
 통행이 불가능하거나 싱크홀·인명 위험이 언급되면 사람에게 긴급 검토를 요청한다.

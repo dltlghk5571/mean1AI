@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.models import Complaint, Department
+from app.models import Complaint, Department, GroundedDraftRecord
 from app.schemas import (
     ClassificationCandidate,
     ClassificationResult,
@@ -15,7 +15,7 @@ from app.schemas import (
 )
 from app.services.audit import record_audit
 from app.services.classifier import Classifier, ClassifierError, DepartmentCatalog
-from app.services.draft import GroundedTemplateDrafter
+from app.services.draft import CitationEnforcedDrafter
 from app.services.duplicates import refresh_duplicate_candidates, sync_location_review
 from app.services.emergency import detect_emergency
 from app.services.knowledge import KnowledgeRetriever
@@ -36,7 +36,7 @@ class ComplaintPipeline:
         self.classifier = classifier
         self.catalog = catalog
         self.retriever = retriever
-        self.drafter = GroundedTemplateDrafter(catalog)
+        self.drafter = CitationEnforcedDrafter(catalog)
 
     def create_and_process(self, db: Session, payload: ComplaintCreate) -> Complaint:
         complaint = Complaint(
@@ -78,6 +78,20 @@ class ComplaintPipeline:
 
         old_department = complaint.assigned_department_id
         draft_modified = complaint.answer_draft != approval.answer_draft
+        grounding = db.get(GroundedDraftRecord, complaint.id)
+        if draft_modified and grounding is not None:
+            grounding.validation_status = "human_modified_unverified"
+            grounding.updated_at = datetime.now(UTC)
+            record_audit(
+                db,
+                complaint_id=complaint.id,
+                action="draft_grounding_invalidated",
+                actor_type="system",
+                details={
+                    "reason": "officer_modified_generated_text",
+                    "previous_provider": grounding.provider,
+                },
+            )
         complaint.assigned_department_id = approval.department_id
         complaint.answer_draft = approval.answer_draft
         complaint.status = ComplaintStatus.REVIEWED.value
@@ -197,7 +211,7 @@ class ComplaintPipeline:
             complaint.status = ComplaintStatus.ASSIGNED.value
             complaint.assigned_department_id = top_candidate.department_id
 
-        documents = self.retriever.retrieve(
+        retrieval = self.retriever.retrieve(
             category=classification.category,
             text=combined_redacted,
         )
@@ -205,10 +219,90 @@ class ComplaintPipeline:
             title=title_redaction.text,
             location_text=complaint.redacted_location_text,
             classification=classification,
-            documents=documents,
+            documents=retrieval.documents,
         )
         complaint.answer_draft = draft.text
         complaint.knowledge_source_ids = draft.source_ids
+
+        if draft.requires_human_review:
+            complaint.requires_human_review = True
+            complaint.assigned_department_id = None
+            if effective_urgency == Urgency.NORMAL:
+                complaint.status = ComplaintStatus.NEEDS_REVIEW.value
+
+        document_snapshots = [
+            {
+                "id": document.id,
+                "title": document.title,
+                "category": document.category,
+                "version": document.version,
+                "effective_from": document.effective_from.isoformat(),
+                "effective_until": (
+                    document.effective_until.isoformat() if document.effective_until else None
+                ),
+                "approval_status": document.approval_status,
+                "retrieval_score": retrieval.scores[document.id],
+            }
+            for document in retrieval.documents
+        ]
+        exclusion_snapshots = [
+            {"document_id": exclusion.document_id, "reason": exclusion.reason}
+            for exclusion in retrieval.excluded
+        ]
+        grounding = db.get(GroundedDraftRecord, complaint.id)
+        if grounding is None:
+            grounding = GroundedDraftRecord(
+                complaint_id=complaint.id,
+                provider=draft.provider,
+                validation_status=draft.validation_status,
+                sentences=[],
+                rejected_sentences=[],
+                retrieved_documents=[],
+                retrieval_exclusions=[],
+            )
+            db.add(grounding)
+        grounding.provider = draft.provider
+        grounding.validation_status = draft.validation_status
+        grounding.sentences = [sentence.model_dump(mode="json") for sentence in draft.sentences]
+        grounding.rejected_sentences = [
+            sentence.model_dump(mode="json") for sentence in draft.rejected_sentences
+        ]
+        grounding.retrieved_documents = document_snapshots
+        grounding.retrieval_exclusions = exclusion_snapshots
+        grounding.updated_at = datetime.now(UTC)
+
+        exclusion_counts: dict[str, int] = {}
+        for exclusion in retrieval.excluded:
+            exclusion_counts[exclusion.reason] = exclusion_counts.get(exclusion.reason, 0) + 1
+        record_audit(
+            db,
+            complaint_id=complaint.id,
+            action="knowledge_retrieved",
+            actor_type="system",
+            details={
+                "strategy": retrieval.strategy,
+                "selected_source_ids": [document.id for document in retrieval.documents],
+                "selected_count": len(retrieval.documents),
+                "excluded_by_reason": exclusion_counts,
+            },
+        )
+        record_audit(
+            db,
+            complaint_id=complaint.id,
+            action="draft_grounding_validated",
+            actor_type="system",
+            details={
+                "provider": draft.provider,
+                "validation_status": draft.validation_status,
+                "accepted_sentence_count": len(draft.sentences),
+                "substantive_sentence_count": sum(
+                    sentence.substantive for sentence in draft.sentences
+                ),
+                "rejected_sentence_count": len(draft.rejected_sentences),
+                "cited_source_ids": draft.source_ids,
+                "external_send": False,
+            },
+        )
 
         audit_details: dict[str, object] = {
             "processing_action": action,
@@ -220,6 +314,7 @@ class ComplaintPipeline:
             "emergency_signals": emergency.signals,
             "status": complaint.status,
             "source_ids": draft.source_ids,
+            "grounding_status": draft.validation_status,
         }
         if provider_error:
             audit_details["provider_error"] = provider_error

@@ -30,9 +30,10 @@
 
 ## M3 — RAG and officer console
 
-- [ ] Store document metadata, effective dates, approvals, and supersession links
-- [ ] Add hybrid retrieval and sentence-level citations
-- [ ] Reject unsupported draft claims
+- [x] Store document metadata, effective dates, approvals, and supersession links
+- [x] Add approved/effective lexical retrieval and sentence-level citations
+- [ ] Compare and add hybrid retrieval only after the lexical safety baseline
+- [x] Reject or flag unsupported draft claims
 - [ ] Add role-based officer login and immutable review history
 
 ## M4 — Production hardening

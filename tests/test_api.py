@@ -38,6 +38,7 @@ def test_create_streetlight_complaint_redacts_and_auto_routes(client: TestClient
     assert "content" not in body
     assert "title" not in body
     assert "KB-STREETLIGHT-001" in body["knowledge_source_ids"]
+    assert "[KB-STREETLIGHT-001]" in body["answer_draft"]
 
     detail = client.get(f"/api/v1/complaints/{body['id']}")
     assert detail.status_code == 200
@@ -45,10 +46,35 @@ def test_create_streetlight_complaint_redacts_and_auto_routes(client: TestClient
     assert actions == [
         "complaint_received",
         "pii_redacted",
+        "knowledge_retrieved",
+        "draft_grounding_validated",
         "triage_completed",
         "location_normalized",
         "duplicate_candidates_scored",
     ]
+
+    grounding = client.get(f"/api/v1/complaints/{body['id']}/grounding")
+    assert grounding.status_code == 200
+    grounded = grounding.json()
+    assert grounded["provider"] == "rules"
+    assert grounded["validation_status"] == "grounded"
+    assert grounded["rejected_sentences"] == []
+    assert grounded["retrieved_documents"] == [
+        {
+            "id": "KB-STREETLIGHT-001",
+            "title": "가로등 고장 접수 데모 지침",
+            "category": "streetlight",
+            "version": "demo-1",
+            "effective_from": "2026-01-01",
+            "effective_until": "2099-12-31",
+            "approval_status": "approved",
+            "retrieval_score": grounded["retrieved_documents"][0]["retrieval_score"],
+        }
+    ]
+    substantive = [sentence for sentence in grounded["sentences"] if sentence["substantive"]]
+    assert substantive
+    assert all(sentence["source_ids"] == ["KB-STREETLIGHT-001"] for sentence in substantive)
+    assert raw_phone not in grounding.text
 
 
 def test_sensitive_welfare_case_never_auto_routes(client: TestClient) -> None:
@@ -114,7 +140,13 @@ def test_human_can_approve_route_without_external_send(client: TestClient) -> No
     assert body["reviewed_by"] == "test-officer"
 
     detail = client.get(f"/api/v1/complaints/{created['id']}").json()
+    assert [event["action"] for event in detail["audit_events"][-2:]] == [
+        "draft_grounding_invalidated",
+        "human_review_approved",
+    ]
     assert detail["audit_events"][-1]["action"] == "human_review_approved"
+    grounding = client.get(f"/api/v1/complaints/{created['id']}/grounding").json()
+    assert grounding["validation_status"] == "human_modified_unverified"
 
 
 def test_missing_location_blocks_auto_route(client: TestClient) -> None:

@@ -154,3 +154,36 @@ class DuplicateCandidate(Base):
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="suggested", index=True)
     reviewed_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class GroundedDraftRecord(Base):
+    """Additive citation snapshot for one complaint draft.
+
+    Keeping this in a separate table allows existing prototype SQLite files to be opened without an
+    in-place column migration. Reprocessing replaces the current machine-generated draft snapshot;
+    the corresponding audit events retain the history of each decision.
+    """
+
+    __tablename__ = "grounded_draft_records"
+
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("complaints.id", ondelete="CASCADE"), primary_key=True
+    )
+    provider: Mapped[str] = mapped_column(String(40), nullable=False)
+    validation_status: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    sentences: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False, default=list)
+    rejected_sentences: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSON, nullable=False, default=list
+    )
+    retrieved_documents: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSON, nullable=False, default=list
+    )
+    retrieval_exclusions: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSON, nullable=False, default=list
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now
+    )

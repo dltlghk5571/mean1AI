@@ -3,7 +3,10 @@ id: KB-PARK-001
 title: 공원 시설 민원 접수 데모 지침
 category: park
 version: demo-1
-approved: true
+effective_from: 2026-01-01
+effective_until: 2099-12-31
+approval_status: approved
+superseded_by:
 ---
 공원 시설 민원은 공원명, 출입구나 시설 위치, 시설 종류, 파손 상태를 확인한다.
 날카로운 파손부나 즉각적인 안전 위험이 있으면 사용 제한 여부를 사람이 확인한다.

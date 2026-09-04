@@ -301,6 +301,42 @@
         <span class="draft-label">시스템 작성 · 편집 가능</span>
       </header>
 
+      {% if grounding %}
+        <div class="grounding-status grounding-{{ grounding.validation_status }}" role="status">
+          <div>
+            <strong>
+              {% if grounding.validation_status == 'grounded' %}문장별 근거 검증 완료
+              {% elif grounding.validation_status == 'no_sources' %}적용 가능한 승인 지식 없음
+              {% elif grounding.validation_status == 'human_modified_unverified' %}담당자 수정 후 근거 재확인 필요
+              {% else %}근거 검증에서 제외된 문장 있음{% endif %}
+            </strong>
+            <p>업무 지침을 주장하는 문장은 유효한 문서 ID와 어휘 근거를 모두 통과해야 초안에 포함됩니다.</p>
+          </div>
+          <span>{{ grounding.provider }} · {{ grounding.validation_status }}</span>
+        </div>
+
+        {% set grounded_sentences = grounding.sentences | selectattr('substantive') | list %}
+        {% if grounded_sentences %}
+          <div class="sentence-citation-list" aria-label="문장별 근거">
+            <strong>문장별 근거</strong>
+            {% for sentence in grounded_sentences %}
+              <div>
+                <p>{{ sentence.text }}</p>
+                <span>
+                  {% for source_id in sentence.source_ids %}<code>{{ source_id }}</code>{% endfor %}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if grounding.rejected_sentences %}
+          <div class="grounding-rejection-note">
+            <strong>{{ grounding.rejected_sentences|length }}개 문장을 초안에서 제외했습니다.</strong>
+            <span>사유: {{ grounding.rejected_sentences | map(attribute='reason') | join(', ') }}</span>
+          </div>
+        {% endif %}
+      {% endif %}
+
       <label class="field-group draft-field">
         <span class="sr-only">답변 초안</span>
         <textarea name="answer_draft" rows="13" required maxlength="20000" form="review-form"
@@ -361,15 +397,20 @@
         <span class="side-card-icon book-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7a3 3 0 0 1 3 3v11H7a3 3 0 0 0-3 1zM20 5h-3a3 3 0 0 0-3 3v11h3a3 3 0 0 1 3 1z"/></svg></span>
         <div><p class="section-label">참고 자료</p><h2>참고 지식</h2></div>
       </div>
-      {% if complaint.knowledge_source_ids %}
+      {% if grounding and grounding.retrieved_documents %}
         <ul class="source-list">
-          {% for source_id in complaint.knowledge_source_ids %}
-            <li><span>DOC</span><code>{{ source_id }}</code><b>승인 데모</b></li>
+          {% for source in grounding.retrieved_documents %}
+            <li>
+              <span>DOC</span>
+              <div><code>{{ source.id }}</code><strong>{{ source.title }}</strong><small>{{ source.version }} · {{ source.effective_from }}~{{ source.effective_until or '기한 없음' }}</small></div>
+              <b>{{ '승인·유효' if source.approval_status == 'approved' else source.approval_status }}</b>
+            </li>
           {% endfor %}
         </ul>
       {% else %}
         <div class="mini-empty"><span>—</span><p>일치하는 승인 데모 지식이 없습니다.</p></div>
       {% endif %}
+      <p class="source-safety-copy">인용은 담당자 확인용이며 답변은 외부로 자동 발송되지 않습니다.</p>
     </section>
 
     <section class="side-card compact-card audit-card">

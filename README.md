@@ -13,7 +13,8 @@
 - 신뢰도·민감 분야 규칙에 따른 자동 배정/사람 검토 분기
 - 외부 지도 없이 위치 문구 정규화 및 담당자 확인
 - 같은 분야·위치·30일 범위의 유사 민원 후보와 점수 근거 제시
-- 로컬 Markdown 지식 검색과 답변 초안
+- 승인·유효기간·대체관계를 검사하는 로컬 Markdown 지식 검색
+- 근거 문서 ID를 문장별로 강제하고 미지원 문장을 제외하는 답변 초안
 - 담당자의 배정·초안 승인
 - 모든 주요 상태 변화의 감사 로그
 - SQLite 기반 로컬 실행과 Docker 실행
@@ -93,6 +94,8 @@ ruff format --check .
 mypy app evals tests
 python -m evals.run
 python -m evals.run --format markdown
+python -m evals.rag_run
+python -m evals.rag_run --format markdown
 ```
 
 `python -m evals.run`은 네트워크나 API 키 없이 `rules` 제공자만 사용합니다. 버전이 고정된
@@ -102,12 +105,18 @@ python -m evals.run --format markdown
 `--format markdown`은 기준값 표와 기대 분야→예측 분야 혼동 행렬을 출력합니다. 지표 정의와
 현재 게이트는 `docs/EVALS.md`에 있습니다.
 
+`python -m evals.rag_run`은 24개 합성 검색 사례로 승인·유효 문서만 쓰는 분야-only 기준과
+엄격 어휘 검색을 비교합니다. 현재 어휘 검색은 정밀도 100%, 재현율 80%이며 관련 없는
+문서 4건을 모두 기권합니다. 바꿔 말한 사례의 재현율 한계 때문에 임베딩은 아직 추가하지
+않았습니다. 지표 정의와 문장별 인용 검증 규칙은 `docs/RAG.md`에 있습니다.
+
 ## 5. 주요 API
 
 ```text
 POST /api/v1/complaints
 GET  /api/v1/complaints
 GET  /api/v1/complaints/{complaint_id}
+GET  /api/v1/complaints/{complaint_id}/grounding
 POST /api/v1/complaints/{complaint_id}/reprocess
 POST /api/v1/complaints/{complaint_id}/approve
 GET  /api/v1/complaints/{complaint_id}/location

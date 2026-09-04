@@ -2650,6 +2650,94 @@ select:focus {
   background: var(--blue-pale);
 }
 
+.grounding-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--warning);
+  border-radius: 7px;
+  background: var(--surface-soft);
+}
+
+.grounding-status.grounding-grounded {
+  border-left-color: var(--success);
+}
+
+.grounding-status strong,
+.sentence-citation-list > strong,
+.grounding-rejection-note strong {
+  color: var(--ink-strong);
+  font-size: 10px;
+}
+
+.grounding-status p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.grounding-status > span {
+  flex: 0 0 auto;
+  color: var(--muted-light);
+  font-family: var(--font-mono);
+  font-size: 7px;
+}
+
+.sentence-citation-list {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 14px;
+}
+
+.sentence-citation-list > div {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfd;
+}
+
+.sentence-citation-list p {
+  margin: 0 0 7px;
+  color: #3f4d60;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.sentence-citation-list span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.sentence-citation-list code {
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--blue);
+  background: var(--blue-pale);
+  font-size: 7px;
+}
+
+.grounding-rejection-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 9px 11px;
+  border-radius: 6px;
+  color: var(--warning);
+  background: var(--warning-pale);
+}
+
+.grounding-rejection-note span {
+  color: var(--muted);
+  font-size: 7px;
+}
+
 .draft-field textarea {
   min-height: 250px;
   color: #344358;
@@ -2838,9 +2926,35 @@ select:focus {
   white-space: nowrap;
 }
 
+.source-list li > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.source-list li > div strong {
+  overflow: hidden;
+  color: var(--ink-strong);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-list li > div small {
+  color: var(--muted-light);
+  font-size: 6px;
+}
+
 .source-list b {
   color: var(--success);
   font-size: 6px;
+}
+
+.source-safety-copy {
+  margin: 10px 0 0;
+  color: var(--muted-light);
+  font-size: 7px;
+  line-height: 1.5;
 }
 
 .mini-empty {

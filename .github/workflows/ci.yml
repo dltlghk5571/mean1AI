@@ -19,3 +19,4 @@ jobs:
       - run: mypy app evals tests
       - run: pytest
       - run: python -m evals.run
+      - run: python -m evals.rag_run

@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Complaint, ComplaintLocationReview, Department
+from app.models import Complaint, ComplaintLocationReview, Department, GroundedDraftRecord
 from app.schemas import (
     Channel,
     ComplaintApproval,
@@ -58,6 +58,9 @@ AUDIT_LABELS = {
     "complaint_received": "민원 접수",
     "pii_redacted": "개인정보 비식별",
     "triage_completed": "자동 분류 완료",
+    "knowledge_retrieved": "승인 지식 검색",
+    "draft_grounding_validated": "문장별 근거 검증",
+    "draft_grounding_invalidated": "수정 초안 근거 확인 필요",
     "location_normalized": "위치 문구 정규화",
     "location_confirmed": "담당자 위치 확인",
     "duplicate_candidates_scored": "유사 민원 후보 조회",
@@ -153,6 +156,7 @@ def submit_complaint(
 def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTMLResponse:
     complaint = _get_complaint(db, complaint_id)
     location_review = db.get(ComplaintLocationReview, complaint_id)
+    grounding = db.get(GroundedDraftRecord, complaint_id)
     duplicate_candidates = list_duplicate_candidates(db, complaint_id)
     departments = list(
         db.scalars(
@@ -166,6 +170,7 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
         context={
             "complaint": complaint,
             "location_review": location_review,
+            "grounding": grounding,
             "duplicate_candidates": duplicate_candidates,
             "departments": departments,
             "department_map": department_map,

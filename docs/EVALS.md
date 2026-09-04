@@ -26,6 +26,8 @@ From the repository root with development dependencies installed:
 python -m evals.run
 python -m evals.run --format markdown
 python -m evals.run --thresholds evals/thresholds.json
+python -m evals.rag_run
+python -m evals.rag_run --format markdown
 pytest
 ruff check .
 ruff format --check .
@@ -84,7 +86,8 @@ These are prototype regression gates, not legal or production-readiness standard
 - Any case-level PII, abstention, emergency miss, severity, signal, queue, or audit failure: 0.
 
 CI runs both the direct safety regression tests and `python -m evals.run`. A failure in either blocks
-the workflow.
+the workflow. It also runs `python -m evals.rag_run`; grounded-retrieval metric definitions and the
+measured lexical trade-off are documented in `docs/RAG.md`.
 
 ## Versioned category thresholds
 

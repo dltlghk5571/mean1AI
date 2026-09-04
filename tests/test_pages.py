@@ -35,6 +35,10 @@ def test_html_flow_does_not_render_raw_phone(client: TestClient) -> None:
     assert "data-preview-draft" in response.text
     assert "data-confirm-approval" in response.text
     assert "[답변 초안 — 담당자 검토 및 수정 필요]" in response.text
+    assert "문장별 근거 검증 완료" in response.text
+    assert "KB-STREETLIGHT-001" in response.text
+    assert "승인·유효" in response.text
+    assert "인용은 담당자 확인용" in response.text
     assert "REDACTED INTAKE" not in response.text
 
 
