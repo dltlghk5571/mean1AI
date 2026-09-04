@@ -32,6 +32,15 @@ class ClassificationCandidate(BaseModel):
     department_id: str
     confidence: float = Field(ge=0.0, le=1.0)
     reason: str = Field(max_length=300)
+    catalog_version: str | None = Field(default=None, max_length=80)
+    work_assignment_ids: list[str] = Field(default_factory=list, max_length=10)
+
+    @field_validator("work_assignment_ids")
+    @classmethod
+    def work_assignment_ids_are_unique(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("work_assignment_ids must be unique")
+        return value
 
 
 class ClassificationResult(BaseModel):
@@ -230,6 +239,43 @@ class DepartmentRead(BaseModel):
     description: str
     jurisdiction: str
     active: bool
+
+
+class WorkAssignmentRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    description: str
+
+
+class RoutingRuleRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    subcategory: str
+    keywords: list[str]
+    requires_location: bool
+    work_assignment_ids: list[str]
+
+
+class DepartmentCatalogDepartmentRead(DepartmentRead):
+    work_assignments: list[WorkAssignmentRead]
+    routing_rules: list[RoutingRuleRead]
+
+
+class DepartmentCatalogRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    catalog_version: str
+    effective_from: date
+    effective_until: date | None
+    approval_status: str
+    source_label: str
+    synthetic: bool
+    source_sha256: str
+    fallback_department_id: str
+    departments: list[DepartmentCatalogDepartmentRead]
 
 
 class AuditEventRead(BaseModel):

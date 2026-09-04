@@ -126,6 +126,10 @@ class ComplaintPipeline:
                 "draft_modified": draft_modified,
                 "actor_role": approval.actor_role,
                 "review_decision_id": decision.id,
+                "catalog_version": self.catalog.catalog_version,
+                "approved_work_assignment_ids": list(
+                    self.catalog.work_assignment_ids_for(approval.department_id)
+                ),
             },
         )
         db.commit()
@@ -172,6 +176,7 @@ class ComplaintPipeline:
                 text=content_redaction.text,
                 location_text=complaint.redacted_location_text,
             )
+            classification = self.catalog.bind_classification(classification)
         except ClassifierError as exc:
             provider_error = str(exc)
             classification = ClassificationResult(
@@ -180,9 +185,15 @@ class ComplaintPipeline:
                 urgency=Urgency.NORMAL,
                 candidates=[
                     ClassificationCandidate(
-                        department_id="CIVIL_COORDINATION",
+                        department_id=self.catalog.fallback_department_id,
                         confidence=0.0,
                         reason="분류 제공자 오류로 자동 판단하지 않음",
+                        catalog_version=self.catalog.catalog_version,
+                        work_assignment_ids=list(
+                            self.catalog.work_assignment_ids_for(
+                                self.catalog.fallback_department_id
+                            )
+                        ),
                     )
                 ],
                 missing_information=[],
@@ -326,7 +337,9 @@ class ComplaintPipeline:
             "processing_action": action,
             "provider": classification.provider,
             "category": classification.category,
+            "catalog_version": self.catalog.catalog_version,
             "top_department_id": top_candidate.department_id,
+            "top_work_assignment_ids": top_candidate.work_assignment_ids,
             "top_confidence": confidence,
             "policy_reasons": policy.reasons,
             "emergency_signals": emergency.signals,

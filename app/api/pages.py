@@ -203,6 +203,27 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
         ).all()
     )
     department_map = {department.id: department for department in departments}
+    catalog = request.app.state.pipeline.catalog
+    work_assignment_titles = {
+        assignment.id: assignment.title
+        for department in catalog.all_departments
+        for assignment in department.work_assignments
+    }
+    candidate_assignment_labels: dict[str, str] = {}
+    candidate_catalog_versions: set[str] = set()
+    for candidate in complaint.candidate_departments:
+        department_id = str(candidate.get("department_id", ""))
+        candidate_catalog_version = candidate.get("catalog_version")
+        if isinstance(candidate_catalog_version, str) and candidate_catalog_version:
+            candidate_catalog_versions.add(candidate_catalog_version)
+        assignment_ids = candidate.get("work_assignment_ids", [])
+        if isinstance(assignment_ids, list):
+            titles = [
+                work_assignment_titles[assignment_id]
+                for assignment_id in assignment_ids
+                if isinstance(assignment_id, str) and assignment_id in work_assignment_titles
+            ]
+            candidate_assignment_labels[department_id] = " · ".join(titles)
     return request.app.state.templates.TemplateResponse(
         request=request,
         name="complaint_detail.html",
@@ -214,6 +235,12 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
             "review_decisions": review_decisions,
             "departments": departments,
             "department_map": department_map,
+            "catalog_version": (
+                next(iter(candidate_catalog_versions))
+                if len(candidate_catalog_versions) == 1
+                else "기록 없음(이전 데이터)"
+            ),
+            "candidate_assignment_labels": candidate_assignment_labels,
             "status_labels": STATUS_LABELS,
             "urgency_labels": URGENCY_LABELS,
             "channel_labels": CHANNEL_LABELS,

@@ -28,7 +28,9 @@ ComplaintPipeline
 SQLite through SQLAlchemy
   |-- current complaint state
   |-- append-only audit events
-  `-- append-only review decisions
+  |-- append-only review decisions
+  |-- current department projection
+  `-- append-only catalog versions, entries, and import events
 ```
 
 ## Design decisions
@@ -42,6 +44,24 @@ The OpenAI provider returns the same Pydantic schema, so routing policy is indep
 
 The provider may recommend a route, but `ComplaintPipeline` applies non-model policy afterward. This
 prevents model confidence from bypassing sensitive-category and emergency rules.
+
+### Versioned synthetic work-assignment catalog
+
+Startup strictly validates the local `departments.json` envelope, effective window, synthetic and
+approval flags, stable IDs, and all routing-rule-to-work-assignment references. The rules provider
+builds its routing table from that catalog; it does not keep a second hard-coded department keyword
+map. Every candidate is rebound to an active catalog department and receives the source catalog
+version and allowed work-assignment IDs before workflow policy runs.
+
+Each first-seen version is copied to immutable `DepartmentCatalogVersion` and
+`DepartmentCatalogEntry` rows. `CatalogImportEvent` records the source SHA-256 and a body-free change
+summary. Reusing a version for different bytes fails closed, while loading identical bytes is
+idempotent. SQLite triggers reject updates and deletes on all three catalog history tables. The
+mutable `Department` table is only the latest projection, so existing complaint foreign keys keep
+stable IDs while historical routing can be reconstructed from the candidate and audit snapshots.
+
+The catalog is fully synthetic and loaded from disk. It does not establish real jurisdiction and
+does not call any government or external service. See `docs/DEPARTMENT_CATALOG.md`.
 
 ### Human approval
 

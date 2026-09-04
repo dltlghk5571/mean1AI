@@ -96,7 +96,7 @@ The evidence_summary must name short observable words or fields, not hidden reas
                 f"{evidence_summary} 분류명과 최상위 담당 후보가 달라 사람 검토가 필요합니다."
             )
 
-        return ClassificationResult(
+        result = ClassificationResult(
             category=expected_category,
             subcategory=parsed.subcategory,
             urgency=parsed.urgency,
@@ -106,3 +106,4 @@ The evidence_summary must name short observable words or fields, not hidden reas
             evidence_summary=evidence_summary,
             provider=self.provider_name,
         )
+        return self.catalog.bind_classification(result)

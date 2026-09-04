@@ -1,65 +1,246 @@
-[
-  {
-    "id": "ROAD_LIGHTING",
-    "name": "도로·조명 데모팀",
-    "category": "streetlight",
-    "description": "가로등·보안등 고장과 야간 조명 시설 민원의 데모 라우팅 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "ROAD_MAINTENANCE",
-    "name": "도로 유지보수 데모팀",
-    "category": "road_damage",
-    "description": "포트홀·보도블록·도로 파손 민원의 데모 라우팅 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "WASTE_MANAGEMENT",
-    "name": "청소·자원순환 데모팀",
-    "category": "waste",
-    "description": "쓰레기 수거·무단투기·재활용 민원의 데모 라우팅 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "PARKS",
-    "name": "공원관리 데모팀",
-    "category": "park",
-    "description": "공원·놀이터·운동기구 시설 민원의 데모 라우팅 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "TRAFFIC",
-    "name": "교통행정 데모팀",
-    "category": "traffic",
-    "description": "신호·버스·주정차 등 교통 민원의 데모 라우팅 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "WATER_SEWER",
-    "name": "상하수도 데모팀",
-    "category": "water_sewer",
-    "description": "누수·하수도·배수 시설 민원의 데모 라우팅 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "WELFARE_REVIEW",
-    "name": "복지 검토 데모팀",
-    "category": "welfare",
-    "description": "복지 상담·자격 관련 민원을 사람에게 연결하는 데모 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "SAFETY_DUTY",
-    "name": "긴급 안전 검토 데모팀",
-    "category": "safety",
-    "description": "안전 위험 신호를 즉시 사람에게 표시하는 데모 그룹",
-    "jurisdiction": "성남시 데모"
-  },
-  {
-    "id": "CIVIL_COORDINATION",
-    "name": "민원 조정 데모팀",
-    "category": "other",
-    "description": "소관이 불명확하거나 여러 분야에 걸친 민원의 데모 조정 그룹",
-    "jurisdiction": "성남시 데모"
-  }
-]
+{
+  "catalog_version": "demo-2026-09-04.v1",
+  "effective_from": "2025-01-01",
+  "effective_until": null,
+  "approval_status": "approved",
+  "source_label": "저장소 내 완전 합성 데모 업무분장",
+  "synthetic": true,
+  "fallback_department_id": "CIVIL_COORDINATION",
+  "departments": [
+    {
+      "id": "ROAD_LIGHTING",
+      "name": "도로·조명 데모팀",
+      "category": "streetlight",
+      "description": "가로등·보안등 고장과 야간 조명 시설 민원의 데모 라우팅 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-RL-01",
+          "title": "가로등·보안등 점등 불량 확인",
+          "description": "합성 위치의 점등 불량, 소등, 깜빡임 신고를 담당자 검토 대상으로 접수"
+        },
+        {
+          "id": "WA-RL-02",
+          "title": "야간 조명 시설 상태 확인",
+          "description": "합성 위치의 조명 시설 파손 또는 밝기 이상 신고를 담당자에게 제안"
+        }
+      ],
+      "routing_rules": [
+        {
+          "id": "RULE-STREETLIGHT",
+          "subcategory": "가로등·보안등 고장",
+          "keywords": ["가로등", "보안등", "조명", "불이 꺼", "불꺼", "깜빡"],
+          "requires_location": true,
+          "work_assignment_ids": ["WA-RL-01", "WA-RL-02"]
+        }
+      ]
+    },
+    {
+      "id": "ROAD_MAINTENANCE",
+      "name": "도로 유지보수 데모팀",
+      "category": "road_damage",
+      "description": "포트홀·보도블록·도로 파손 민원의 데모 라우팅 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-RM-01",
+          "title": "차도 파손 확인",
+          "description": "합성 위치의 포트홀, 도로 파임, 아스팔트 파손 신고를 담당자에게 제안"
+        },
+        {
+          "id": "WA-RM-02",
+          "title": "보도 시설 파손 확인",
+          "description": "합성 위치의 보도블록 파손 신고를 담당자 검토 대상으로 접수"
+        }
+      ],
+      "routing_rules": [
+        {
+          "id": "RULE-ROAD-DAMAGE",
+          "subcategory": "도로·보도 파손",
+          "keywords": ["포트홀", "도로 파임", "아스팔트", "보도블록", "도로가 패", "도로 파손"],
+          "requires_location": true,
+          "work_assignment_ids": ["WA-RM-01", "WA-RM-02"]
+        }
+      ]
+    },
+    {
+      "id": "WASTE_MANAGEMENT",
+      "name": "청소·자원순환 데모팀",
+      "category": "waste",
+      "description": "쓰레기 수거·무단투기·재활용 민원의 데모 라우팅 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-WM-01",
+          "title": "생활폐기물 수거 확인",
+          "description": "합성 위치의 쓰레기 수거 누락 신고를 담당자에게 제안"
+        },
+        {
+          "id": "WA-WM-02",
+          "title": "무단투기·재활용 확인",
+          "description": "합성 위치의 무단투기와 재활용 관련 신고를 담당자 검토 대상으로 접수"
+        }
+      ],
+      "routing_rules": [
+        {
+          "id": "RULE-WASTE",
+          "subcategory": "쓰레기 수거·무단투기",
+          "keywords": ["쓰레기", "무단투기", "재활용", "수거", "폐기물", "종량제"],
+          "requires_location": true,
+          "work_assignment_ids": ["WA-WM-01", "WA-WM-02"]
+        }
+      ]
+    },
+    {
+      "id": "PARKS",
+      "name": "공원관리 데모팀",
+      "category": "park",
+      "description": "공원·놀이터·운동기구 시설 민원의 데모 라우팅 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-PK-01",
+          "title": "공원 편의시설 확인",
+          "description": "합성 공원의 벤치, 산책로 등 편의시설 이상 신고를 담당자에게 제안"
+        },
+        {
+          "id": "WA-PK-02",
+          "title": "놀이터·운동시설 확인",
+          "description": "합성 공원의 놀이·운동 시설 이상 신고를 담당자 검토 대상으로 접수"
+        }
+      ],
+      "routing_rules": [
+        {
+          "id": "RULE-PARK",
+          "subcategory": "공원·놀이터 시설",
+          "keywords": ["공원", "놀이터", "운동기구", "벤치", "산책로", "그네"],
+          "requires_location": true,
+          "work_assignment_ids": ["WA-PK-01", "WA-PK-02"]
+        }
+      ]
+    },
+    {
+      "id": "TRAFFIC",
+      "name": "교통행정 데모팀",
+      "category": "traffic",
+      "description": "신호·버스·주정차 등 교통 민원의 데모 라우팅 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-TF-01",
+          "title": "교통 안전시설 확인",
+          "description": "합성 위치의 신호등, 횡단보도 등 시설 신고를 담당자에게 제안"
+        },
+        {
+          "id": "WA-TF-02",
+          "title": "주정차·대중교통 문의 검토",
+          "description": "합성 위치의 주정차 또는 버스 관련 문의를 담당자 검토 대상으로 접수"
+        }
+      ],
+      "routing_rules": [
+        {
+          "id": "RULE-TRAFFIC",
+          "subcategory": "교통·신호·주정차",
+          "keywords": ["신호등", "불법주정차", "주차", "버스", "횡단보도", "교통"],
+          "requires_location": true,
+          "work_assignment_ids": ["WA-TF-01", "WA-TF-02"]
+        }
+      ]
+    },
+    {
+      "id": "WATER_SEWER",
+      "name": "상하수도 데모팀",
+      "category": "water_sewer",
+      "description": "누수·하수도·배수 시설 민원의 데모 라우팅 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-WS-01",
+          "title": "누수·급수 상태 확인",
+          "description": "합성 위치의 누수와 수돗물 상태 신고를 담당자에게 제안"
+        },
+        {
+          "id": "WA-WS-02",
+          "title": "하수·배수 시설 확인",
+          "description": "합성 위치의 하수도, 맨홀, 배수 이상 신고를 담당자 검토 대상으로 접수"
+        }
+      ],
+      "routing_rules": [
+        {
+          "id": "RULE-WATER-SEWER",
+          "subcategory": "상하수도·배수",
+          "keywords": ["누수", "하수도", "배수", "수돗물", "맨홀", "오수"],
+          "requires_location": true,
+          "work_assignment_ids": ["WA-WS-01", "WA-WS-02"]
+        }
+      ]
+    },
+    {
+      "id": "WELFARE_REVIEW",
+      "name": "복지 검토 데모팀",
+      "category": "welfare",
+      "description": "복지 상담·자격 관련 민원을 사람에게 연결하는 데모 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-WF-01",
+          "title": "복지 상담 접수",
+          "description": "합성 복지 문의를 자격 결정 없이 사람의 검토 대상으로 접수"
+        },
+        {
+          "id": "WA-WF-02",
+          "title": "돌봄·지원 문의 검토",
+          "description": "합성 돌봄 또는 지원 문의를 자동 판단 없이 담당자에게 제안"
+        }
+      ],
+      "routing_rules": [
+        {
+          "id": "RULE-WELFARE-REVIEW",
+          "subcategory": "복지 상담·자격 검토",
+          "keywords": ["복지", "수급자", "기초생활", "장애", "돌봄", "지원금"],
+          "requires_location": false,
+          "work_assignment_ids": ["WA-WF-01", "WA-WF-02"]
+        }
+      ]
+    },
+    {
+      "id": "SAFETY_DUTY",
+      "name": "긴급 안전 검토 데모팀",
+      "category": "safety",
+      "description": "안전 위험 신호를 즉시 사람에게 표시하는 데모 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-SF-01",
+          "title": "긴급 안전 신호 검토",
+          "description": "합성 민원의 안전 신호를 자동 배정 없이 긴급 검토 대기열에 표시"
+        }
+      ],
+      "routing_rules": []
+    },
+    {
+      "id": "CIVIL_COORDINATION",
+      "name": "민원 조정 데모팀",
+      "category": "other",
+      "description": "소관이 불명확하거나 여러 분야에 걸친 민원의 데모 조정 그룹",
+      "jurisdiction": "성남시 데모",
+      "active": true,
+      "work_assignments": [
+        {
+          "id": "WA-CC-01",
+          "title": "소관 확인 및 사람 검토",
+          "description": "소관이 불명확한 합성 민원을 자동 배정하지 않고 사람 검토 대상으로 접수"
+        }
+      ],
+      "routing_rules": []
+    }
+  ]
+}

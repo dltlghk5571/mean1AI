@@ -1,5 +1,5 @@
 from app.config import Settings
-from app.database import Base, make_engine, make_session_factory
+from app.database import Base, install_append_only_guards, make_engine, make_session_factory
 from app.main import build_pipeline
 from app.schemas import Channel, ComplaintCreate
 from app.seed import seed_departments
@@ -31,6 +31,7 @@ def main() -> None:
     engine = make_engine(settings.database_url)
     session_factory = make_session_factory(engine)
     Base.metadata.create_all(engine)
+    install_append_only_guards(engine)
     pipeline = build_pipeline(settings)
 
     with session_factory() as db:

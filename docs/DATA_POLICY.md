@@ -14,6 +14,8 @@
 - Use synthetic data in tests and screenshots.
 - Store only what is necessary for the demo.
 - Retrieve only approved, currently effective, non-superseded local knowledge documents.
+- Load only an explicitly approved, effective, synthetic department catalog; preserve each imported
+  version, checksum, work-assignment snapshot, and body-free change summary as append-only history.
 - Persist source IDs and document-governance metadata snapshots, not hidden prompts or raw model
   reasoning. Exclude unsupported or unsafe provider sentences before rendering a draft.
 - Derive human actor IDs from the signed session, never from editable form or JSON fields.

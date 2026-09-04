@@ -31,12 +31,18 @@ def make_engine(database_url: str) -> Engine:
 
 
 def install_append_only_guards(engine: Engine) -> None:
-    """Install SQLite guards for audit and human-review history tables."""
+    """Install SQLite guards for audit, review, and catalog history tables."""
 
     if engine.dialect.name != "sqlite":
         return
     statements = []
-    for table_name in ("audit_events", "review_decisions"):
+    for table_name in (
+        "audit_events",
+        "review_decisions",
+        "department_catalog_versions",
+        "department_catalog_entries",
+        "catalog_import_events",
+    ):
         for operation in ("UPDATE", "DELETE"):
             trigger_name = f"prevent_{table_name}_{operation.lower()}"
             statements.append(

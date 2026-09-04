@@ -261,7 +261,7 @@
       <div class="analysis-summary">
         <div><span>민원 분야</span><strong>{{ category_labels.get(complaint.category, complaint.category or '분류 대기') }}</strong></div>
         <div><span>세부 유형</span><strong>{{ complaint.subcategory or '소관 확인 필요' }}</strong></div>
-        <div><span>분류 방식</span><strong>{{ '규칙 기반' if complaint.classifier_provider == 'rules' else complaint.classifier_provider }}</strong></div>
+        <div><span>분류 방식·업무분장</span><strong>{{ '규칙 기반' if complaint.classifier_provider == 'rules' else complaint.classifier_provider }} · {{ catalog_version }}</strong></div>
         <div><span>사람 검토</span><strong class="{{ 'text-warning' if complaint.requires_human_review else 'text-success' }}">{{ '필수' if complaint.requires_human_review else '완료 또는 선택' }}</strong></div>
       </div>
 
@@ -282,7 +282,7 @@
             <span class="candidate-rank">{{ loop.index }}</span>
             <span class="candidate-copy">
               <strong>{{ department.name if department else candidate.department_id }}</strong>
-              <small>{{ candidate.reason }}</small>
+              <small>{% if candidate_assignment_labels.get(candidate.department_id) %}{{ candidate_assignment_labels.get(candidate.department_id) }} · {% endif %}{{ candidate.reason }}</small>
             </span>
             <span class="candidate-score"><strong>{{ '%.0f'|format(candidate.confidence * 100) }}%</strong><small>{{ '추천' if loop.first else '후보' }}</small></span>
             <span class="candidate-select" aria-hidden="true">✓</span>

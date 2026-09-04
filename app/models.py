@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import (
     JSON,
     Boolean,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -33,6 +34,64 @@ class Department(Base):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     jurisdiction: Mapped[str] = mapped_column(String(120), nullable=False, default="성남시 데모")
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+
+class DepartmentCatalogVersion(Base):
+    """Immutable metadata for one imported synthetic department catalog."""
+
+    __tablename__ = "department_catalog_versions"
+
+    catalog_version: Mapped[str] = mapped_column(String(80), primary_key=True)
+    effective_from: Mapped[date] = mapped_column(Date, nullable=False)
+    effective_until: Mapped[date | None] = mapped_column(Date, nullable=True)
+    approval_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    source_label: Mapped[str] = mapped_column(String(160), nullable=False)
+    synthetic: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    fallback_department_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    department_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    work_assignment_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    routing_rule_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+
+
+class DepartmentCatalogEntry(Base):
+    """Immutable department and work-assignment snapshot for one catalog version."""
+
+    __tablename__ = "department_catalog_entries"
+
+    catalog_version: Mapped[str] = mapped_column(
+        ForeignKey("department_catalog_versions.catalog_version"), primary_key=True
+    )
+    department_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    category: Mapped[str] = mapped_column(String(80), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    jurisdiction: Mapped[str] = mapped_column(String(120), nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    work_assignments: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSON, nullable=False, default=list
+    )
+    routing_rules: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False, default=list)
+
+
+class CatalogImportEvent(Base):
+    """Append-only, complaint-free audit record for a catalog import."""
+
+    __tablename__ = "catalog_import_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, index=True
+    )
+    catalog_version: Mapped[str] = mapped_column(
+        ForeignKey("department_catalog_versions.catalog_version"), nullable=False, index=True
+    )
+    action: Mapped[str] = mapped_column(String(80), nullable=False, default="catalog_imported")
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
 
 
 class Complaint(Base):

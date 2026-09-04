@@ -12,6 +12,7 @@
 - 화재·가스·붕괴·침수 등 긴급 안전 표현 탐지
 - API 키 없는 규칙 기반 분류 또는 선택적 OpenAI 구조화 출력 분류
 - 신뢰도·민감 분야 규칙에 따른 자동 배정/사람 검토 분기
+- SHA-256과 유효일을 검증하는 버전 고정형 합성 부서·업무분장 카탈로그
 - 외부 지도 없이 위치 문구 정규화 및 담당자 확인
 - 같은 분야·위치·30일 범위의 유사 민원 후보와 점수 근거 제시
 - 승인·유효기간·대체관계를 검사하는 로컬 Markdown 지식 검색
@@ -90,6 +91,16 @@ uvicorn app.main:app --reload
 확인·거절은 후보 관계와 담당자 감사 이벤트만 저장합니다. 원본 민원의 상태나 배정을 바꾸거나
 두 민원을 병합·종결하지 않습니다. 외부 지도·정부 시스템·메시징 서비스는 호출하지 않습니다.
 
+### 데모 업무분장 기준
+
+규칙 분류의 키워드, 세부 유형과 업무 ID는 `app/data/departments.json`의 버전 고정형 합성
+카탈로그에서 읽습니다. 같은 버전의 파일 내용이 바뀌면 SHA-256 불일치로 시작을 거부하며,
+새 버전의 부서·업무·규칙 스냅샷과 변경 요약은 SQLite 추가형 이력으로 보존됩니다. 민원 후보와
+분류·담당자 승인 감사 이벤트에도 적용된 카탈로그 버전과 업무 ID가 남습니다.
+
+이는 실제 성남시 조직·업무 자료나 관할 판정이 아닙니다. 스키마, 버전 변경 절차와 검증 명령은
+`docs/DEPARTMENT_CATALOG.md`에 있습니다.
+
 ## 3. OpenAI 분류기 켜기
 
 `.env`를 다음처럼 수정합니다.
@@ -143,6 +154,7 @@ POST /api/v1/complaints/{complaint_id}/location/confirm
 GET  /api/v1/complaints/{complaint_id}/duplicate-candidates
 POST /api/v1/complaints/{complaint_id}/duplicate-candidates/{candidate_id}/decision
 GET  /api/v1/departments
+GET  /api/v1/departments/catalog
 GET  /api/v1/session
 ```
 

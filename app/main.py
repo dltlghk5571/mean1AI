@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from app.api import auth, complaints, departments, pages
 from app.config import Settings, get_settings
 from app.database import Base, install_append_only_guards, make_engine, make_session_factory
-from app.seed import seed_departments
+from app.seed import import_department_catalog
 from app.services.auth import SESSION_COOKIE_NAME, AuthManager
 from app.services.classifier import Classifier, DepartmentCatalog, RuleBasedClassifier
 from app.services.knowledge import KnowledgeRetriever
@@ -65,7 +65,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         Base.metadata.create_all(engine)
         install_append_only_guards(engine)
         with session_factory() as db:
-            seed_departments(db, effective_settings.departments_path)
+            import_department_catalog(db, pipeline.catalog)
         yield
         engine.dispose()
 

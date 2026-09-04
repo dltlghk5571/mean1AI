@@ -21,7 +21,7 @@
 
 ## M2 — Better routing and duplicate detection
 
-- [ ] Import a versioned department/work-assignment catalog
+- [x] Import a versioned synthetic department/work-assignment catalog with immutable history
 - [x] Add local location normalization and human confirmation
 - [ ] Add district/jurisdiction rules and an approved coordinate source
 - [x] Add text + normalized-location + time duplicate-candidate scoring
