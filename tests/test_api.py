@@ -52,6 +52,10 @@ def test_create_streetlight_complaint_redacts_and_auto_routes(client: TestClient
         "location_normalized",
         "duplicate_candidates_scored",
     ]
+    knowledge_event = next(
+        event for event in detail.json()["audit_events"] if event["action"] == "knowledge_retrieved"
+    )
+    assert knowledge_event["details"]["strategy"] == "offline_concept_hybrid_v2"
 
     grounding = client.get(f"/api/v1/complaints/{body['id']}/grounding")
     assert grounding.status_code == 200

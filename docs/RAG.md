@@ -1,8 +1,8 @@
-# Grounded RAG v1
+# Grounded RAG v2
 
-This prototype uses a deterministic, offline lexical baseline. It does not call an embedding model,
-external search service, government system, or network API. All evaluation queries are synthetic and
-fully de-identified.
+This prototype uses deterministic, offline hybrid retrieval. It combines exact-token evidence with a
+small reviewed Korean concept map; it does not call an embedding model, external search service,
+government system, or network API. All evaluation queries are synthetic and fully de-identified.
 
 ## Knowledge governance and retrieval
 
@@ -25,11 +25,27 @@ effective on the retrieval date, and has no approved/effective successor. Unknow
 duplicate IDs, invalid dates, and missing metadata stop startup instead of silently weakening the
 filter.
 
-`strict_lexical_v1` then requires the routing category to match and at least one non-stopword query
-token to occur in the title or body. Documents containing direct-identifier shapes, known
-prompt-injection instructions, or instructions for unreviewed automatic disposition are excluded.
-The current controls are a safety backstop for the synthetic demo, not a complete hostile-document
-security system.
+Every strategy applies governance before relevance ranking. The routing category must match, and
+documents containing direct-identifier shapes, known prompt-injection instructions, or instructions
+for unreviewed automatic disposition are excluded.
+
+`strict_lexical_v1` remains callable as the frozen comparison baseline. It selects a document when at
+least one non-stopword query token occurs exactly in the title or body.
+
+`offline_concept_hybrid_v2` is the runtime default. It maps visible Korean aliases into two or three
+reviewed concepts per routing category, such as lighting asset + malfunction or water system + flow
+problem. A document is eligible for ranking only when query and document share at least two exact
+tokens or two concepts. One ambiguous signal such as `공원` in a performance-schedule query is not
+enough. Ranking uses:
+
+```text
+hybrid_score = 0.65 * exact-token cosine overlap
+             + 0.35 * concept cosine overlap
+```
+
+The concept map is static source code, reviewed in Git, and makes no learned or remote inference. It
+bridges a narrow set of wording gaps but is not general semantic search. The content controls are a
+safety backstop for the synthetic demo, not a complete hostile-document security system.
 
 ## Structured output and citation enforcement
 
@@ -75,7 +91,7 @@ invalid input. The JSON report is the CI default; `--format markdown` prints the
 ## Metric definitions
 
 For each query, the predicted set is the retrieved source IDs and the expected set is the synthetic
-labels in `evals/fixtures/rag_retrieval.jsonl`.
+labels in `evals/fixtures/rag_retrieval_v2.jsonl`.
 
 - **Precision** = correctly retrieved source IDs / all retrieved source IDs. Empty-only results use
   precision 1.0 and are still reflected in recall and abstention.
@@ -88,21 +104,27 @@ labels in `evals/fixtures/rag_retrieval.jsonl`.
 - **Irrelevant rejection rate** = irrelevant cases returning no source / all irrelevant cases.
 - **Abstention rate** = cases returning no source / all cases.
 
-The safety gates require exactly 24 versioned synthetic cases, candidate precision 100%, direct recall
-100%, irrelevant rejection 100%, and zero false-positive source IDs. These gates favor missing a draft
-over citing an unsupported document.
+The v2 safety gates require exactly 36 versioned synthetic cases, hybrid precision 100%, direct recall
+100%, paraphrase recall 100%, irrelevant rejection 100%, zero false-positive source IDs, and hybrid
+recall strictly above the frozen lexical baseline. These gates continue to favor abstention over an
+unsupported citation.
 
-## Measured lexical trade-off
+## Measured comparison
 
-Dataset `2026-09-04.rag-v1` has 16 direct positives, four paraphrased positives, and four irrelevant
-negatives. Results measured on 2026-09-04 are:
+Dataset `2026-09-04.rag-v2` has 16 direct positives, eight paraphrased positives, and 12 irrelevant
+negatives. Eight of the negatives deliberately contain one tempting in-category word or concept. The
+v1 dataset remains at `evals/fixtures/rag_retrieval.jsonl` for audit comparison; the current evaluator
+intentionally accepts v2, whose default fixture is `evals/fixtures/rag_retrieval_v2.jsonl`. Results
+measured on 2026-09-04 are:
 
 | Strategy | Precision | Recall | F1 | Direct recall | Paraphrase recall | Irrelevant rejection | Abstention |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Approved/effective category-only baseline | 83.3% | 100.0% | 90.9% | 100.0% | 100.0% | 0.0% | 0.0% |
-| `strict_lexical_v1` | 100.0% | 80.0% | 88.9% | 100.0% | 0.0% | 100.0% | 33.3% |
+| Approved/effective category-only baseline | 66.7% | 100.0% | 80.0% | 100.0% | 100.0% | 0.0% | 0.0% |
+| `strict_lexical_v1` | 84.2% | 66.7% | 74.4% | 100.0% | 0.0% | 75.0% | 47.2% |
+| `offline_concept_hybrid_v2` | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 33.3% |
 
-The strict lexical candidate removes all four irrelevant citations but misses all four lexical-gap
-paraphrases. This is the intentional v1 trade-off: prefer a visible human-review abstention over an
-unsupported citation. Embeddings remain deferred until a later, separately reviewed experiment can
-improve paraphrase recall without weakening precision, document governance, or citation validation.
+On this fixed synthetic set the hybrid recovers all eight wording-gap cases and rejects every
+irrelevant query, including the eight single-signal hard negatives. These numbers do not establish
+real-world quality: the concept map and fixture are deliberately small. Embeddings remain deferred
+until a separately reviewed experiment can demonstrate additional coverage without weakening
+precision, document governance, privacy, or citation validation.

@@ -1,0 +1,36 @@
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-streetlight-01","synthetic":true,"category":"streetlight","query_text":"가로등 고장 위치와 관리번호 확인","expected_source_ids":["KB-STREETLIGHT-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-streetlight-02","synthetic":true,"category":"streetlight","query_text":"보안등 점등 불량 교차로","expected_source_ids":["KB-STREETLIGHT-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-road-01","synthetic":true,"category":"road_damage","query_text":"도로 파손 차로 규모","expected_source_ids":["KB-ROAD-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-road-02","synthetic":true,"category":"road_damage","query_text":"보도 싱크홀 사진 촬영","expected_source_ids":["KB-ROAD-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-waste-01","synthetic":true,"category":"waste","query_text":"쓰레기 수거 위치 발견 시간","expected_source_ids":["KB-WASTE-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-waste-02","synthetic":true,"category":"waste","query_text":"무단투기 폐기물 종류 반복 여부","expected_source_ids":["KB-WASTE-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-park-01","synthetic":true,"category":"park","query_text":"공원 시설 파손 상태","expected_source_ids":["KB-PARK-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-park-02","synthetic":true,"category":"park","query_text":"공원명 출입구 시설 위치","expected_source_ids":["KB-PARK-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-traffic-01","synthetic":true,"category":"traffic","query_text":"교통 도로명 진행 방향","expected_source_ids":["KB-TRAFFIC-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-traffic-02","synthetic":true,"category":"traffic","query_text":"교차로 시간대 차량 흐름","expected_source_ids":["KB-TRAFFIC-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-water-01","synthetic":true,"category":"water_sewer","query_text":"누수 발생 시점 유량","expected_source_ids":["KB-WATER-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-water-02","synthetic":true,"category":"water_sewer","query_text":"배수 침수 범위 건물","expected_source_ids":["KB-WATER-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-welfare-01","synthetic":true,"category":"welfare","query_text":"복지 자격 급여 결정","expected_source_ids":["KB-WELFARE-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-welfare-02","synthetic":true,"category":"welfare","query_text":"담당자 사실관계 적용 기준","expected_source_ids":["KB-WELFARE-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-other-01","synthetic":true,"category":"other","query_text":"소관이 불명확하여 사람이 내용을 분리","expected_source_ids":["KB-GENERAL-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-direct-other-02","synthetic":true,"category":"other","query_text":"부족한 정보와 접수 기록 보완","expected_source_ids":["KB-GENERAL-001"],"query_kind":"direct"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-streetlight-01","synthetic":true,"category":"streetlight","query_text":"밤길 조명 장치가 먹통이라 어둡습니다","expected_source_ids":["KB-STREETLIGHT-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-road-01","synthetic":true,"category":"road_damage","query_text":"길바닥이 움푹 패여 덜컹거립니다","expected_source_ids":["KB-ROAD-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-waste-01","synthetic":true,"category":"waste","query_text":"봉투가 며칠째 그대로 쌓였어요","expected_source_ids":["KB-WASTE-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-water-01","synthetic":true,"category":"water_sewer","query_text":"바닥에서 물이 계속 솟아요","expected_source_ids":["KB-WATER-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-park-01","synthetic":true,"category":"park","query_text":"놀이터 벤치가 부러져 아이들이 다칠 것 같아요","expected_source_ids":["KB-PARK-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-traffic-01","synthetic":true,"category":"traffic","query_text":"출근길 사거리 신호가 엉켜 차들이 움직이지 못해요","expected_source_ids":["KB-TRAFFIC-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-welfare-01","synthetic":true,"category":"welfare","query_text":"생계 도움을 받을 수 있는 대상인지 상담받고 싶어요","expected_source_ids":["KB-WELFARE-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-paraphrase-other-01","synthetic":true,"category":"other","query_text":"어느 부서에 물어봐야 할지 몰라 안내가 필요해요","expected_source_ids":["KB-GENERAL-001"],"query_kind":"paraphrase"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-irrelevant-streetlight-01","synthetic":true,"category":"streetlight","query_text":"도서관 좌석 예약이 궁금해요","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-irrelevant-park-01","synthetic":true,"category":"park","query_text":"온라인 강좌 환불 절차를 알려주세요","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-irrelevant-welfare-01","synthetic":true,"category":"welfare","query_text":"전시회 운영 일정이 궁금합니다","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-irrelevant-traffic-01","synthetic":true,"category":"traffic","query_text":"반려동물 예방접종 예약 문의","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-streetlight-01","synthetic":true,"category":"streetlight","query_text":"실내 조명 전시회 관람 시간을 알고 싶어요","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-road-01","synthetic":true,"category":"road_damage","query_text":"도로명 주소의 우편번호를 확인하고 싶어요","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-waste-01","synthetic":true,"category":"waste","query_text":"종이 봉투 디자인 인쇄 견적을 문의합니다","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-park-01","synthetic":true,"category":"park","query_text":"공원 야외 공연 일정을 알고 싶어요","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-traffic-01","synthetic":true,"category":"traffic","query_text":"차량 등록 서류 발급 시간을 문의합니다","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-water-01","synthetic":true,"category":"water_sewer","query_text":"물놀이 행사 신청 방법을 알려주세요","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-welfare-01","synthetic":true,"category":"welfare","query_text":"복지관 문화 강좌 시간표를 알려주세요","expected_source_ids":[],"query_kind":"irrelevant"}
+{"dataset_version":"2026-09-04.rag-v2","id":"rag-hard-negative-other-01","synthetic":true,"category":"other","query_text":"택배 접수 영수증을 다시 받고 싶어요","expected_source_ids":[],"query_kind":"irrelevant"}

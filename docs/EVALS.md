@@ -87,7 +87,7 @@ These are prototype regression gates, not legal or production-readiness standard
 
 CI runs both the direct safety regression tests and `python -m evals.run`. A failure in either blocks
 the workflow. It also runs `python -m evals.rag_run`; grounded-retrieval metric definitions and the
-measured lexical trade-off are documented in `docs/RAG.md`.
+measured lexical-versus-offline-hybrid comparison are documented in `docs/RAG.md`.
 
 ## Versioned category thresholds
 

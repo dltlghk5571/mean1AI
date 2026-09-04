@@ -6,7 +6,11 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from app.config import Settings
-from app.services.knowledge import KnowledgeRetriever
+from app.services.knowledge import (
+    LEXICAL_RETRIEVAL_STRATEGY,
+    RETRIEVAL_STRATEGY,
+    KnowledgeRetriever,
+)
 from evals.rag_models import (
     RAG_DATASET_VERSION,
     RagEvaluationReport,
@@ -15,8 +19,9 @@ from evals.rag_models import (
     RetrievalStrategyReport,
 )
 
-DEFAULT_RAG_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "rag_retrieval.jsonl"
+DEFAULT_RAG_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "rag_retrieval_v2.jsonl"
 EVALUATION_DATE = date(2026, 9, 4)
+EXPECTED_CASE_COUNT = 36
 
 
 def load_retrieval_cases(path: Path = DEFAULT_RAG_FIXTURE) -> list[RetrievalCase]:
@@ -106,6 +111,17 @@ def evaluate_rag(
             )[:3]
         ],
     )
+    lexical_metrics = _measure(
+        cases,
+        lambda case: [
+            document.id
+            for document in retriever.retrieve_lexical(
+                category=case.category,
+                text=case.query_text,
+                as_of=EVALUATION_DATE,
+            ).documents
+        ],
+    )
     candidate_metrics = _measure(
         cases,
         lambda case: [
@@ -119,13 +135,19 @@ def evaluate_rag(
     )
 
     failures: list[str] = []
-    if len(cases) != 24:
-        failures.append(f"case_count: expected 24, got {len(cases)}")
+    if len(cases) != EXPECTED_CASE_COUNT:
+        failures.append(f"case_count: expected {EXPECTED_CASE_COUNT}, got {len(cases)}")
     if candidate_metrics.precision != 1.0:
         failures.append(f"candidate_precision: expected 1.0, got {candidate_metrics.precision}")
+    if candidate_metrics.recall != 1.0:
+        failures.append(f"candidate_recall: expected 1.0, got {candidate_metrics.recall}")
     if candidate_metrics.direct_recall != 1.0:
         failures.append(
             f"candidate_direct_recall: expected 1.0, got {candidate_metrics.direct_recall}"
+        )
+    if candidate_metrics.paraphrase_recall != 1.0:
+        failures.append(
+            f"candidate_paraphrase_recall: expected 1.0, got {candidate_metrics.paraphrase_recall}"
         )
     if candidate_metrics.irrelevant_rejection_rate != 1.0:
         failures.append(
@@ -137,6 +159,11 @@ def evaluate_rag(
             f"candidate_false_positive_count: expected 0, got "
             f"{candidate_metrics.false_positive_count}"
         )
+    if candidate_metrics.recall <= lexical_metrics.recall:
+        failures.append(
+            "candidate_recall_improvement: expected hybrid recall above lexical baseline, "
+            f"got {candidate_metrics.recall} <= {lexical_metrics.recall}"
+        )
 
     return RagEvaluationReport(
         dataset_version=RAG_DATASET_VERSION,
@@ -146,8 +173,12 @@ def evaluate_rag(
             strategy="approved_effective_category_only_baseline",
             metrics=baseline_metrics,
         ),
+        lexical_baseline=RetrievalStrategyReport(
+            strategy=LEXICAL_RETRIEVAL_STRATEGY,
+            metrics=lexical_metrics,
+        ),
         candidate=RetrievalStrategyReport(
-            strategy="strict_lexical_v1",
+            strategy=RETRIEVAL_STRATEGY,
             metrics=candidate_metrics,
         ),
         safety_gate_failures=failures,

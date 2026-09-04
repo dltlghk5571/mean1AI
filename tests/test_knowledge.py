@@ -3,7 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from app.services.knowledge import KnowledgeRetriever, load_document
+from app.services.knowledge import (
+    LEXICAL_RETRIEVAL_STRATEGY,
+    RETRIEVAL_STRATEGY,
+    KnowledgeRetriever,
+    load_document,
+)
 
 
 def _write_document(
@@ -150,7 +155,7 @@ def test_malicious_and_automatic_disposition_documents_are_excluded(tmp_path: Pa
 
     result = KnowledgeRetriever(tmp_path).retrieve(
         category="streetlight",
-        text="가로등 위치 확인",
+        text="가로등 고장 위치 확인",
         as_of=date(2026, 9, 4),
     )
 
@@ -181,14 +186,64 @@ def test_irrelevant_category_and_zero_overlap_documents_are_excluded(tmp_path: P
 
     result = KnowledgeRetriever(tmp_path).retrieve(
         category="streetlight",
-        text="가로등 관리번호",
+        text="가로등 고장 관리번호",
         as_of=date(2026, 9, 4),
     )
 
     assert [document.id for document in result.documents] == ["KB-LIGHT"]
     exclusions = {item.document_id: item.reason for item in result.excluded}
     assert exclusions["KB-ROAD"] == "category_mismatch"
-    assert exclusions["KB-UNRELATED"] == "no_lexical_overlap"
+    assert exclusions["KB-UNRELATED"] == "insufficient_hybrid_relevance"
+
+
+def test_hybrid_retrieves_a_two_concept_paraphrase_without_network(tmp_path: Path) -> None:
+    _write_document(tmp_path, document_id="KB-LIGHT", filename="light.md")
+    retriever = KnowledgeRetriever(tmp_path)
+
+    hybrid = retriever.retrieve(
+        category="streetlight",
+        text="밤길 조명 장치가 먹통이라 어둡습니다.",
+        as_of=date(2026, 9, 4),
+    )
+    lexical = retriever.retrieve_lexical(
+        category="streetlight",
+        text="밤길 조명 장치가 먹통이라 어둡습니다.",
+        as_of=date(2026, 9, 4),
+    )
+
+    assert hybrid.strategy == RETRIEVAL_STRATEGY
+    assert [document.id for document in hybrid.documents] == ["KB-LIGHT"]
+    assert lexical.strategy == LEXICAL_RETRIEVAL_STRATEGY
+    assert lexical.documents == []
+
+
+def test_hybrid_rejects_a_single_ambiguous_category_signal(tmp_path: Path) -> None:
+    _write_document(
+        tmp_path,
+        document_id="KB-PARK",
+        filename="park.md",
+        title="공원 시설 데모 지침",
+        category="park",
+        body="공원 시설의 위치와 파손 상태를 확인한다.",
+    )
+    retriever = KnowledgeRetriever(tmp_path)
+
+    hybrid = retriever.retrieve(
+        category="park",
+        text="공원 야외 공연 일정을 알고 싶어요.",
+        as_of=date(2026, 9, 4),
+    )
+    lexical = retriever.retrieve_lexical(
+        category="park",
+        text="공원 야외 공연 일정을 알고 싶어요.",
+        as_of=date(2026, 9, 4),
+    )
+
+    assert hybrid.documents == []
+    assert [(item.document_id, item.reason) for item in hybrid.excluded] == [
+        ("KB-PARK", "insufficient_hybrid_relevance")
+    ]
+    assert [document.id for document in lexical.documents] == ["KB-PARK"]
 
 
 def test_unknown_supersession_target_fails_closed(tmp_path: Path) -> None:

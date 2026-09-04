@@ -7,7 +7,87 @@ from pathlib import Path
 from app.services.pii import redact_pii
 
 APPROVAL_STATUSES = frozenset({"approved", "draft", "revoked"})
-RETRIEVAL_STRATEGY = "strict_lexical_v1"
+LEXICAL_RETRIEVAL_STRATEGY = "strict_lexical_v1"
+RETRIEVAL_STRATEGY = "offline_concept_hybrid_v2"
+
+# Small, reviewable Korean concept groups bridge common wording gaps without an
+# embedding model or network call. A query needs at least two lexical or concept
+# signals before a document can be selected.
+_CONCEPT_ALIASES: dict[str, dict[str, tuple[str, ...]]] = {
+    "streetlight": {
+        "lighting_asset": ("가로등", "보안등", "조명", "등불", "램프", "밤길"),
+        "malfunction": (
+            "고장",
+            "점등",
+            "불량",
+            "꺼져",
+            "꺼졌",
+            "꺼진",
+            "꺼짐",
+            "먹통",
+            "어둡",
+            "깜빡",
+        ),
+    },
+    "road_damage": {
+        "road_surface": ("도로", "보도", "노면", "길바닥", "아스팔트", "차도", "인도"),
+        "surface_damage": ("파손", "싱크홀", "포트홀", "움푹", "패여", "균열", "덜컹"),
+    },
+    "waste": {
+        "waste_material": ("쓰레기", "폐기물", "봉투", "무단투기", "종량제"),
+        "collection_issue": (
+            "수거",
+            "방치",
+            "쌓였",
+            "쌓여",
+            "가져가지",
+            "치우지",
+            "악취",
+            "며칠째",
+        ),
+    },
+    "park": {
+        "park_asset": ("공원", "놀이터", "산책로", "벤치", "운동기구"),
+        "asset_damage": ("시설", "파손", "부러", "깨져", "망가", "날카", "다칠", "위험"),
+    },
+    "traffic": {
+        "traffic_context": (
+            "교통",
+            "차량",
+            "차로",
+            "교차로",
+            "사거리",
+            "도로명",
+            "출근길",
+            "차들",
+        ),
+        "traffic_flow": (
+            "진행 방향",
+            "시간대",
+            "흐름",
+            "정체",
+            "신호",
+            "막혀",
+            "혼잡",
+            "움직이지",
+            "엉켜",
+            "장애",
+        ),
+    },
+    "water_sewer": {
+        "water_system": ("누수", "배수", "침수", "수도", "하수", "물"),
+        "water_flow_issue": ("유량", "솟", "새어", "샌다", "역류", "고여", "범람", "확대"),
+    },
+    "welfare": {
+        "welfare_support": ("복지", "급여", "지원금", "생계", "돌봄", "도움"),
+        "eligibility_review": ("자격", "대상", "기준", "선정", "신청", "결정", "받을 수"),
+        "human_review": ("담당자", "사실관계", "검토", "자동화하지", "상담"),
+    },
+    "other": {
+        "ownership": ("소관", "담당", "부서", "어느 곳", "어디", "이관"),
+        "coordination": ("분리", "보완", "안내", "물어봐", "문의처", "접수", "기록", "정보"),
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -79,6 +159,17 @@ _AUTOMATED_DISPOSITION_PATTERN = re.compile(
 
 def tokenize(text: str) -> set[str]:
     return {token for token in _TOKEN.findall(text.lower()) if token not in _STOPWORDS}
+
+
+def concept_tokens(text: str, *, category: str) -> set[str]:
+    """Return transparent category concepts present in Korean text."""
+
+    normalized = re.sub(r"\s+", " ", text.lower())
+    return {
+        concept
+        for concept, aliases in _CONCEPT_ALIASES.get(category, {}).items()
+        if any(alias in normalized for alias in aliases)
+    }
 
 
 def content_safety_violation(text: str) -> str | None:
@@ -206,8 +297,44 @@ class KnowledgeRetriever:
         limit: int = 3,
         as_of: date | None = None,
     ) -> RetrievalResult:
+        return self._retrieve(
+            category=category,
+            text=text,
+            limit=limit,
+            as_of=as_of,
+            use_concepts=True,
+        )
+
+    def retrieve_lexical(
+        self,
+        *,
+        category: str,
+        text: str,
+        limit: int = 3,
+        as_of: date | None = None,
+    ) -> RetrievalResult:
+        """Retain the v1 lexical strategy as an explicit evaluation baseline."""
+
+        return self._retrieve(
+            category=category,
+            text=text,
+            limit=limit,
+            as_of=as_of,
+            use_concepts=False,
+        )
+
+    def _retrieve(
+        self,
+        *,
+        category: str,
+        text: str,
+        limit: int,
+        as_of: date | None,
+        use_concepts: bool,
+    ) -> RetrievalResult:
         effective_date = as_of or date.today()
         query_tokens = tokenize(text)
+        query_concepts = concept_tokens(text, category=category) if use_concepts else set()
         scored: list[tuple[float, KnowledgeDocument]] = []
         excluded: list[RetrievalExclusion] = []
 
@@ -221,10 +348,32 @@ class KnowledgeRetriever:
 
             document_tokens = tokenize(f"{document.title} {document.body}")
             overlap = query_tokens & document_tokens
-            if not overlap:
-                excluded.append(RetrievalExclusion(document.id, "no_lexical_overlap"))
-                continue
-            score = len(overlap) / sqrt(len(query_tokens) * len(document_tokens))
+            lexical_score = (
+                len(overlap) / sqrt(len(query_tokens) * len(document_tokens))
+                if query_tokens and document_tokens
+                else 0.0
+            )
+            if not use_concepts:
+                if not overlap:
+                    excluded.append(RetrievalExclusion(document.id, "no_lexical_overlap"))
+                    continue
+                score = lexical_score
+            else:
+                document_concepts = concept_tokens(
+                    f"{document.title} {document.body}", category=category
+                )
+                shared_concepts = query_concepts & document_concepts
+                if len(overlap) < 2 and len(shared_concepts) < 2:
+                    excluded.append(
+                        RetrievalExclusion(document.id, "insufficient_hybrid_relevance")
+                    )
+                    continue
+                concept_score = (
+                    len(shared_concepts) / sqrt(len(query_concepts) * len(document_concepts))
+                    if query_concepts and document_concepts
+                    else 0.0
+                )
+                score = 0.65 * lexical_score + 0.35 * concept_score
             scored.append((score, document))
 
         scored.sort(key=lambda item: (-item[0], item[1].id))
@@ -233,4 +382,5 @@ class KnowledgeRetriever:
             documents=[document for _, document in selected],
             scores={document.id: round(score, 6) for score, document in selected},
             excluded=excluded,
+            strategy=RETRIEVAL_STRATEGY if use_concepts else LEXICAL_RETRIEVAL_STRATEGY,
         )

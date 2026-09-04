@@ -32,7 +32,7 @@
 
 - [x] Store document metadata, effective dates, approvals, and supersession links
 - [x] Add approved/effective lexical retrieval and sentence-level citations
-- [ ] Compare and add hybrid retrieval only after the lexical safety baseline
+- [x] Compare and add an offline concept hybrid after the lexical safety baseline
 - [x] Reject or flag unsupported draft claims
 - [x] Add local role-based officer login and append-only review history
 

@@ -24,7 +24,7 @@ def format_markdown(report: RagEvaluationReport) -> str:
         "Irrelevant rejection | Abstention |",
         "|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
-    for strategy in (report.baseline, report.candidate):
+    for strategy in (report.baseline, report.lexical_baseline, report.candidate):
         metrics = strategy.metrics
         lines.append(
             f"| `{strategy.strategy}` | {_percent(metrics.precision)} | "
@@ -36,8 +36,8 @@ def format_markdown(report: RagEvaluationReport) -> str:
     lines.extend(
         [
             "",
-            "The lexical candidate trades paraphrase recall for exact-source precision and safe "
-            "abstention. Embeddings remain intentionally disabled.",
+            "The offline hybrid combines strict tokens with a small reviewed Korean concept map. "
+            "Embeddings remain intentionally disabled.",
             "",
             f"Safety gate failures: **{len(report.safety_gate_failures)}**",
         ]

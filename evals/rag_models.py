@@ -2,13 +2,13 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-RAG_DATASET_VERSION = "2026-09-04.rag-v1"
+RAG_DATASET_VERSION = "2026-09-04.rag-v2"
 
 
 class RetrievalCase(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    dataset_version: Literal["2026-09-04.rag-v1"]
+    dataset_version: Literal["2026-09-04.rag-v2"]
     id: str = Field(min_length=3, max_length=100, pattern=r"^[a-z0-9-]+$")
     synthetic: Literal[True]
     category: str = Field(min_length=1, max_length=80)
@@ -46,6 +46,7 @@ class RagEvaluationReport(BaseModel):
     case_count: int
     provider: Literal["rules"]
     baseline: RetrievalStrategyReport
+    lexical_baseline: RetrievalStrategyReport
     candidate: RetrievalStrategyReport
     safety_gate_failures: list[str]
     passed: bool

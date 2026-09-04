@@ -19,7 +19,7 @@ ComplaintPipeline
   |-- safety policy override
   |-- local location normalizer
   |-- duplicate-candidate scorer
-  |-- approved/effective lexical knowledge retriever
+  |-- approved/effective offline hybrid knowledge retriever
   |-- structured draft provider
   |-- sentence-level citation validator
   `-- audit recorder
@@ -97,7 +97,9 @@ Every Markdown knowledge document has a stable ID, category, version, inclusive 
 window, approval status, and optional `superseded_by` link. Retrieval fails during startup for broken
 metadata or unknown supersession targets. At request time it excludes non-approved, not-yet-effective,
 expired, actively superseded, category-mismatched, known instruction-injection, and automatic-
-disposition content before ranking by lexical overlap. No embedding service or network call is used.
+disposition content before relevance ranking. The runtime hybrid requires two exact-token or reviewed
+category-concept signals, then blends token and concept cosine overlap. The frozen lexical strategy
+remains available to the evaluation harness. No embedding service or network call is used.
 
 The draft provider returns `StructuredDraftOutput`: an ordered list of sentences, a substantive flag,
 and source IDs. `CitationEnforcedDrafter` accepts a substantive sentence only when every source ID is
