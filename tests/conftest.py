@@ -24,4 +24,19 @@ def test_app(tmp_path) -> FastAPI:
 @pytest.fixture
 def client(test_app: FastAPI) -> Generator[TestClient, None, None]:
     with TestClient(test_app) as test_client:
+        login = test_client.post(
+            "/login",
+            data={"username": "review.demo", "password": "review-demo-2026"},
+            follow_redirects=False,
+        )
+        assert login.status_code == 303
+        session = test_client.get("/api/v1/session")
+        assert session.status_code == 200
+        test_client.headers["X-CSRF-Token"] = session.json()["csrf_token"]
+        yield test_client
+
+
+@pytest.fixture
+def anonymous_client(test_app: FastAPI) -> Generator[TestClient, None, None]:
+    with TestClient(test_app) as test_client:
         yield test_client

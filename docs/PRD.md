@@ -13,6 +13,7 @@ response. Wrong routing causes transfers and delay.
   information, evidence sources, and a draft response.
 - A reviewer can approve or change the routing and draft.
 - An auditor can reconstruct which provider, rule, source, and human action produced the outcome.
+- A signed-in demo user can perform only the actions granted to the triage, reviewer, or auditor role.
 
 ## Explicit non-goals
 

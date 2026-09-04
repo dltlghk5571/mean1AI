@@ -25,12 +25,15 @@
       <p>민원 ID <code>{{ complaint.id }}</code></p>
     </div>
     <div class="detail-heading-actions">
-      <form action="/complaints/{{ complaint.id }}/reprocess" method="post" data-reprocess-form>
-        <button class="button button-secondary" type="submit">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8V4l-2 2a8 8 0 1 0 2.2 8M19 4h-4"/></svg>
-          다시 분석
-        </button>
-      </form>
+      {% if current_user.can_triage %}
+        <form action="/complaints/{{ complaint.id }}/reprocess" method="post" data-reprocess-form>
+          <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
+          <button class="button button-secondary" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8V4l-2 2a8 8 0 1 0 2.2 8M19 4h-4"/></svg>
+            다시 분석
+          </button>
+        </form>
+      {% endif %}
       <a class="button button-ghost" href="/docs" target="_blank" rel="noreferrer">API 보기 ↗</a>
     </div>
   </div>
@@ -78,7 +81,11 @@
   </section>
 {% endif %}
 
-<form id="review-form" action="/complaints/{{ complaint.id }}/approve" method="post" data-review-form></form>
+{% if current_user.can_review %}
+  <form id="review-form" action="/complaints/{{ complaint.id }}/approve" method="post" data-review-form>
+    <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
+  </form>
+{% endif %}
 
 <div class="detail-workspace">
   <div class="detail-main">
@@ -150,14 +157,14 @@
           <p>{{ location_review.normalized_location_text if location_review and location_review.normalized_location_text else '입력된 위치가 없어 비교하지 않습니다.' }}</p>
           <small>공백·문장부호만 정리한 결과이며 주소 검증이나 좌표 조회 결과가 아닙니다.</small>
         </div>
-        {% if location_review and location_review.normalized_location_text and location_review.status != 'confirmed' %}
+        {% if location_review and location_review.normalized_location_text and location_review.status != 'confirmed' and current_user.can_triage %}
           <form class="location-confirm-form" action="/complaints/{{ complaint.id }}/location/confirm" method="post">
-            <label>
-              <span>확인 담당자</span>
-              <input name="actor_id" value="{{ complaint.reviewed_by or 'demo-officer' }}" required maxlength="120" autocomplete="off">
-            </label>
+            <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
+            <div class="signed-actor"><span>확인 담당자</span><strong>{{ current_user.display_name }}</strong></div>
             <button class="button button-secondary" type="submit">이 위치 문구 확인</button>
           </form>
+        {% elif location_review and location_review.normalized_location_text and location_review.status != 'confirmed' %}
+          <p class="readonly-action-note">읽기 전용 역할에서는 위치 확인을 기록할 수 없습니다.</p>
         {% elif location_review and location_review.status == 'confirmed' %}
           <div class="location-confirmed-by">
             <span>확인자</span>
@@ -208,17 +215,17 @@
                 <div><dt>문구</dt><dd>{{ '%.0f'|format(candidate.score_breakdown.text * 100) }}%</dd></div>
               </dl>
 
-              {% if candidate.review_status == 'suggested' %}
+              {% if candidate.review_status == 'suggested' and current_user.can_triage %}
                 <form class="duplicate-decision-form" action="/complaints/{{ complaint.id }}/duplicate-candidates/{{ candidate.candidate_complaint_id }}/decision" method="post">
-                  <label>
-                    <span>판단 담당자</span>
-                    <input name="actor_id" value="{{ complaint.reviewed_by or 'demo-officer' }}" required maxlength="120" autocomplete="off">
-                  </label>
+                  <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
+                  <div class="signed-actor"><span>판단 담당자</span><strong>{{ current_user.display_name }}</strong></div>
                   <div>
                     <button class="button button-secondary" type="submit" name="decision" value="rejected">서로 다른 민원</button>
                     <button class="button button-primary" type="submit" name="decision" value="confirmed">중복 후보로 확인</button>
                   </div>
                 </form>
+              {% elif candidate.review_status == 'suggested' %}
+                <p class="readonly-action-note">읽기 전용 · 담당자 판단 대기</p>
               {% else %}
                 <div class="duplicate-decision-result">
                   <span class="review-state {{ 'is-confirmed' if candidate.review_status == 'confirmed' else 'is-rejected' }}">
@@ -339,7 +346,8 @@
 
       <label class="field-group draft-field">
         <span class="sr-only">답변 초안</span>
-        <textarea name="answer_draft" rows="13" required maxlength="20000" form="review-form"
+        <textarea name="answer_draft" rows="13" required maxlength="20000"
+                  {% if current_user.can_review %}form="review-form"{% else %}readonly{% endif %}
                   data-draft-input data-counted-input>{{ complaint.answer_draft|replace('[AI 작성 초안', '[답변 초안') }}</textarea>
         <small class="field-help"><span>초안은 외부로 자동 발송되지 않습니다.</span><b data-character-count>0 / 20,000</b></small>
       </label>
@@ -362,21 +370,19 @@
       <p class="action-description">분류 근거와 안전 정책을 확인한 담당자만 내부 검토를 완료할 수 있습니다.</p>
 
       {% set suggested = complaint.assigned_department_id or (complaint.candidate_departments[0].department_id if complaint.candidate_departments else '') %}
-      <label class="field-group">
-        <span>최종 데모 업무 그룹</span>
-        <select name="department_id" required form="review-form" data-department-select>
-          {% for department in departments %}
-            <option value="{{ department.id }}" {% if department.id == suggested %}selected{% endif %}>{{ department.name }}</option>
-          {% endfor %}
-        </select>
-        <small>{{ suggested or '후보 없음' }}</small>
-      </label>
-      <label class="field-group">
-        <span>검토자 식별자</span>
-        <input name="actor_id" value="{{ complaint.reviewed_by or 'demo-officer' }}" required maxlength="120"
-               form="review-form" data-actor-input autocomplete="off">
-        <small>합성 식별자만 사용하세요.</small>
-      </label>
+      {% if current_user.can_review %}
+        <label class="field-group">
+          <span>최종 데모 업무 그룹</span>
+          <select name="department_id" required form="review-form" data-department-select>
+            {% for department in departments %}
+              <option value="{{ department.id }}" {% if department.id == suggested %}selected{% endif %}>{{ department.name }}</option>
+            {% endfor %}
+          </select>
+          <small>{{ suggested or '후보 없음' }}</small>
+        </label>
+        <div class="reviewer-identity">
+          <span>검토 기록 계정</span><strong>{{ current_user.display_name }}</strong><small>{{ current_user.username }} · {{ current_user.role_label }}</small>
+        </div>
 
       <div class="review-checklist" aria-label="승인 전 확인 사항">
         <strong>승인 전 확인</strong>
@@ -385,11 +391,17 @@
         <label><input type="checkbox" checked disabled><span>외부 발송 없음 확인</span></label>
       </div>
 
-      <button class="button button-primary button-block" type="submit" form="review-form">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5"/></svg>
-        {{ '검토 내용 다시 저장' if complaint.status == 'reviewed' else '내부 검토 완료' }}
-      </button>
-      <p class="action-footnote"><span>i</span> 행정 처분·민원 종결·시민 발송은 수행하지 않습니다.</p>
+        <button class="button button-primary button-block" type="submit" form="review-form">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5"/></svg>
+          {{ '검토 내용 다시 저장' if complaint.status == 'reviewed' else '내부 검토 완료' }}
+        </button>
+        <p class="action-footnote"><span>i</span> 행정 처분·민원 종결·시민 발송은 수행하지 않습니다.</p>
+      {% else %}
+        <div class="role-restriction">
+          <strong>검토 승인 권한이 없습니다.</strong>
+          <p>{{ current_user.role_label }} 계정은 이 기록을 조회할 수 있지만 승인할 수 없습니다.</p>
+        </div>
+      {% endif %}
     </section>
 
     <section class="side-card compact-card">
@@ -411,6 +423,28 @@
         <div class="mini-empty"><span>—</span><p>일치하는 승인 데모 지식이 없습니다.</p></div>
       {% endif %}
       <p class="source-safety-copy">인용은 담당자 확인용이며 답변은 외부로 자동 발송되지 않습니다.</p>
+    </section>
+
+    <section class="side-card compact-card review-history-card">
+      <div class="side-card-heading compact">
+        <span class="side-card-icon review-icon">✓</span>
+        <div><p class="section-label">승인 기록</p><h2>변경 불가 검토 이력</h2></div>
+        <span class="audit-count">{{ review_decisions|length }}</span>
+      </div>
+      {% if review_decisions %}
+        <ol class="review-history-list">
+          {% for decision in review_decisions %}
+            <li>
+              <div><strong>{{ decision.actor_id }}</strong><span>{{ decision.actor_role }} · {{ decision.created_at.strftime('%m.%d %H:%M:%S') }}</span></div>
+              <code>#{{ decision.id }} · {{ decision.department_id }}</code>
+              <details><summary>저장된 답변 보기</summary><pre>{{ decision.answer_draft }}</pre></details>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <div class="mini-empty"><span>—</span><p>아직 담당자 승인 기록이 없습니다.</p></div>
+      {% endif %}
+      <p class="source-safety-copy">기존 승인 기록은 수정·삭제하지 않고 새 기록만 추가합니다.</p>
     </section>
 
     <section class="side-card compact-card audit-card">
@@ -438,6 +472,7 @@
   </aside>
 </div>
 
+{% if current_user.can_review %}
 <dialog class="confirm-dialog" id="approval-dialog" aria-labelledby="approval-dialog-title">
   <div class="confirm-icon">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5.5c0 4.5-3 7.5-7 9.5-4-2-7-5-7-9.5V6zM9 12l2 2 4-4"/></svg>
@@ -447,7 +482,7 @@
   <p>선택한 업무 그룹과 수정한 답변 초안이 감사 로그와 함께 로컬 DB에 저장됩니다.</p>
   <dl>
     <div><dt>업무 그룹</dt><dd data-confirm-department>—</dd></div>
-    <div><dt>검토자</dt><dd data-confirm-actor>—</dd></div>
+    <div><dt>검토자</dt><dd data-confirm-actor>{{ current_user.display_name }}</dd></div>
   </dl>
   <div class="confirm-notice"><strong>외부 발송 없음</strong><span>이 작업은 시민에게 메시지를 보내거나 실제 행정 시스템을 변경하지 않습니다.</span></div>
   <div class="dialog-actions">
@@ -455,6 +490,7 @@
     <button class="button button-primary" type="button" data-confirm-approval>검토 완료 저장</button>
   </div>
 </dialog>
+{% endif %}
 
 <dialog class="preview-dialog" id="preview-dialog" aria-labelledby="preview-dialog-title">
   <header>

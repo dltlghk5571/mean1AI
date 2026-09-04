@@ -257,11 +257,8 @@ reviewForm?.addEventListener("submit", (event) => {
   if (!reviewForm.reportValidity() || !approvalDialog) return;
 
   const selectedOption = departmentSelect?.options[departmentSelect.selectedIndex];
-  const actorInput = document.querySelector("[data-actor-input]");
   const departmentCopy = document.querySelector("[data-confirm-department]");
-  const actorCopy = document.querySelector("[data-confirm-actor]");
   if (departmentCopy) departmentCopy.textContent = selectedOption?.textContent?.trim() || "—";
-  if (actorCopy) actorCopy.textContent = actorInput?.value.trim() || "—";
   approvalDialog.showModal();
 });
 

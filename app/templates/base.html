@@ -90,9 +90,12 @@
         </div>
       </section>
       <div class="officer-card">
-        <span class="avatar" aria-hidden="true">담</span>
-        <span><strong>데모 담당자</strong><small>로컬 환경</small></span>
-        <span class="presence-dot" title="로컬 시스템 정상"></span>
+        <span class="avatar" aria-hidden="true">{{ current_user.display_name[:1] }}</span>
+        <span><strong>{{ current_user.display_name }}</strong><small>{{ current_user.role_label }}</small></span>
+        <form action="/logout" method="post">
+          <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
+          <button type="submit" title="로그아웃" aria-label="로그아웃">↪</button>
+        </form>
       </div>
     </aside>
 
@@ -112,9 +115,13 @@
         </div>
         <div class="topbar-actions">
           <span class="engine-pill"><i></i> 분류 방식: 규칙 기반</span>
-          <a class="topbar-new" href="/#new-complaint">
-            <span aria-hidden="true">＋</span> 민원 접수
-          </a>
+          {% if current_user.can_write %}
+            <a class="topbar-new" href="/#new-complaint">
+              <span aria-hidden="true">＋</span> 민원 접수
+            </a>
+          {% else %}
+            <span class="readonly-pill">읽기 전용</span>
+          {% endif %}
         </div>
       </header>
 

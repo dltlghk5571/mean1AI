@@ -147,12 +147,11 @@ def test_location_confirmation_is_audited(client: TestClient) -> None:
 
     confirmed = client.post(
         f"/api/v1/complaints/{complaint['id']}/location/confirm",
-        json={"actor_id": "synthetic-location-reviewer"},
     )
 
     assert confirmed.status_code == 200
     assert confirmed.json()["status"] == "confirmed"
-    assert confirmed.json()["confirmed_by"] == "synthetic-location-reviewer"
+    assert confirmed.json()["confirmed_by"] == "review.demo"
     detail = client.get(f"/api/v1/complaints/{complaint['id']}").json()
     assert detail["audit_events"][-1]["action"] == "location_confirmed"
 
@@ -186,11 +185,11 @@ def test_duplicate_decisions_never_merge_close_or_reassign_complaints(
 
     confirmed = client.post(
         f"/api/v1/complaints/{current['id']}/duplicate-candidates/{first['id']}/decision",
-        json={"decision": "confirmed", "actor_id": "synthetic-duplicate-reviewer"},
+        json={"decision": "confirmed"},
     )
     rejected = client.post(
         f"/api/v1/complaints/{current['id']}/duplicate-candidates/{second['id']}/decision",
-        json={"decision": "rejected", "actor_id": "synthetic-duplicate-reviewer"},
+        json={"decision": "rejected"},
     )
 
     assert confirmed.status_code == 200

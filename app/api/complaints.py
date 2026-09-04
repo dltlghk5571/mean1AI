@@ -5,17 +5,25 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Complaint, ComplaintLocationReview, GroundedDraftRecord
+from app.models import Complaint, ComplaintLocationReview, GroundedDraftRecord, ReviewDecision
 from app.schemas import (
     ComplaintApproval,
+    ComplaintApprovalRequest,
     ComplaintCreate,
     ComplaintDetail,
     ComplaintRead,
     DuplicateCandidateRead,
     DuplicateDecisionRequest,
     GroundedDraftRead,
-    LocationConfirmation,
     LocationReviewRead,
+    ReviewDecisionRead,
+)
+from app.services.auth import (
+    AuthenticatedUser,
+    UserRole,
+    get_authenticated_user,
+    require_csrf,
+    require_role,
 )
 from app.services.duplicates import (
     confirm_location,
@@ -30,6 +38,16 @@ DbSession = Annotated[Session, Depends(get_db)]
 
 def _get_pipeline(request: Request) -> ComplaintPipeline:
     return request.app.state.pipeline
+
+
+def _require_action(request: Request, *roles: UserRole) -> AuthenticatedUser:
+    user = get_authenticated_user(request)
+    try:
+        require_role(user, *roles)
+        require_csrf(user, request.headers.get("X-CSRF-Token"))
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return user
 
 
 def _get_complaint(db: Session, complaint_id: str) -> Complaint:
@@ -49,6 +67,7 @@ def create_complaint(
     request: Request,
     db: DbSession,
 ) -> Complaint:
+    _require_action(request, "triage_officer", "reviewer")
     return _get_pipeline(request).create_and_process(db, payload)
 
 
@@ -77,6 +96,18 @@ def get_grounded_draft(complaint_id: str, db: DbSession) -> GroundedDraftRecord:
     return grounding
 
 
+@router.get("/{complaint_id}/reviews", response_model=list[ReviewDecisionRead])
+def get_review_history(complaint_id: str, db: DbSession) -> list[ReviewDecision]:
+    _get_complaint(db, complaint_id)
+    return list(
+        db.scalars(
+            select(ReviewDecision)
+            .where(ReviewDecision.complaint_id == complaint_id)
+            .order_by(ReviewDecision.id)
+        ).all()
+    )
+
+
 @router.get("/{complaint_id}/location", response_model=LocationReviewRead)
 def get_location_review(complaint_id: str, db: DbSession) -> ComplaintLocationReview:
     _get_complaint(db, complaint_id)
@@ -91,12 +122,13 @@ def get_location_review(complaint_id: str, db: DbSession) -> ComplaintLocationRe
 @router.post("/{complaint_id}/location/confirm", response_model=LocationReviewRead)
 def confirm_complaint_location(
     complaint_id: str,
-    payload: LocationConfirmation,
+    request: Request,
     db: DbSession,
 ) -> ComplaintLocationReview:
+    user = _require_action(request, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
     try:
-        location_review = confirm_location(db, complaint, actor_id=payload.actor_id)
+        location_review = confirm_location(db, complaint, actor_id=user.username)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     db.commit()
@@ -118,8 +150,10 @@ def review_duplicate_candidate(
     complaint_id: str,
     candidate_complaint_id: str,
     payload: DuplicateDecisionRequest,
+    request: Request,
     db: DbSession,
 ) -> DuplicateCandidateRead:
+    user = _require_action(request, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
     try:
         decide_duplicate_candidate(
@@ -127,7 +161,7 @@ def review_duplicate_candidate(
             complaint,
             candidate_complaint_id=candidate_complaint_id,
             decision=payload.decision,
-            actor_id=payload.actor_id,
+            actor_id=user.username,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -146,6 +180,7 @@ def reprocess_complaint(
     request: Request,
     db: DbSession,
 ) -> Complaint:
+    _require_action(request, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
     return _get_pipeline(request).reprocess(db, complaint)
 
@@ -153,12 +188,19 @@ def reprocess_complaint(
 @router.post("/{complaint_id}/approve", response_model=ComplaintRead)
 def approve_complaint(
     complaint_id: str,
-    payload: ComplaintApproval,
+    payload: ComplaintApprovalRequest,
     request: Request,
     db: DbSession,
 ) -> Complaint:
+    user = _require_action(request, "reviewer")
     complaint = _get_complaint(db, complaint_id)
+    approval = ComplaintApproval(
+        department_id=payload.department_id,
+        answer_draft=payload.answer_draft,
+        actor_id=user.username,
+        actor_role=user.role,
+    )
     try:
-        return _get_pipeline(request).approve(db, complaint, payload)
+        return _get_pipeline(request).approve(db, complaint, approval)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

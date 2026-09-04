@@ -6,12 +6,25 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Complaint, ComplaintLocationReview, Department, GroundedDraftRecord
+from app.models import (
+    Complaint,
+    ComplaintLocationReview,
+    Department,
+    GroundedDraftRecord,
+    ReviewDecision,
+)
 from app.schemas import (
     Channel,
     ComplaintApproval,
     ComplaintCreate,
     DuplicateDecision,
+)
+from app.services.auth import (
+    AuthenticatedUser,
+    UserRole,
+    get_authenticated_user,
+    require_csrf,
+    require_role,
 )
 from app.services.duplicates import (
     confirm_location,
@@ -81,6 +94,20 @@ def _get_pipeline(request: Request) -> ComplaintPipeline:
     return request.app.state.pipeline
 
 
+def _require_form_action(
+    request: Request,
+    csrf_token: str | None,
+    *roles: UserRole,
+) -> AuthenticatedUser:
+    user = get_authenticated_user(request)
+    try:
+        require_role(user, *roles)
+        require_csrf(user, csrf_token or request.headers.get("X-CSRF-Token"))
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return user
+
+
 def _get_complaint(db: Session, complaint_id: str) -> Complaint:
     complaint = db.scalar(
         select(Complaint)
@@ -98,6 +125,7 @@ def index(
     db: DbSession,
     status: str | None = None,
 ) -> HTMLResponse:
+    current_user = get_authenticated_user(request)
     active_filter = status if status in QUEUE_FILTERS else "all"
     complaint_query = select(Complaint).order_by(Complaint.created_at.desc())
     if active_filter != "all":
@@ -129,6 +157,7 @@ def index(
             "classifier_provider": getattr(
                 request.app.state.pipeline.classifier, "provider_name", "unknown"
             ),
+            "current_user": current_user,
         },
     )
 
@@ -141,7 +170,9 @@ def submit_complaint(
     content: Annotated[str, Form(min_length=5, max_length=20_000)],
     location_text: Annotated[str | None, Form(max_length=300)] = None,
     channel: Annotated[Channel, Form()] = Channel.WEB,
+    csrf_token: Annotated[str | None, Form(max_length=200)] = None,
 ) -> RedirectResponse:
+    _require_form_action(request, csrf_token, "triage_officer", "reviewer")
     payload = ComplaintCreate(
         title=title,
         content=content,
@@ -154,10 +185,18 @@ def submit_complaint(
 
 @router.get("/complaints/{complaint_id}", response_class=HTMLResponse)
 def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTMLResponse:
+    current_user = get_authenticated_user(request)
     complaint = _get_complaint(db, complaint_id)
     location_review = db.get(ComplaintLocationReview, complaint_id)
     grounding = db.get(GroundedDraftRecord, complaint_id)
     duplicate_candidates = list_duplicate_candidates(db, complaint_id)
+    review_decisions = list(
+        db.scalars(
+            select(ReviewDecision)
+            .where(ReviewDecision.complaint_id == complaint_id)
+            .order_by(ReviewDecision.id.desc())
+        ).all()
+    )
     departments = list(
         db.scalars(
             select(Department).where(Department.active.is_(True)).order_by(Department.name)
@@ -172,6 +211,7 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
             "location_review": location_review,
             "grounding": grounding,
             "duplicate_candidates": duplicate_candidates,
+            "review_decisions": review_decisions,
             "departments": departments,
             "department_map": department_map,
             "status_labels": STATUS_LABELS,
@@ -180,6 +220,7 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
             "category_labels": CATEGORY_LABELS,
             "pii_labels": PII_LABELS,
             "audit_labels": AUDIT_LABELS,
+            "current_user": current_user,
         },
     )
 
@@ -191,13 +232,15 @@ def approve_complaint_form(
     db: DbSession,
     department_id: Annotated[str, Form(min_length=1, max_length=64)],
     answer_draft: Annotated[str, Form(min_length=1, max_length=20_000)],
-    actor_id: Annotated[str, Form(min_length=1, max_length=120)],
+    csrf_token: Annotated[str | None, Form(max_length=200)] = None,
 ) -> RedirectResponse:
+    user = _require_form_action(request, csrf_token, "reviewer")
     complaint = _get_complaint(db, complaint_id)
     approval = ComplaintApproval(
         department_id=department_id,
         answer_draft=answer_draft,
-        actor_id=actor_id,
+        actor_id=user.username,
+        actor_role=user.role,
     )
     try:
         _get_pipeline(request).approve(db, complaint, approval)
@@ -211,7 +254,9 @@ def reprocess_complaint_form(
     complaint_id: str,
     request: Request,
     db: DbSession,
+    csrf_token: Annotated[str | None, Form(max_length=200)] = None,
 ) -> RedirectResponse:
+    _require_form_action(request, csrf_token, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
     _get_pipeline(request).reprocess(db, complaint)
     return RedirectResponse(url=f"/complaints/{complaint_id}", status_code=303)
@@ -220,12 +265,14 @@ def reprocess_complaint_form(
 @router.post("/complaints/{complaint_id}/location/confirm")
 def confirm_complaint_location_form(
     complaint_id: str,
+    request: Request,
     db: DbSession,
-    actor_id: Annotated[str, Form(min_length=1, max_length=120)],
+    csrf_token: Annotated[str | None, Form(max_length=200)] = None,
 ) -> RedirectResponse:
+    user = _require_form_action(request, csrf_token, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
     try:
-        confirm_location(db, complaint, actor_id=actor_id)
+        confirm_location(db, complaint, actor_id=user.username)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     db.commit()
@@ -236,10 +283,12 @@ def confirm_complaint_location_form(
 def review_duplicate_candidate_form(
     complaint_id: str,
     candidate_complaint_id: str,
+    request: Request,
     db: DbSession,
     decision: Annotated[DuplicateDecision, Form()],
-    actor_id: Annotated[str, Form(min_length=1, max_length=120)],
+    csrf_token: Annotated[str | None, Form(max_length=200)] = None,
 ) -> RedirectResponse:
+    user = _require_form_action(request, csrf_token, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
     try:
         decide_duplicate_candidate(
@@ -247,7 +296,7 @@ def review_duplicate_candidate_form(
             complaint,
             candidate_complaint_id=candidate_complaint_id,
             decision=decision,
-            actor_id=actor_id,
+            actor_id=user.username,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

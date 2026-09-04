@@ -3,18 +3,18 @@
 ## 1. 압축을 풀고 PowerShell 열기
 
 ```powershell
-cd seongnam-civic-ai
+cd seongnam-minwon-ai
 powershell -ExecutionPolicy Bypass -File .\scripts\run.ps1
 ```
 
-브라우저에서 `http://127.0.0.1:8000`을 엽니다. 처음에는 `.env`의 `AI_PROVIDER=rules`이므로 API 키 없이 작동합니다.
+브라우저에서 `http://127.0.0.1:8000`을 엽니다. 처음에는 `.env`의 `AI_PROVIDER=rules`이므로 API 키 없이 작동합니다. 로그인 화면에서 검토 승인 시연 계정 `review.demo` / `review-demo-2026`을 사용할 수 있습니다. 계정은 실제 직원 계정이 아닌 공개 합성 값입니다.
 
 ## 2. Git 체크포인트 만들기
 
 새 PowerShell 창에서:
 
 ```powershell
-cd seongnam-civic-ai
+cd seongnam-minwon-ai
 git init
 git add .
 git commit -m "bootstrap civic complaint AI MVP"
@@ -50,4 +50,4 @@ OPENAI_MODEL=gpt-5.6
 
 ## 중요한 제한
 
-이 프로젝트에는 로그인·권한관리·CSRF 방어·암호화·보존정책·실제 기관 연계가 없습니다. 인터넷에 공개 배포하지 말고 로컬 시연용으로만 사용합니다.
+이 프로젝트에는 로컬 합성 계정의 역할 구분, 서명 쿠키, CSRF 검증, 추가형 검토 이력만 있습니다. 실제 SSO·계정 수명주기·MFA·암호화·보존정책·실제 기관 연계는 없으므로 인터넷에 공개 배포하지 말고 로컬 시연용으로만 사용합니다.

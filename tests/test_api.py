@@ -129,7 +129,6 @@ def test_human_can_approve_route_without_external_send(client: TestClient) -> No
         json={
             "department_id": "CIVIL_COORDINATION",
             "answer_draft": "담당자가 내용을 확인하겠습니다. 외부 발송은 하지 않습니다.",
-            "actor_id": "test-officer",
         },
     )
 
@@ -137,7 +136,7 @@ def test_human_can_approve_route_without_external_send(client: TestClient) -> No
     body = approval.json()
     assert body["status"] == "reviewed"
     assert body["assigned_department_id"] == "CIVIL_COORDINATION"
-    assert body["reviewed_by"] == "test-officer"
+    assert body["reviewed_by"] == "review.demo"
 
     detail = client.get(f"/api/v1/complaints/{created['id']}").json()
     assert [event["action"] for event in detail["audit_events"][-2:]] == [

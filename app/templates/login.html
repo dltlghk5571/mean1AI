@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="성남 민원 업무지원 시연 환경 로그인">
+  <title>업무시스템 로그인 · 성남 민원 업무지원</title>
+  <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+</head>
+<body class="login-page">
+  <a class="skip-link" href="#login-main">본문으로 바로가기</a>
+  <header class="login-masthead">
+    <a href="/login" class="login-brand" aria-label="로그인 홈">
+      <span>SN</span>
+      <div><strong>성남 민원 업무지원</strong><small>로컬 시연 환경</small></div>
+    </a>
+    <p><span></span> 외부 행정망 연결 없음</p>
+  </header>
+
+  <main class="login-shell" id="login-main">
+    <section class="login-intro" aria-labelledby="login-heading">
+      <p class="section-label">업무 담당자 전용</p>
+      <h1 id="login-heading">민원 검토 업무를<br>시작합니다.</h1>
+      <p>역할에 따라 접수 분류, 검토 승인, 감사 이력 조회 권한이 구분됩니다.</p>
+      <ul>
+        <li><span>01</span><div><strong>개인정보 선 비식별</strong><small>업무 화면에는 마스킹된 내용만 표시</small></div></li>
+        <li><span>02</span><div><strong>사람의 최종 검토</strong><small>민감·긴급 민원 자동 확정 차단</small></div></li>
+        <li><span>03</span><div><strong>변경 불가 이력</strong><small>승인과 안전 판단을 추가 방식으로 기록</small></div></li>
+      </ul>
+    </section>
+
+    <section class="login-card" aria-label="로그인 양식">
+      <header><p class="section-label">담당자 인증</p><h2>업무시스템 로그인</h2><span>SESSION</span></header>
+      {% if error %}<div class="login-error" role="alert">{{ error }}</div>{% endif %}
+      <form action="/login" method="post">
+        <input type="hidden" name="next_path" value="{{ next_path }}">
+        <label><span>아이디</span><input name="username" value="{{ username }}" required maxlength="120" autocomplete="username" autofocus></label>
+        <label><span>비밀번호</span><input type="password" name="password" required maxlength="200" autocomplete="current-password"></label>
+        <button class="button button-primary button-block" type="submit">로그인</button>
+      </form>
+      <div class="login-security-note"><span>i</span><p>세션은 8시간 후 만료되며 브라우저에서 읽을 수 없는 서명 쿠키로 유지됩니다.</p></div>
+
+      <details class="demo-account-guide">
+        <summary>시연 계정 보기</summary>
+        <div>
+          {% for account in demo_accounts %}
+            <article>
+              <header><strong>{{ account.role }}</strong><span>{{ account.description }}</span></header>
+              <code>{{ account.username }}</code><code>{{ account.password }}</code>
+            </article>
+          {% endfor %}
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="login-footer">
+    <span>성남 민원 업무지원 시연 화면</span>
+    <p>실제 계정·시민정보를 입력하지 마세요. 인터넷 공개 배포용 시스템이 아닙니다.</p>
+  </footer>
+</body>
+</html>

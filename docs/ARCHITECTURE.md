@@ -4,6 +4,11 @@
 Browser / API client
         |
         v
+signed session middleware
+  |-- role permission
+  `-- CSRF token on mutations
+        |
+        v
 FastAPI route
         |
         v
@@ -21,6 +26,9 @@ ComplaintPipeline
         |
         v
 SQLite through SQLAlchemy
+  |-- current complaint state
+  |-- append-only audit events
+  `-- append-only review decisions
 ```
 
 ## Design decisions
@@ -38,7 +46,24 @@ prevents model confidence from bypassing sensitive-category and emergency rules.
 ### Human approval
 
 Approval is a separate endpoint and audit action. The MVP never calls an external messaging or case
-management system.
+management system. The actor ID and role come only from the verified session. Each approval adds a
+new `ReviewDecision` snapshot; it never updates an earlier decision. SQLite triggers reject `UPDATE`
+and `DELETE` statements against both `review_decisions` and `audit_events`, including for databases
+created before this feature. The current `Complaint` row remains a mutable projection of the latest
+workflow state.
+
+### Local authentication boundary
+
+The local demo has three synthetic roles: `triage_officer`, `reviewer`, and `auditor`. PBKDF2 password
+verification creates an eight-hour HMAC-SHA256 signed session cookie with `HttpOnly` and
+`SameSite=Strict`. Complaint routes require a valid session; mutations additionally require a CSRF
+token and an allowed role. Only reviewers can approve, while auditors are read-only. Development uses
+an ephemeral signing key unless `SESSION_SECRET` is configured, and production mode refuses to start
+without one.
+
+This boundary is intended to make the local interaction and authorization model testable. It is not
+SSO, account lifecycle management, rate limiting, MFA, centralized authorization, or a claim of
+production readiness. See `docs/AUTH_AND_AUDIT.md`.
 
 ### Location confirmation and duplicate candidates
 

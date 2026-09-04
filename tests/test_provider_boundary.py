@@ -3,6 +3,17 @@ from fastapi.testclient import TestClient
 from app.schemas import ClassificationCandidate, ClassificationResult, Urgency
 
 
+def _authenticate(client: TestClient) -> None:
+    response = client.post(
+        "/login",
+        data={"username": "review.demo", "password": "review-demo-2026"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    session = client.get("/api/v1/session")
+    client.headers["X-CSRF-Token"] = session.json()["csrf_token"]
+
+
 class SpyClassifier:
     provider_name = "spy"
 
@@ -41,6 +52,7 @@ def test_provider_receives_only_redacted_title_and_body(test_app) -> None:
     location_phone = "010-2222-3333"
 
     with TestClient(test_app) as client:
+        _authenticate(client)
         response = client.post(
             "/api/v1/complaints",
             json={
@@ -86,6 +98,7 @@ def test_model_reported_urgency_alone_blocks_auto_route(test_app) -> None:
     test_app.state.pipeline.classifier = ModelUrgencyClassifier()
 
     with TestClient(test_app) as client:
+        _authenticate(client)
         response = client.post(
             "/api/v1/complaints",
             json={

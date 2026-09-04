@@ -16,6 +16,9 @@
 - Retrieve only approved, currently effective, non-superseded local knowledge documents.
 - Persist source IDs and document-governance metadata snapshots, not hidden prompts or raw model
   reasoning. Exclude unsupported or unsafe provider sentences before rendering a draft.
+- Derive human actor IDs from the signed session, never from editable form or JSON fields.
+- Restrict complaint records and review history to authenticated demo roles. Keep approval snapshots
+  append-only and reject direct-identifier shapes in officer-edited drafts before storage.
 - Compute duplicate candidates only from redacted text and local records; never send location or
   complaint data to a map or other external service.
 - Treat duplicate confirmation as a review annotation only. It must not merge, close, assign, or

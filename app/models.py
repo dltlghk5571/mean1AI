@@ -103,6 +103,28 @@ class AuditEvent(Base):
     complaint: Mapped[Complaint] = relationship(back_populates="audit_events")
 
 
+class ReviewDecision(Base):
+    """Append-only snapshot of a human review action."""
+
+    __tablename__ = "review_decisions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("complaints.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, index=True
+    )
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    actor_role: Mapped[str] = mapped_column(String(40), nullable=False)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("departments.id"), nullable=False, index=True
+    )
+    answer_draft: Mapped[str] = mapped_column(Text, nullable=False)
+    draft_modified: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    grounding_status: Mapped[str] = mapped_column(String(40), nullable=False)
+
+
 class ComplaintLocationReview(Base):
     __tablename__ = "complaint_location_reviews"
 

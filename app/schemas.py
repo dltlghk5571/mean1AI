@@ -153,12 +153,14 @@ class ComplaintApproval(BaseModel):
     department_id: str = Field(min_length=1, max_length=64)
     answer_draft: str = Field(min_length=1, max_length=20_000)
     actor_id: str = Field(min_length=1, max_length=120)
+    actor_role: str = Field(min_length=1, max_length=40)
 
 
-class LocationConfirmation(BaseModel):
+class ComplaintApprovalRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    actor_id: str = Field(min_length=1, max_length=120)
+    department_id: str = Field(min_length=1, max_length=64)
+    answer_draft: str = Field(min_length=1, max_length=20_000)
 
 
 class LocationReviewRead(BaseModel):
@@ -180,7 +182,18 @@ class DuplicateDecisionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     decision: DuplicateDecision
-    actor_id: str = Field(min_length=1, max_length=120)
+
+
+class SessionRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    username: str
+    display_name: str
+    role: str
+    role_label: str
+    permissions: list[str]
+    csrf_token: str
+    expires_at: int
 
 
 class DuplicateScoreBreakdown(BaseModel):
@@ -228,6 +241,20 @@ class AuditEventRead(BaseModel):
     actor_type: str
     actor_id: str | None
     details: dict[str, object]
+
+
+class ReviewDecisionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    complaint_id: str
+    created_at: datetime
+    actor_id: str
+    actor_role: str
+    department_id: str
+    answer_draft: str
+    draft_modified: bool
+    grounding_status: str
 
 
 class ComplaintRead(BaseModel):

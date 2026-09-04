@@ -1,7 +1,8 @@
 from collections.abc import Generator
+from typing import Any
 
 from fastapi import Request
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, create_engine, event, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -16,7 +17,40 @@ def make_engine(database_url: str) -> Engine:
         kwargs["connect_args"] = {"check_same_thread": False}
         if database_url.endswith(":memory:"):
             kwargs["poolclass"] = StaticPool
-    return create_engine(database_url, **kwargs)
+    engine = create_engine(database_url, **kwargs)
+    if database_url.startswith("sqlite"):
+
+        @event.listens_for(engine, "connect")
+        def enable_sqlite_foreign_keys(dbapi_connection: Any, connection_record: Any) -> None:
+            del connection_record
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+
+    return engine
+
+
+def install_append_only_guards(engine: Engine) -> None:
+    """Install SQLite guards for audit and human-review history tables."""
+
+    if engine.dialect.name != "sqlite":
+        return
+    statements = []
+    for table_name in ("audit_events", "review_decisions"):
+        for operation in ("UPDATE", "DELETE"):
+            trigger_name = f"prevent_{table_name}_{operation.lower()}"
+            statements.append(
+                f"""
+                CREATE TRIGGER IF NOT EXISTS {trigger_name}
+                BEFORE {operation} ON {table_name}
+                BEGIN
+                    SELECT RAISE(ABORT, '{table_name} is append-only');
+                END
+                """
+            )
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
 
 
 def make_session_factory(engine: Engine) -> sessionmaker[Session]:

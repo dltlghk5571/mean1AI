@@ -2,11 +2,12 @@
 
 한국어 생활민원을 접수해 개인정보를 마스킹하고, 긴급도를 탐지하고, 민원 유형과 담당 **데모 업무 그룹**을 추천하며, 승인된 지식 문서를 근거로 답변 초안을 만드는 인간검토형 프로토타입입니다.
 
-> 주의: 이 저장소의 부서명·업무분장·처리 지침은 시연용 데이터입니다. 실제 성남시 조직·정책·국민신문고와 연결되어 있지 않으며, 자동 처분·자동 종결 기능도 없습니다. 로그인과 운영 보안이 없는 로컬 데모이므로 인터넷에 공개 배포하지 마세요.
+> 주의: 이 저장소의 부서명·업무분장·처리 지침과 계정은 시연용 데이터입니다. 실제 성남시 조직·정책·국민신문고·인증 시스템과 연결되어 있지 않으며, 자동 처분·자동 종결 기능도 없습니다. 로컬 역할 로그인은 데모 경계일 뿐 운영 보안이나 SSO를 대체하지 않으므로 인터넷에 공개 배포하지 마세요.
 
 ## 지금 되는 것
 
 - 상태별 업무 대시보드와 상호작용형 시민 접수 모달
+- 서명 세션, CSRF 검증, 분류 담당·검토 승인·감사 조회 역할 구분
 - 주민등록번호·전화번호·이메일 마스킹
 - 화재·가스·붕괴·침수 등 긴급 안전 표현 탐지
 - API 키 없는 규칙 기반 분류 또는 선택적 OpenAI 구조화 출력 분류
@@ -16,7 +17,7 @@
 - 승인·유효기간·대체관계를 검사하는 로컬 Markdown 지식 검색
 - 근거 문서 ID를 문장별로 강제하고 미지원 문장을 제외하는 답변 초안
 - 담당자의 배정·초안 승인
-- 모든 주요 상태 변화의 감사 로그
+- 모든 주요 상태 변화의 감사 로그와 추가만 가능한 검토 승인 이력
 - SQLite 기반 로컬 실행과 Docker 실행
 
 ## 1. 가장 빠른 실행
@@ -46,16 +47,32 @@ cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
-브라우저에서 `http://127.0.0.1:8000`을 엽니다. API 문서는 `/docs`, 상태 확인은 `/health`입니다.
+브라우저에서 `http://127.0.0.1:8000`을 열고 아래 합성 계정 중 하나로 로그인합니다. API
+문서는 `/docs`, 상태 확인은 `/health`입니다.
+
+| 역할 | 아이디 | 비밀번호 | 허용 작업 |
+|---|---|---|---|
+| 분류 담당 | `triage.demo` | `triage-demo-2026` | 접수, 재분석, 위치·중복 검토 |
+| 검토 승인 | `review.demo` | `review-demo-2026` | 분류 담당 권한 + 내부 검토 승인 |
+| 감사 조회 | `audit.demo` | `audit-demo-2026` | 민원·감사·승인 이력 읽기 전용 |
+
+계정과 비밀번호는 실제 비밀정보가 아니라 저장소에 공개된 시연 값입니다. 개발 모드는 서버를
+재시작하면 세션이 무효화되는 임시 서명 키를 만듭니다. 고정된 로컬 세션이 필요하면 커밋하지
+않는 `.env`에 충분히 긴 `SESSION_SECRET`을 설정하세요. `APP_ENV=production`은 이 값이 없으면
+시작을 거부하지만, 이 프로토타입 자체는 운영 배포 대상이 아닙니다.
 
 ## 2. 프로토타입 화면 둘러보기
 
-1. 업무 홈의 `새 민원 접수 시연`을 누릅니다.
+1. 역할별 합성 계정으로 로그인하고 업무 홈의 `새 민원 접수 시연`을 누릅니다.
 2. 가로등·포트홀·복지 문의·긴급 안전 중 합성 예시를 불러와 `안전 분석 시작`을 누릅니다.
 3. 상세 화면에서 비식별 결과, 긴급도, 분류 근거, 위치 정규화 결과와 유사 민원 후보를 확인합니다.
 4. 유사 민원 후보는 점수 근거를 살핀 뒤 `중복 후보로 확인` 또는 `서로 다른 민원`으로 기록합니다.
 5. 담당 후보를 선택하고 `시민 화면 미리보기`를 확인한 뒤 `내부 검토 완료`로 로컬 감사 로그를 남깁니다.
 6. 좌측 메뉴나 대기열 탭에서 검토 필요·긴급·배정 완료·검토 완료 상태를 필터링할 수 있습니다.
+
+행위자 ID는 폼 입력값을 신뢰하지 않고 로그인 세션에서 결정합니다. 검토 승인은 별도
+`ReviewDecision` 행으로 계속 추가되며 기존 승인·감사 행은 SQLite 트리거가 수정과 삭제를
+차단합니다. 역할·세션·CSRF·이력의 상세 범위는 `docs/AUTH_AND_AUDIT.md`에 있습니다.
 
 화면의 승인 동작은 로컬 SQLite 상태만 변경합니다. 시민에게 답변을 보내거나 실제 행정
 시스템을 변경하지 않으며, 예시 외 실제 민원·개인정보를 입력하면 안 됩니다.
@@ -117,6 +134,7 @@ POST /api/v1/complaints
 GET  /api/v1/complaints
 GET  /api/v1/complaints/{complaint_id}
 GET  /api/v1/complaints/{complaint_id}/grounding
+GET  /api/v1/complaints/{complaint_id}/reviews
 POST /api/v1/complaints/{complaint_id}/reprocess
 POST /api/v1/complaints/{complaint_id}/approve
 GET  /api/v1/complaints/{complaint_id}/location
@@ -124,19 +142,21 @@ POST /api/v1/complaints/{complaint_id}/location/confirm
 GET  /api/v1/complaints/{complaint_id}/duplicate-candidates
 POST /api/v1/complaints/{complaint_id}/duplicate-candidates/{candidate_id}/decision
 GET  /api/v1/departments
+GET  /api/v1/session
 ```
 
-예시:
+민원 API는 로그인 쿠키와 변경 요청의 CSRF 헤더가 필요합니다. PowerShell 예시:
 
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/complaints \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "가로등 고장",
-    "content": "정자동 공원 입구 가로등 두 개가 꺼져 밤에 위험합니다. 연락처는 010-1234-5678입니다.",
-    "location_text": "정자동 공원 입구",
-    "channel": "web"
-  }'
+```powershell
+$demoSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+Invoke-WebRequest -Method Post -Uri http://127.0.0.1:8000/login `
+  -WebSession $demoSession -Body @{username='review.demo'; password='review-demo-2026'}
+$demoIdentity = Invoke-RestMethod -Uri http://127.0.0.1:8000/api/v1/session -WebSession $demoSession
+$demoHeaders = @{'X-CSRF-Token'=$demoIdentity.csrf_token}
+$demoBody = @{title='합성 가로등 고장'; content='가상 시험동 가로등 점등 불량'; `
+  location_text='가상 시험동 1번 위치'; channel='web'} | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/v1/complaints `
+  -WebSession $demoSession -Headers $demoHeaders -ContentType 'application/json' -Body $demoBody
 ```
 
 ## 6. Codex로 이어서 개발하기

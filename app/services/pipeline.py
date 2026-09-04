@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.models import Complaint, Department, GroundedDraftRecord
+from app.models import Complaint, Department, GroundedDraftRecord, ReviewDecision
 from app.schemas import (
     ClassificationCandidate,
     ClassificationResult,
@@ -67,6 +67,9 @@ class ComplaintPipeline:
         return complaint
 
     def approve(self, db: Session, complaint: Complaint, approval: ComplaintApproval) -> Complaint:
+        approval_redaction = redact_pii(approval.answer_draft)
+        if approval_redaction.detected_types:
+            raise ValueError("답변 초안에 직접 식별자 형식이 남아 있어 저장할 수 없습니다.")
         department = db.scalar(
             select(Department).where(
                 Department.id == approval.department_id,
@@ -98,6 +101,19 @@ class ComplaintPipeline:
         complaint.requires_human_review = False
         complaint.reviewed_by = approval.actor_id
         complaint.reviewed_at = datetime.now(UTC)
+        decision = ReviewDecision(
+            complaint_id=complaint.id,
+            actor_id=approval.actor_id,
+            actor_role=approval.actor_role,
+            department_id=approval.department_id,
+            answer_draft=approval.answer_draft,
+            draft_modified=draft_modified,
+            grounding_status=(
+                grounding.validation_status if grounding else "grounding_record_missing"
+            ),
+        )
+        db.add(decision)
+        db.flush()
         record_audit(
             db,
             complaint_id=complaint.id,
@@ -108,6 +124,8 @@ class ComplaintPipeline:
                 "previous_department_id": old_department,
                 "approved_department_id": approval.department_id,
                 "draft_modified": draft_modified,
+                "actor_role": approval.actor_role,
+                "review_decision_id": decision.id,
             },
         )
         db.commit()

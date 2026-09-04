@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     app_env: Literal["development", "test", "production"] = "development"
     database_url: str = "sqlite:///./civic_ai.db"
     ai_provider: Literal["rules", "openai"] = "rules"
+    session_secret: SecretStr | None = None
     openai_api_key: SecretStr | None = None
     openai_model: str = "gpt-5.6"
     auto_route_threshold: float = Field(default=0.90, ge=0.0, le=1.0)

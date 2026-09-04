@@ -34,7 +34,7 @@
 - [x] Add approved/effective lexical retrieval and sentence-level citations
 - [ ] Compare and add hybrid retrieval only after the lexical safety baseline
 - [x] Reject or flag unsupported draft claims
-- [ ] Add role-based officer login and immutable review history
+- [x] Add local role-based officer login and append-only review history
 
 ## M4 — Production hardening
 
