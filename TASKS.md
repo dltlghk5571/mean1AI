@@ -22,11 +22,12 @@
 ## M2 — Better routing and duplicate detection
 
 - [x] Import a versioned synthetic department/work-assignment catalog with immutable history
+- [x] Reject superseded imports and retired IDs; audit unsafe routes and preserve legacy history
 - [x] Add local location normalization and human confirmation
 - [ ] Add district/jurisdiction rules and an approved coordinate source
 - [x] Add text + normalized-location + time duplicate-candidate scoring
 - [ ] Add coordinate-distance scoring after privacy and source review
-- [ ] Introduce a queue for expensive AI calls
+- [x] Introduce a local durable queue for optional expensive AI calls, with bounded retries and human fallback
 
 ## M3 — RAG and officer console
 

@@ -42,7 +42,7 @@ def _auth_manager(request: Request) -> AuthManager:
 
 def _safe_next_path(value: str | None) -> str:
     if not value or not value.startswith("/") or value.startswith("//") or "\\" in value:
-        return "/"
+        return "/staff"
     return value
 
 
@@ -51,7 +51,7 @@ def _login_context(
     *,
     error: str | None = None,
     username: str = "",
-    next_path: str = "/",
+    next_path: str = "/staff",
 ) -> dict[str, object]:
     return {
         "request": request,
@@ -89,7 +89,7 @@ def login(
     request: Request,
     username: Annotated[str, Form(min_length=1, max_length=120)],
     password: Annotated[str, Form(min_length=1, max_length=200)],
-    next_path: Annotated[str, Form(max_length=500)] = "/",
+    next_path: Annotated[str, Form(max_length=500)] = "/staff",
 ) -> HTMLResponse | RedirectResponse:
     manager = _auth_manager(request)
     user = manager.authenticate(username, password)

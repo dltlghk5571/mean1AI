@@ -7,10 +7,12 @@ from typing import Any
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -23,6 +25,59 @@ from app.database import Base
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
+
+
+class CitizenSession(Base):
+    __tablename__ = "citizen_sessions"
+
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    csrf_token: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+
+
+class CitizenSubmission(Base):
+    __tablename__ = "citizen_submissions"
+    __table_args__ = (
+        UniqueConstraint("owner_session_hash", "request_key", name="uq_citizen_request"),
+    )
+
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("complaints.id"), primary_key=True)
+    receipt_number: Mapped[str] = mapped_column(String(40), nullable=False, unique=True)
+    owner_session_hash: Mapped[str] = mapped_column(
+        ForeignKey("citizen_sessions.token_hash"), nullable=False, index=True
+    )
+    request_key: Mapped[str] = mapped_column(String(36), nullable=False)
+    lookup_code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class CitizenGrant(Base):
+    __tablename__ = "citizen_grants"
+
+    session_hash: Mapped[str] = mapped_column(
+        ForeignKey("citizen_sessions.token_hash"), primary_key=True
+    )
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("citizen_submissions.complaint_id"), primary_key=True
+    )
+
+
+class PublishedReply(Base):
+    """Immutable, explicitly published snapshot of a human-reviewed answer."""
+
+    __tablename__ = "published_replies"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("citizen_submissions.complaint_id"), nullable=False, index=True
+    )
+    review_id: Mapped[int] = mapped_column(
+        ForeignKey("review_decisions.id"), nullable=False, unique=True
+    )
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    answer_text: Mapped[str] = mapped_column(Text, nullable=False)
+    published_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
 
 
 class Department(Base):
@@ -142,6 +197,70 @@ class Complaint(Base):
         cascade="all, delete-orphan",
         order_by="AuditEvent.id",
     )
+    ai_jobs: Mapped[list[AIProcessingJob]] = relationship(
+        foreign_keys="AIProcessingJob.complaint_id",
+        order_by="AIProcessingJob.id.desc()",
+        lazy="selectin",
+    )
+
+    @property
+    def ai_processing(self) -> AIProcessingJob | None:
+        return self.ai_jobs[0] if self.ai_jobs else None
+
+
+class AIProcessingJob(Base):
+    """Local durable work metadata only; complaint bodies and provider output stay out."""
+
+    __tablename__ = "ai_processing_jobs"
+    __table_args__ = (
+        UniqueConstraint("complaint_id", "request_key", name="uq_ai_job_request"),
+        CheckConstraint("state IN ('queued', 'processing', 'completed', 'failed')"),
+        CheckConstraint("attempts >= 0 AND attempts <= max_attempts AND max_attempts >= 1"),
+        CheckConstraint(
+            "(state IN ('queued', 'processing') AND active_complaint_id IS NOT NULL "
+            "AND active_complaint_id = complaint_id) OR "
+            "(state IN ('completed', 'failed') AND active_complaint_id IS NULL)"
+        ),
+        CheckConstraint(
+            "(state = 'processing' AND claim_token IS NOT NULL AND lease_expires_at IS NOT NULL) "
+            "OR (state != 'processing' AND claim_token IS NULL AND lease_expires_at IS NULL)"
+        ),
+        Index("ix_ai_job_ready", "state", "available_at", "id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("complaints.id"), index=True)
+    # One active job per complaint, also enforced across independent processes.
+    active_complaint_id: Mapped[str | None] = mapped_column(String(36), unique=True)
+    request_key: Mapped[str] = mapped_column(String(36), nullable=False)
+    state: Mapped[str] = mapped_column(String(20), nullable=False, default="queued")
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, nullable=False)
+    retry_seconds: Mapped[int] = mapped_column(Integer, nullable=False)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False)
+    model: Mapped[str] = mapped_column(String(120), nullable=False)
+    catalog_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    input_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    claim_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_error_code: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AIProcessingRequest(Base):
+    """Remember request keys coalesced into an already-active job, including after completion."""
+
+    __tablename__ = "ai_processing_requests"
+
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("complaints.id"), primary_key=True)
+    request_key: Mapped[str] = mapped_column(String(36), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("ai_processing_jobs.id"), nullable=False)
 
 
 class AuditEvent(Base):

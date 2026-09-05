@@ -1,10 +1,13 @@
-.PHONY: install run test lint typecheck format format-check eval check seed clean
+.PHONY: install run worker test lint typecheck format format-check eval check seed clean
 
 install:
 	python -m pip install -e ".[dev]"
 
 run:
 	uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+worker:
+	python -m app.worker --watch
 
 test:
 	pytest

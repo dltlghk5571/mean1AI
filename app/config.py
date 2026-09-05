@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     app_env: Literal["development", "test", "production"] = "development"
     database_url: str = "sqlite:///./civic_ai.db"
     ai_provider: Literal["rules", "openai"] = "rules"
+    ai_deferred_enabled: bool = False
+    ai_queue_max_attempts: int = Field(default=3, ge=1, le=10)
+    ai_queue_retry_seconds: int = Field(default=30, ge=1, le=3600)
+    ai_queue_lease_seconds: int = Field(default=120, ge=60, le=3600)
     session_secret: SecretStr | None = None
     openai_api_key: SecretStr | None = None
     openai_model: str = "gpt-5.6"

@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.models import (
+    CitizenSubmission,
     Complaint,
     ComplaintLocationReview,
     Department,
@@ -26,6 +28,7 @@ from app.services.auth import (
     require_csrf,
     require_role,
 )
+from app.services.citizen import latest_reply, publish_reply
 from app.services.duplicates import (
     confirm_location,
     decide_duplicate_candidate,
@@ -68,9 +71,18 @@ PII_LABELS = {
     "email": "이메일",
 }
 AUDIT_LABELS = {
+    "ai_job_enqueued": "AI 분석 대기열 등록",
+    "ai_job_claimed": "AI 분석 시작",
+    "ai_job_attempt_failed": "AI 분석 시도 실패",
+    "ai_job_completed": "AI 분석 완료 · 담당자 검토 필요",
+    "ai_job_failed": "AI 분석 종료 · 사람 검토",
+    "ai_job_skipped": "AI 대기 없이 사람 검토",
     "complaint_received": "민원 접수",
     "pii_redacted": "개인정보 비식별",
     "triage_completed": "자동 분류 완료",
+    "routing_review_required": "담당 배정 검토 필요",
+    "catalog_route_invalidated": "업무분장 변경으로 재검토 필요",
+    "human_review_blocked": "담당자 승인 보류",
     "knowledge_retrieved": "승인 지식 검색",
     "draft_grounding_validated": "문장별 근거 검증",
     "draft_grounding_invalidated": "수정 초안 근거 확인 필요",
@@ -80,6 +92,15 @@ AUDIT_LABELS = {
     "duplicate_candidate_confirmed": "중복 후보 확인",
     "duplicate_candidate_rejected": "중복 후보 제외",
     "human_review_approved": "담당자 검토 완료",
+    "citizen_access_created": "시민 비공개 접수 연결",
+    "citizen_reply_published": "시민 화면에 답변 공개",
+}
+
+AI_STATE_LABELS = {
+    "queued": "AI 분석 대기",
+    "processing": "AI 분석 중",
+    "completed": "AI 분석 완료",
+    "failed": "AI 분석 실패 · 사람 검토",
 }
 
 QUEUE_FILTERS: dict[str, tuple[str, ...]] = {
@@ -119,7 +140,7 @@ def _get_complaint(db: Session, complaint_id: str) -> Complaint:
     return complaint
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/staff", response_class=HTMLResponse)
 def index(
     request: Request,
     db: DbSession,
@@ -154,6 +175,7 @@ def index(
             "status_labels": STATUS_LABELS,
             "channel_labels": CHANNEL_LABELS,
             "category_labels": CATEGORY_LABELS,
+            "ai_state_labels": AI_STATE_LABELS,
             "classifier_provider": getattr(
                 request.app.state.pipeline.classifier, "provider_name", "unknown"
             ),
@@ -172,14 +194,14 @@ def submit_complaint(
     channel: Annotated[Channel, Form()] = Channel.WEB,
     csrf_token: Annotated[str | None, Form(max_length=200)] = None,
 ) -> RedirectResponse:
-    _require_form_action(request, csrf_token, "triage_officer", "reviewer")
+    user = _require_form_action(request, csrf_token, "triage_officer", "reviewer")
     payload = ComplaintCreate(
         title=title,
         content=content,
         location_text=location_text or None,
         channel=channel,
     )
-    complaint = _get_pipeline(request).create_and_process(db, payload)
+    complaint = _get_pipeline(request).create_and_process(db, payload, actor_id=user.username)
     return RedirectResponse(url=f"/complaints/{complaint.id}", status_code=303)
 
 
@@ -233,6 +255,9 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
             "grounding": grounding,
             "duplicate_candidates": duplicate_candidates,
             "review_decisions": review_decisions,
+            "citizen_submission": db.get(CitizenSubmission, complaint_id),
+            "published_reply": latest_reply(db, complaint_id),
+            "publication_error": request.query_params.get("publication") == "stale",
             "departments": departments,
             "department_map": department_map,
             "catalog_version": (
@@ -247,6 +272,8 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
             "category_labels": CATEGORY_LABELS,
             "pii_labels": PII_LABELS,
             "audit_labels": AUDIT_LABELS,
+            "ai_state_labels": AI_STATE_LABELS,
+            "reprocess_request_key": str(uuid4()),
             "current_user": current_user,
         },
     )
@@ -276,16 +303,42 @@ def approve_complaint_form(
     return RedirectResponse(url=f"/complaints/{complaint_id}", status_code=303)
 
 
+@router.post("/complaints/{complaint_id}/publish")
+def publish_complaint_reply(
+    complaint_id: str,
+    request: Request,
+    db: DbSession,
+    review_id: Annotated[int, Form(gt=0)],
+    confirm_publication: Annotated[str, Form(max_length=10)] = "",
+    csrf_token: Annotated[str | None, Form(max_length=200)] = None,
+) -> RedirectResponse:
+    user = _require_form_action(request, csrf_token, "reviewer")
+    if confirm_publication != "yes":
+        raise HTTPException(status_code=400, detail="시민 공개 내용을 확인해 주세요.")
+    complaint = _get_complaint(db, complaint_id)
+    try:
+        publish_reply(db, complaint, user, review_id)
+    except ValueError:
+        db.rollback()
+        return RedirectResponse(
+            f"/complaints/{complaint_id}?publication=stale#citizen-publication", status_code=303
+        )
+    return RedirectResponse(f"/complaints/{complaint_id}#citizen-publication", status_code=303)
+
+
 @router.post("/complaints/{complaint_id}/reprocess")
 def reprocess_complaint_form(
     complaint_id: str,
     request: Request,
     db: DbSession,
     csrf_token: Annotated[str | None, Form(max_length=200)] = None,
+    request_key: Annotated[UUID | None, Form()] = None,
 ) -> RedirectResponse:
-    _require_form_action(request, csrf_token, "triage_officer", "reviewer")
+    user = _require_form_action(request, csrf_token, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
-    _get_pipeline(request).reprocess(db, complaint)
+    _get_pipeline(request).reprocess(
+        db, complaint, request_key=str(request_key) if request_key else None, actor_id=user.username
+    )
     return RedirectResponse(url=f"/complaints/{complaint_id}", status_code=303)
 
 

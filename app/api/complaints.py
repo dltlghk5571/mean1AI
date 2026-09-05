@@ -1,12 +1,20 @@
 from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Complaint, ComplaintLocationReview, GroundedDraftRecord, ReviewDecision
+from app.models import (
+    AIProcessingJob,
+    Complaint,
+    ComplaintLocationReview,
+    GroundedDraftRecord,
+    ReviewDecision,
+)
 from app.schemas import (
+    AIProcessingRead,
     ComplaintApproval,
     ComplaintApprovalRequest,
     ComplaintCreate,
@@ -67,8 +75,8 @@ def create_complaint(
     request: Request,
     db: DbSession,
 ) -> Complaint:
-    _require_action(request, "triage_officer", "reviewer")
-    return _get_pipeline(request).create_and_process(db, payload)
+    user = _require_action(request, "triage_officer", "reviewer")
+    return _get_pipeline(request).create_and_process(db, payload, actor_id=user.username)
 
 
 @router.get("", response_model=list[ComplaintRead])
@@ -94,6 +102,11 @@ def get_grounded_draft(complaint_id: str, db: DbSession) -> GroundedDraftRecord:
             detail="Grounding record not found; reprocess complaint",
         )
     return grounding
+
+
+@router.get("/{complaint_id}/ai-processing", response_model=list[AIProcessingRead])
+def get_ai_processing_history(complaint_id: str, db: DbSession) -> list[AIProcessingJob]:
+    return _get_complaint(db, complaint_id).ai_jobs
 
 
 @router.get("/{complaint_id}/reviews", response_model=list[ReviewDecisionRead])
@@ -179,10 +192,16 @@ def reprocess_complaint(
     complaint_id: str,
     request: Request,
     db: DbSession,
+    idempotency_key: Annotated[UUID | None, Header()] = None,
 ) -> Complaint:
-    _require_action(request, "triage_officer", "reviewer")
+    user = _require_action(request, "triage_officer", "reviewer")
     complaint = _get_complaint(db, complaint_id)
-    return _get_pipeline(request).reprocess(db, complaint)
+    return _get_pipeline(request).reprocess(
+        db,
+        complaint,
+        request_key=str(idempotency_key) if idempotency_key else None,
+        actor_id=user.username,
+    )
 
 
 @router.post("/{complaint_id}/approve", response_model=ComplaintRead)

@@ -21,7 +21,7 @@ class Classifier(Protocol):
 
 
 class WorkAssignmentInfo(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, str_strip_whitespace=True)
 
     id: str = Field(min_length=3, max_length=64, pattern=r"^[A-Z0-9][A-Z0-9_-]+$")
     title: str = Field(min_length=1, max_length=120)
@@ -29,7 +29,7 @@ class WorkAssignmentInfo(BaseModel):
 
 
 class RoutingRuleInfo(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, str_strip_whitespace=True)
 
     id: str = Field(min_length=3, max_length=64, pattern=r"^[A-Z0-9][A-Z0-9_-]+$")
     subcategory: str = Field(min_length=1, max_length=120)
@@ -49,7 +49,7 @@ class RoutingRuleInfo(BaseModel):
 
 
 class DepartmentInfo(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, str_strip_whitespace=True)
 
     id: str = Field(min_length=3, max_length=64, pattern=r"^[A-Z0-9][A-Z0-9_]+$")
     name: str = Field(min_length=1, max_length=120)
@@ -78,12 +78,15 @@ class DepartmentInfo(BaseModel):
 
 
 class DepartmentCatalogDocument(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, str_strip_whitespace=True)
 
     catalog_version: str = Field(
         min_length=3,
         max_length=80,
         pattern=r"^[a-z0-9][a-z0-9._-]+$",
+    )
+    supersedes: str | None = Field(
+        default=None, min_length=3, max_length=80, pattern=r"^[a-z0-9][a-z0-9._-]+$"
     )
     effective_from: date
     effective_until: date | None = None
@@ -93,8 +96,17 @@ class DepartmentCatalogDocument(BaseModel):
     fallback_department_id: str = Field(min_length=3, max_length=64)
     departments: list[DepartmentInfo] = Field(min_length=1, max_length=200)
 
+    @field_validator("synthetic", mode="before")
+    @classmethod
+    def require_synthetic_boolean(cls, value: object) -> object:
+        if value is not True:
+            raise ValueError("synthetic must be the JSON boolean true")
+        return value
+
     @model_validator(mode="after")
     def validate_catalog(self) -> DepartmentCatalogDocument:
+        if self.supersedes == self.catalog_version:
+            raise ValueError("a catalog cannot supersede itself")
         if self.effective_until is not None and self.effective_until < self.effective_from:
             raise ValueError("effective_until cannot be earlier than effective_from")
 
@@ -134,6 +146,7 @@ class DepartmentCatalog:
     def __init__(self, document: DepartmentCatalogDocument, source_sha256: str) -> None:
         self.document = document
         self.catalog_version = document.catalog_version
+        self.supersedes = document.supersedes
         self.effective_from = document.effective_from
         self.effective_until = document.effective_until
         self.approval_status = document.approval_status
@@ -168,12 +181,16 @@ class DepartmentCatalog:
         except ValidationError as exc:
             raise ValueError(f"Invalid department catalog: {exc}") from exc
 
+        catalog = cls(document=document, source_sha256=hashlib.sha256(raw).hexdigest())
+        catalog.ensure_effective()
+        return catalog
+
+    def ensure_effective(self) -> None:
         today = date.today()
-        if document.effective_from > today:
+        if self.effective_from > today:
             raise ValueError("Department catalog is not effective yet")
-        if document.effective_until is not None and document.effective_until < today:
+        if self.effective_until is not None and self.effective_until < today:
             raise ValueError("Department catalog has expired")
-        return cls(document=document, source_sha256=hashlib.sha256(raw).hexdigest())
 
     def work_assignment_ids_for(
         self,
@@ -196,19 +213,37 @@ class DepartmentCatalog:
         return tuple(assignment.id for assignment in department.work_assignments)
 
     def bind_classification(self, result: ClassificationResult) -> ClassificationResult:
-        """Attach immutable catalog provenance and drop unknown assignment references."""
+        """Bind trusted IDs without silently turning invalid output into an automatic route."""
 
+        try:
+            self.ensure_effective()
+        except ValueError as exc:
+            raise ClassifierError("catalog_not_effective") from exc
         bound_candidates: list[ClassificationCandidate] = []
+        review_reasons = set(result.review_reasons)
+        seen: set[str] = set()
         for candidate in result.candidates:
             department = self.by_id.get(candidate.department_id)
             if department is None:
+                review_reasons.add("unknown_or_inactive_department")
                 continue
+            if candidate.department_id in seen:
+                review_reasons.add("duplicate_department_candidate")
+                continue
+            seen.add(candidate.department_id)
             assignment_ids = list(
                 self.work_assignment_ids_for(
                     candidate.department_id,
                     subcategory=result.subcategory,
                 )
             )
+            if candidate.catalog_version not in (None, self.catalog_version):
+                review_reasons.add("candidate_catalog_version_mismatch")
+            if candidate.work_assignment_ids:
+                if set(candidate.work_assignment_ids) <= set(assignment_ids):
+                    assignment_ids = candidate.work_assignment_ids
+                else:
+                    review_reasons.add("invalid_work_assignment_reference")
             bound_candidates.append(
                 candidate.model_copy(
                     update={
@@ -218,8 +253,28 @@ class DepartmentCatalog:
                 )
             )
         if not bound_candidates:
-            raise ClassifierError("Classifier returned no active catalog department ID")
-        return result.model_copy(update={"candidates": bound_candidates})
+            raise ClassifierError("no_active_catalog_department")
+        top = bound_candidates[0]
+        department = self.by_id[top.department_id]
+        if result.category != department.category:
+            review_reasons.add("category_department_mismatch")
+        if top.department_id == self.fallback_department_id:
+            review_reasons.add("fallback_department")
+        elif not any(rule.subcategory == result.subcategory for rule in department.routing_rules):
+            review_reasons.add("unmatched_work_assignment")
+        if len(bound_candidates) > 1:
+            runner_up = bound_candidates[1].confidence
+            if runner_up >= 0.90 or round(top.confidence - runner_up, 6) <= 0.05:
+                review_reasons.add("ambiguous_department_candidates")
+        if result.missing_information:
+            review_reasons.add("missing_information")
+        return result.model_copy(
+            update={
+                "candidates": bound_candidates,
+                "requires_human_review": result.requires_human_review or bool(review_reasons),
+                "review_reasons": sorted(review_reasons),
+            }
+        )
 
     def as_prompt_data(self) -> list[dict[str, object]]:
         return [
@@ -239,6 +294,7 @@ class DepartmentCatalog:
     def as_api_data(self) -> dict[str, object]:
         return {
             "catalog_version": self.catalog_version,
+            "supersedes": self.supersedes,
             "effective_from": self.effective_from,
             "effective_until": self.effective_until,
             "approval_status": self.approval_status,
@@ -259,6 +315,10 @@ class RuleBasedClassifier:
         self.catalog = catalog
 
     def classify(self, *, title: str, text: str, location_text: str | None) -> ClassificationResult:
+        try:
+            self.catalog.ensure_effective()
+        except ValueError as exc:
+            raise ClassifierError("catalog_not_effective") from exc
         haystack = " ".join(part for part in (title, text, location_text or "") if part).lower()
         scored: list[tuple[float, RuleDefinition, list[str]]] = []
 
@@ -314,13 +374,22 @@ class RuleBasedClassifier:
         if best_rule.requires_location and not (location_text and location_text.strip()):
             missing_information.append("정확한 발생 위치 또는 지도 핀")
 
-        return ClassificationResult(
-            category=best_rule.category,
-            subcategory=best_rule.subcategory,
-            urgency=Urgency.NORMAL,
-            candidates=candidates,
-            missing_information=missing_information,
-            requires_human_review=bool(missing_information),
-            evidence_summary=f"업무분장 규칙 감지 표현: {', '.join(best_hits[:4])}",
-            provider=self.provider_name,
+        ambiguous_work = any(
+            best_rule.department_id == rule.department_id
+            and set(best_rule.work_assignment_ids) != set(rule.work_assignment_ids)
+            and _best_confidence - confidence <= 0.10
+            for confidence, rule, _hits in scored[1:]
+        )
+        return self.catalog.bind_classification(
+            ClassificationResult(
+                category=best_rule.category,
+                subcategory=best_rule.subcategory,
+                urgency=Urgency.NORMAL,
+                candidates=candidates,
+                missing_information=missing_information,
+                requires_human_review=bool(missing_information),
+                review_reasons=["ambiguous_work_assignments"] if ambiguous_work else [],
+                evidence_summary=f"업무분장 규칙 감지 표현: {', '.join(best_hits[:4])}",
+                provider=self.provider_name,
+            )
         )

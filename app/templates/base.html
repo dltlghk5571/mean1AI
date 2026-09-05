@@ -7,7 +7,7 @@
   <meta name="description" content="사람이 최종 판단하는 성남 생활민원 분류 데모">
   <title>{% block title %}성남 민원 업무지원 — 시연{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}?v=20260905-console">
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}?v=20260905-mint">
   <script defer src="{{ url_for('static', path='/app.js') }}?v=20260905-console"></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -15,47 +15,47 @@
 
   <div class="app-layout">
     <aside class="sidebar" id="app-sidebar" aria-label="민원 업무 메뉴">
-      <a class="brand" href="/" aria-label="성남 민원 업무지원 홈">
+      <a class="brand" href="/staff" aria-label="성남 민원 업무지원 홈">
         <span class="brand-mark" aria-hidden="true">SN</span>
         <span class="brand-copy">
           <strong>성남 민원 업무지원</strong>
-          <small>시연 환경</small>
+          <small>시민의 목소리, 더 가까이</small>
         </span>
       </a>
 
       <nav class="side-nav" aria-label="민원 대기열">
-        <p class="nav-label">민원 업무</p>
-        <a href="/" class="{{ 'is-active' if active_filter|default('') == 'all' else '' }}">
+        <p class="nav-label">워크스페이스</p>
+        <a href="/staff" class="{{ 'is-active' if active_filter|default('') == 'all' else '' }}" {% if active_filter|default('') == 'all' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 5.5h6v6H4zM14 5.5h6v6h-6zM4 15.5h6v3H4zM14 15.5h6v3h-6z"/>
           </svg>
           <span>업무 홈</span>
         </a>
-        <a href="/?status=review#complaint-queue"
-           class="{{ 'is-active' if active_filter|default('') == 'review' else '' }}">
+        <a href="/staff?status=review#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'review' else '' }}" {% if active_filter|default('') == 'review' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6 3.5h9l3 3V20.5H6zM9 10h6M9 14h6"/>
           </svg>
           <span>검토 대기</span>
           {% if stats is defined and stats.review %}<b class="nav-count">{{ stats.review }}</b>{% endif %}
         </a>
-        <a href="/?status=urgent#complaint-queue"
-           class="{{ 'is-active' if active_filter|default('') == 'urgent' else '' }}">
+        <a href="/staff?status=urgent#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'urgent' else '' }}" {% if active_filter|default('') == 'urgent' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3.5 21 20H3zM12 9v4.5M12 17h.01"/>
           </svg>
           <span>긴급 확인</span>
           {% if stats is defined and stats.urgent %}<b class="nav-count nav-count-danger">{{ stats.urgent }}</b>{% endif %}
         </a>
-        <a href="/?status=assigned#complaint-queue"
-           class="{{ 'is-active' if active_filter|default('') == 'assigned' else '' }}">
+        <a href="/staff?status=assigned#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'assigned' else '' }}" {% if active_filter|default('') == 'assigned' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 7.5h16v11H4zM8 7.5V5h8v2.5M4 12h16"/>
           </svg>
           <span>배정 완료</span>
         </a>
-        <a href="/?status=reviewed#complaint-queue"
-           class="{{ 'is-active' if active_filter|default('') == 'reviewed' else '' }}">
+        <a href="/staff?status=reviewed#complaint-queue"
+           class="{{ 'is-active' if active_filter|default('') == 'reviewed' else '' }}" {% if active_filter|default('') == 'reviewed' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 12.5 9.5 17 19 7.5"/>
           </svg>
@@ -63,6 +63,10 @@
         </a>
 
         <p class="nav-label nav-label-secondary">시스템</p>
+        <a href="/">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-7h6v7"/></svg>
+          <span>시민 접수 홈</span>
+        </a>
         <a href="/docs" target="_blank" rel="noreferrer">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 4.5h14v15H5zM8.5 8h7M8.5 12h7M8.5 16h4"/>
@@ -109,19 +113,21 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
           </button>
           <div class="topbar-copy">
+            <svg class="topbar-home-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v11h5v-7h4v7h5V9"/></svg>
+            <span class="topbar-divider" aria-hidden="true">/</span>
             <span>{% block topbar_title %}민원 처리 지원{% endblock %}</span>
-            <small>{% block topbar_subtitle %}접수·분류·검토 현황{% endblock %}</small>
           </div>
         </div>
         <div class="topbar-actions">
           <span class="engine-pill"><i></i> 로컬 안전모드</span>
-          {% if current_user.can_write %}
-            <a class="topbar-new" href="/#new-complaint">
+          {% if current_user.can_write and active_filter is not defined %}
+            <a class="topbar-new" href="/staff#new-complaint">
               <span aria-hidden="true">＋</span> 민원 접수
             </a>
-          {% else %}
+          {% elif not current_user.can_write %}
             <span class="readonly-pill">읽기 전용</span>
           {% endif %}
+          <span class="topbar-avatar" aria-label="{{ current_user.display_name }} · {{ current_user.role_label }}">{{ current_user.display_name[:1] }}</span>
         </div>
       </header>
 

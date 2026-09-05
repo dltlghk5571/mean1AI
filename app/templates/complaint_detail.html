@@ -5,9 +5,13 @@
 {% block topbar_subtitle %}분류 근거와 답변 초안을 확인합니다{% endblock %}
 
 {% block content %}
+{% set ai_job = complaint.ai_processing %}
+{% if ai_job %}
+  {% set ai_label = 'AI 분석 중단 · 담당자 검토 반영' if ai_job.last_error_code == 'human_review_superseded' else ai_state_labels[ai_job.state] %}
+{% endif %}
 <header class="detail-titlebar">
   <div class="detail-breadcrumb">
-    <a href="/#complaint-queue">
+    <a href="/staff#complaint-queue">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
       민원 대기열
     </a>
@@ -28,7 +32,8 @@
       {% if current_user.can_triage %}
         <form action="/complaints/{{ complaint.id }}/reprocess" method="post" data-reprocess-form>
           <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
-          <button class="button button-secondary" type="submit">
+          <input type="hidden" name="request_key" value="{{ reprocess_request_key }}">
+          <button class="button button-secondary" type="submit" {% if ai_job and ai_job.state in ['queued', 'processing'] %}disabled{% endif %}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8V4l-2 2a8 8 0 1 0 2.2 8M19 4h-4"/></svg>
             다시 분석
           </button>
@@ -40,7 +45,7 @@
 
   <ol class="review-progress" aria-label="현재 처리 단계">
     <li class="is-complete"><span>✓</span><div><strong>민원 접수</strong><small>로컬 접수 기록</small></div></li>
-    <li class="is-complete"><span>✓</span><div><strong>자동 분류</strong><small>비식별·분류 완료</small></div></li>
+    <li class="{{ 'is-current' if ai_job and ai_job.state in ['queued', 'processing'] else 'is-complete' if not ai_job or ai_job.state == 'completed' else '' }}"><span>{{ '2' if ai_job and ai_job.state != 'completed' else '✓' }}</span><div><strong>자동 분류</strong><small>{{ ai_label if ai_job else '비식별·분류 완료' }}</small></div></li>
     <li class="{{ 'is-complete' if complaint.status == 'reviewed' else 'is-current' }}">
       <span>{{ '✓' if complaint.status == 'reviewed' else '3' }}</span>
       <div><strong>담당자 검토</strong><small>{{ '검토 기록 완료' if complaint.status == 'reviewed' else '현재 단계' }}</small></div>
@@ -48,6 +53,23 @@
     <li class="is-locked"><span>4</span><div><strong>외부 처리</strong><small>프로토타입에서 비활성</small></div></li>
   </ol>
 </header>
+
+{% if ai_job %}
+  <section class="alert-banner alert-warning" role="status" data-ai-state="{{ ai_job.state }}">
+    <div>
+      <strong>{{ ai_label }}</strong>
+      <p>시도 {{ ai_job.attempts }} / {{ ai_job.max_attempts }}회.
+        {% if ai_job.state in ['queued', 'processing'] %}
+          규칙 기반 사전 확인과 초안을 표시합니다. AI 처리 중에도 담당자가 검토할 수 있으며, 승인하면 대기 중인 AI 결과는 반영하지 않습니다.
+        {% elif ai_job.state == 'failed' %}
+          {% if ai_job.last_error_code == 'human_review_superseded' %}담당자가 저장한 검토 결과를 유지합니다.
+          {% else %}자동 재시도를 종료했습니다. 담당자가 직접 검토해 주세요.{% endif %}
+        {% else %}AI 분석이 완료되었습니다. 답변과 담당 부서는 사람이 확인해야 합니다.{% endif %}
+        <a href="/complaints/{{ complaint.id }}">상태 새로고침</a>
+      </p>
+    </div>
+  </section>
+{% endif %}
 
 {% if complaint.status == 'urgent_review' %}
   <section class="alert-banner alert-danger" role="alert">
@@ -370,6 +392,30 @@
   </div>
 
   <aside class="detail-side">
+    {% if citizen_submission %}
+    <section class="side-card compact-card" id="citizen-publication" tabindex="-1">
+      <div class="side-card-heading compact"><div><p class="section-label">시민 접수 · {{ citizen_submission.receipt_number }}</p><h2>시민에게 답변 공개</h2></div></div>
+      <p class="action-description">내부 검토 후, 아래에서 공개한 답변만 이 민원의 신청자에게 보입니다.</p>
+      {% if publication_error %}<p class="missing-box" role="alert">검토 내용이 변경되었습니다. 최신 답변을 다시 확인하고 내부 검토를 완료해 주세요.</p>{% endif %}
+      {% if published_reply %}
+        <p class="source-safety-copy">현재 공개 중: 검토 #{{ published_reply.review_id }}의 답변. 새 검토를 저장해도 공개 답변은 자동으로 바뀌지 않습니다.</p>
+        <details class="review-history-list"><summary>현재 공개된 답변 보기</summary><pre>{{ published_reply.answer_text }}</pre></details>
+      {% else %}<p class="source-safety-copy">아직 공개한 답변이 없습니다.</p>{% endif %}
+      {% if current_user.can_review and complaint.status == 'reviewed' and review_decisions %}
+        {% set decision = review_decisions[0] %}
+        {% if not published_reply or published_reply.review_id != decision.id %}
+        <form action="/complaints/{{ complaint.id }}/publish" method="post" class="publication-form">
+          <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
+          <input type="hidden" name="review_id" value="{{ decision.id }}">
+          <details class="review-history-list" open><summary>공개할 답변 · 검토 #{{ decision.id }}</summary><pre>{{ decision.answer_draft }}</pre></details>
+          <label class="publication-consent"><input type="checkbox" name="confirm_publication" value="yes" required><span>위 답변을 신청자의 데모 화면에 공개하는 데 동의합니다.</span></label>
+          <button class="button button-primary button-block" type="submit">시민 화면에 답변 공개</button>
+          <p class="source-safety-copy">문자·이메일 발송이나 실제 행정기관 전달은 하지 않습니다.</p>
+        </form>
+        {% else %}<p class="text-success">최신 검토 답변이 공개되어 있습니다.</p>{% endif %}
+      {% elif current_user.can_review %}<p class="source-safety-copy">먼저 담당자 검토·승인을 완료해 주세요.</p>{% endif %}
+    </section>
+    {% endif %}
     <section class="action-card" id="officer-review" tabindex="-1">
       <div class="action-card-heading">
         <span class="action-number">03</span>

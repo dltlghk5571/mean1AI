@@ -1,0 +1,25 @@
+{% extends 'citizen_base.html' %}
+{% block title %}민원 신청 · 성남 생활민원{% endblock %}
+{% block content %}
+<div class="container page-shell">
+  <a class="back-link" href="/">{{ icon('back') }} 홈으로</a>
+  <header class="page-heading"><p class="eyebrow">우리 동네를 위한 한마디</p><h1>어떤 불편이 있으셨나요?</h1><p>자세히 알려주실수록 내용을 확인하는 데 도움이 됩니다.</p></header>
+  <ol class="progress-steps" aria-label="민원 신청 단계"><li aria-current="step" data-step="1"><span>1</span>내용 작성</li><li data-step="2"><span>2</span>내용 확인</li><li data-step="3"><span>3</span>접수 완료</li></ol>
+  <div class="form-layout"><div>
+    <noscript><p class="notice">신청 화면에는 자바스크립트가 필요합니다. 브라우저에서 자바스크립트를 허용해 주세요.</p></noscript>
+    <div class="form-alert" data-form-alert role="alert" tabindex="-1" hidden></div>
+    <form id="citizen-form" data-citizen-form autocomplete="off" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="request_key" value="{{ request_key }}">
+      <section class="surface form-surface" data-write-panel aria-labelledby="write-heading"><div class="surface-heading"><div><p class="eyebrow">STEP 01</p><h2 id="write-heading">불편한 내용을 적어 주세요</h2></div><span class="required-note">* 필수 항목</span></div>
+        {% if category %}<div class="selected-topic">{{ icon(category.icon) }}<span>{{ category.name }} 이야기로 시작해요.</span><small>분야는 내용에 따라 확인됩니다.</small></div>{% endif %}
+        <label class="field" for="title"><span>민원 제목 <b aria-hidden="true">*</b></span><input id="title" name="title" minlength="2" maxlength="200" required placeholder="어떤 불편인지 한 문장으로 알려주세요" aria-describedby="title-error"><small class="field-error" id="title-error" data-error-for="title"></small></label>
+        <label class="field" for="location_text"><span>불편이 발생한 장소 <small>선택</small></span><div class="input-icon">{{ icon('pin') }}<input id="location_text" name="location_text" maxlength="300" placeholder="예: 데모공원 정문 앞 산책로" aria-describedby="location-help location_text-error"></div><small class="field-help" id="location-help">도로명, 건물 또는 주변 시설 이름을 적어 주세요. 정확하지 않아도 괜찮아요.</small><small class="field-error" id="location_text-error" data-error-for="location_text"></small></label>
+        <label class="field" for="content"><span>불편한 내용 <b aria-hidden="true">*</b></span><textarea id="content" name="content" rows="9" minlength="5" maxlength="20000" required placeholder="언제, 어디에서, 어떤 불편을 겪으셨나요?&#10;&#10;현재 상황과 바라는 점을 편하게 적어 주세요." aria-describedby="content-help content-error"></textarea><small class="field-help field-help-row" id="content-help"><span>실명·연락처·주민등록번호 등 실제 개인정보는 적지 마세요.</span><span data-content-count>0 / 20,000</span></small><small class="field-error" id="content-error" data-error-for="content"></small></label>
+        <div class="example-row"><p>먼저 체험해 보고 싶다면?</p><button class="text-link" type="button" data-fill-example>합성 예시 넣기 {{ icon('arrow') }}</button></div>
+        <div class="form-actions"><a class="button ghost" href="/">홈으로</a><button class="button primary" type="submit" data-preview-submit>내용 확인하기 {{ icon('arrow') }}</button></div>
+      </section>
+      <section class="surface form-surface" data-review-panel hidden aria-labelledby="review-heading"><div class="surface-heading"><div><p class="eyebrow">STEP 02</p><h2 id="review-heading" tabindex="-1">접수 전에 한 번 더 확인해 주세요</h2></div></div><div class="notice soft">{{ icon('shield') }}<p>전화번호·이메일·주민등록번호 형식을 가린 미리보기입니다. 원문은 데모 접수 기록에 저장되므로 실제 개인정보가 있다면 돌아가서 지워 주세요.</p></div><dl class="review-content"><div><dt>민원 제목</dt><dd data-preview-title></dd></div><div><dt>발생 장소</dt><dd data-preview-location></dd></div><div><dt>불편한 내용</dt><dd class="multiline" data-preview-content></dd></div></dl><label class="consent-box" for="consent"><input id="consent" type="checkbox" name="consent" value="yes" required aria-describedby="consent-error"><span><strong>데모 접수 안내를 확인했습니다. <b>(필수)</b></strong><small>입력 내용이 이 데모에 저장되고 담당자 검토 화면에 표시됩니다. 실제 행정기관으로 접수되지 않으며, 실제 개인정보를 입력하지 않았습니다.</small></span></label><small class="field-error" id="consent-error" data-error-for="consent"></small><div class="form-actions"><button class="button secondary" type="button" data-edit>{{ icon('back') }} 수정하기</button><button class="button primary" type="button" data-final-submit>민원 접수하기 {{ icon('arrow') }}</button></div></section>
+    </form>
+  </div><aside class="form-aside"><section class="helper-card"><span class="helper-icon">{{ icon('chat') }}</span><h2>이렇게 적어 주시면 좋아요</h2><ol><li><b>어디에서</b><span>주변 건물이나 시설 이름</span></li><li><b>어떤 상황인지</b><span>불편한 점과 발생 시점</span></li><li><b>바라는 점은 무엇인지</b><span>확인하거나 개선할 내용</span></li></ol></section><div class="aside-note">{{ icon('lock') }}<p>접수번호와 조회 코드로<br>내 민원의 상태와 답변을 확인해요.</p></div><div class="aside-note">{{ icon('info') }}<p>긴급 상황을 실시간으로 처리하는 서비스가 아닙니다.</p></div></aside></div>
+</div>
+{% endblock %}

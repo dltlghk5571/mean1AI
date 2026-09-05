@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -52,6 +53,7 @@ class ClassificationResult(BaseModel):
     candidates: list[ClassificationCandidate] = Field(min_length=1, max_length=3)
     missing_information: list[str] = Field(default_factory=list, max_length=10)
     requires_human_review: bool = False
+    review_reasons: list[str] = Field(default_factory=list)
     evidence_summary: str = Field(max_length=500)
     provider: str = Field(min_length=1, max_length=40)
 
@@ -268,6 +270,7 @@ class DepartmentCatalogRead(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     catalog_version: str
+    supersedes: str | None = None
     effective_from: date
     effective_until: date | None
     approval_status: str
@@ -303,6 +306,21 @@ class ReviewDecisionRead(BaseModel):
     grounding_status: str
 
 
+class AIProcessingRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    state: Literal["queued", "processing", "completed", "failed"]
+    attempts: int
+    max_attempts: int
+    available_at: datetime
+    lease_expires_at: datetime | None
+    last_error_code: str | None
+    created_at: datetime
+    updated_at: datetime
+    finished_at: datetime | None
+
+
 class ComplaintRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -330,6 +348,7 @@ class ComplaintRead(BaseModel):
     answer_draft: str
     reviewed_by: str | None
     reviewed_at: datetime | None
+    ai_processing: AIProcessingRead | None = None
 
 
 class ComplaintDetail(ComplaintRead):

@@ -30,13 +30,15 @@ class _AIClassification(BaseModel):
 class OpenAIClassifier:
     provider_name = "openai"
 
-    def __init__(self, *, api_key: str, model: str, catalog: DepartmentCatalog) -> None:
+    def __init__(
+        self, *, api_key: str, model: str, catalog: DepartmentCatalog, max_retries: int = 1
+    ) -> None:
         try:
             from openai import OpenAI
         except ModuleNotFoundError as exc:
             raise ClassifierError("The openai package is not installed") from exc
 
-        self.client: Any = OpenAI(api_key=api_key, timeout=30.0, max_retries=1)
+        self.client: Any = OpenAI(api_key=api_key, timeout=30.0, max_retries=max_retries)
         self.model = model
         self.catalog = catalog
 
@@ -76,34 +78,23 @@ The evidence_summary must name short observable words or fields, not hidden reas
         if parsed is None:
             raise ClassifierError("OpenAI classifier returned no parsed output")
 
-        valid_candidates = [
+        candidates = [
             ClassificationCandidate(
                 department_id=candidate.department_id,
                 confidence=candidate.confidence,
                 reason=candidate.reason,
             )
             for candidate in parsed.candidates
-            if candidate.department_id in self.catalog.by_id
         ]
-        if not valid_candidates:
-            raise ClassifierError("OpenAI classifier returned no valid department ID")
-
-        expected_category = self.catalog.by_id[valid_candidates[0].department_id].category
-        category_mismatch = parsed.category != expected_category
-        evidence_summary = parsed.evidence_summary
-        if category_mismatch:
-            evidence_summary = (
-                f"{evidence_summary} 분류명과 최상위 담당 후보가 달라 사람 검토가 필요합니다."
-            )
 
         result = ClassificationResult(
-            category=expected_category,
+            category=parsed.category,
             subcategory=parsed.subcategory,
             urgency=parsed.urgency,
-            candidates=valid_candidates,
+            candidates=candidates,
             missing_information=parsed.missing_information,
-            requires_human_review=parsed.requires_human_review or category_mismatch,
-            evidence_summary=evidence_summary,
+            requires_human_review=parsed.requires_human_review,
+            evidence_summary=parsed.evidence_summary,
             provider=self.provider_name,
         )
         return self.catalog.bind_classification(result)

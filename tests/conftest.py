@@ -1,11 +1,23 @@
 from collections.abc import Generator
 
+import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.main import create_app
+
+
+@pytest.fixture(autouse=True)
+def block_external_http(monkeypatch: pytest.MonkeyPatch) -> None:
+    """All tests use in-process ASGI or explicit provider mocks; real HTTP is a test failure."""
+
+    def blocked(*args, **kwargs):
+        raise AssertionError("External HTTP must be mocked in tests")
+
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", blocked)
+    monkeypatch.setattr(httpx.AsyncHTTPTransport, "handle_async_request", blocked)
 
 
 @pytest.fixture

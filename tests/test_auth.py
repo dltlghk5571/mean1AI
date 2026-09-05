@@ -71,7 +71,7 @@ def auditor_client(test_app: FastAPI) -> Generator[TestClient, None, None]:
 def test_anonymous_requests_are_redirected_or_rejected(
     anonymous_client: TestClient,
 ) -> None:
-    page = anonymous_client.get("/?status=review", follow_redirects=False)
+    page = anonymous_client.get("/staff?status=review", follow_redirects=False)
     api = anonymous_client.get("/api/v1/complaints")
 
     assert page.status_code == 303
@@ -168,7 +168,7 @@ def test_triage_role_can_process_but_cannot_approve(triage_client: TestClient) -
 
 
 def test_auditor_role_is_read_only(auditor_client: TestClient) -> None:
-    page = auditor_client.get("/")
+    page = auditor_client.get("/staff")
     mutation = auditor_client.post(
         "/api/v1/complaints",
         json={
@@ -333,7 +333,7 @@ def test_login_next_path_rejects_external_redirect(anonymous_client: TestClient)
     )
 
     assert response.status_code == 303
-    assert response.headers["location"] == "/"
+    assert response.headers["location"] == "/staff"
 
 
 def test_production_mode_refuses_an_ephemeral_session_secret() -> None:

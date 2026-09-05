@@ -1,0 +1,32 @@
+{% from 'citizen_icons.html' import icon %}
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="우리 동네의 불편을 편하게 전하는 성남 생활민원 데모. 민원 신청부터 답변 확인까지.">
+  <meta name="referrer" content="no-referrer">
+  <title>{% block title %}성남 생활민원 · 우리 동네를 더 살기 좋게{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', path='/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', path='/citizen.css') }}?v=1">
+  <script defer src="{{ url_for('static', path='/citizen.js') }}?v=1"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 바로가기</a>
+  <div class="demo-strip"><div class="container"><span class="demo-label">DEMO</span><span>시민의 목소리를 잇는 서비스 체험 · 실제 행정기관으로 접수되지 않습니다.</span></div></div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="성남 생활민원 홈"><span class="brand-mark" aria-hidden="true">SN<span></span></span><span>성남 <b>생활민원</b></span></a>
+      <nav class="primary-nav" aria-label="주 메뉴">
+        <a href="/minwon/new" {% if active_page|default('') == 'new' %}aria-current="page"{% endif %}>민원 신청</a>
+        <a href="/minwon/lookup" {% if active_page|default('') == 'lookup' %}aria-current="page"{% endif %}>내 민원 조회</a>
+      </nav>
+      <a class="staff-link" href="/login">담당자 로그인 <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
+  <footer class="site-footer"><div class="container footer-inner"><div><a class="footer-brand" href="/">성남 생활민원 <span>DEMO</span></a><p>작은 불편을 듣고, 더 나은 일상을 함께 만듭니다.</p><small>본 서비스는 시연용입니다. 실제 성남시의 공식 민원 접수·처리 서비스가 아닙니다.</small></div><a href="/login">담당자 업무 공간 <span aria-hidden="true">↗</span></a></div></footer>
+  <div class="toast" role="status" data-toast hidden></div>
+</body>
+</html>

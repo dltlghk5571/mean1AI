@@ -7,37 +7,13 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import auth, complaints, departments, pages
+from app.api import auth, citizen, complaints, departments, pages
 from app.config import Settings, get_settings
 from app.database import Base, install_append_only_guards, make_engine, make_session_factory
-from app.seed import import_department_catalog
 from app.services.auth import SESSION_COOKIE_NAME, AuthManager
-from app.services.classifier import Classifier, DepartmentCatalog, RuleBasedClassifier
-from app.services.knowledge import KnowledgeRetriever
-from app.services.openai_classifier import OpenAIClassifier
-from app.services.pipeline import ComplaintPipeline
-
-
-def build_pipeline(settings: Settings) -> ComplaintPipeline:
-    catalog = DepartmentCatalog.from_json(settings.departments_path)
-    retriever = KnowledgeRetriever(settings.knowledge_dir)
-    classifier: Classifier
-
-    if settings.ai_provider == "openai" and settings.openai_api_key is not None:
-        classifier = OpenAIClassifier(
-            api_key=settings.openai_api_key.get_secret_value(),
-            model=settings.openai_model,
-            catalog=catalog,
-        )
-    else:
-        classifier = RuleBasedClassifier(catalog)
-
-    return ComplaintPipeline(
-        settings=settings,
-        classifier=classifier,
-        catalog=catalog,
-        retriever=retriever,
-    )
+from app.services.citizen import CitizenRateLimiter
+from app.services.department_catalog import import_department_catalog
+from app.services.runtime import build_pipeline
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -83,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.session_factory = session_factory
     app.state.pipeline = pipeline
     app.state.auth_manager = auth_manager
+    app.state.citizen_limiter = CitizenRateLimiter()
     templates_dir = effective_settings.package_dir / "templates"
     app.state.templates = Jinja2Templates(directory=str(templates_dir))
 
@@ -96,6 +73,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.middleware("http")
     async def require_officer_session(request: Request, call_next):
         path = request.url.path
+        if path == "/" or path == "/minwon" or path.startswith("/minwon/"):
+            response = await call_next(request)
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["Referrer-Policy"] = "no-referrer"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            return response
         if path in public_paths or path.startswith("/static/"):
             return await call_next(request)
 
@@ -115,6 +98,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return await call_next(request)
 
     app.include_router(auth.router)
+    app.include_router(citizen.router)
     app.include_router(pages.router)
     app.include_router(complaints.router)
     app.include_router(departments.router)

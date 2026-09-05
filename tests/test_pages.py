@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 
 def test_home_page_loads(client: TestClient) -> None:
-    response = client.get("/")
+    response = client.get("/staff")
 
     assert response.status_code == 200
     assert "성남 민원 업무지원" in response.text
@@ -66,7 +66,7 @@ def test_review_queue_filter_only_shows_human_review_cases(client: TestClient) -
         },
     )
 
-    response = client.get("/?status=review")
+    response = client.get("/staff?status=review")
 
     assert response.status_code == 200
     assert "검토 대기 민원" in response.text
