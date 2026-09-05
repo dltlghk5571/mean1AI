@@ -39,7 +39,7 @@
   </div>
 
   <ol class="review-progress" aria-label="현재 처리 단계">
-    <li class="is-complete"><span>✓</span><div><strong>민원 접수</strong><small>원문 안전 저장</small></div></li>
+    <li class="is-complete"><span>✓</span><div><strong>민원 접수</strong><small>로컬 접수 기록</small></div></li>
     <li class="is-complete"><span>✓</span><div><strong>자동 분류</strong><small>비식별·분류 완료</small></div></li>
     <li class="{{ 'is-complete' if complaint.status == 'reviewed' else 'is-current' }}">
       <span>{{ '✓' if complaint.status == 'reviewed' else '3' }}</span>
@@ -87,9 +87,18 @@
   </form>
 {% endif %}
 
+<nav class="detail-nav" aria-label="민원 상세 구간">
+  <a href="#complaint-content" aria-current="location">접수 내용</a>
+  <a href="#duplicate-review">위치·유사 민원</a>
+  <a href="#routing-review">분류 근거</a>
+  <a href="#draft-review">답변 초안</a>
+  <a href="#officer-review">담당자 검토</a>
+  <a href="#audit-history">처리 이력</a>
+</nav>
+
 <div class="detail-workspace">
   <div class="detail-main">
-    <section class="content-card complaint-card">
+    <section class="content-card complaint-card" id="complaint-content" tabindex="-1">
       <header class="card-heading">
         <div>
           <p class="section-label">접수 내용</p>
@@ -132,7 +141,7 @@
       </dl>
     </section>
 
-    <section class="content-card duplicate-review-card" id="duplicate-review">
+    <section class="content-card duplicate-review-card" id="duplicate-review" tabindex="-1">
       <header class="card-heading">
         <div>
           <p class="section-label">위치·중복 확인</p>
@@ -245,7 +254,7 @@
       {% endif %}
     </section>
 
-    <section class="content-card analysis-card">
+    <section class="content-card analysis-card" id="routing-review" tabindex="-1">
       <header class="card-heading">
         <div>
           <p class="section-label">분류 결과</p>
@@ -271,14 +280,14 @@
       </div>
 
       <div class="subsection-heading">
-        <div><h3>담당 업무 그룹 후보</h3><p>후보를 누르면 우측 최종 선택에 반영됩니다.</p></div>
+        <div><h3>담당 업무 그룹 후보</h3><p>{{ '후보를 누르면 담당자 검토의 최종 선택에 반영됩니다.' if current_user.can_review else '후보 선택은 검토 승인 계정에서 가능합니다.' }}</p></div>
         <span>최대 {{ complaint.candidate_departments|length }}개 제안</span>
       </div>
       <div class="candidate-list">
         {% for candidate in complaint.candidate_departments %}
           {% set department = department_map.get(candidate.department_id) %}
           <button class="candidate-card {{ 'is-recommended' if loop.first else '' }}" type="button"
-                  data-department-choice="{{ candidate.department_id }}">
+                  data-department-choice="{{ candidate.department_id }}" aria-pressed="false" {% if not current_user.can_review %}disabled{% endif %}>
             <span class="candidate-rank">{{ loop.index }}</span>
             <span class="candidate-copy">
               <strong>{{ department.name if department else candidate.department_id }}</strong>
@@ -298,7 +307,7 @@
       {% endif %}
     </section>
 
-    <section class="content-card draft-card">
+    <section class="content-card draft-card" id="draft-review" tabindex="-1">
       <header class="card-heading">
         <div>
           <p class="section-label">답변 검토</p>
@@ -319,7 +328,6 @@
             </strong>
             <p>업무 지침을 주장하는 문장은 유효한 문서 ID와 어휘 근거를 모두 통과해야 초안에 포함됩니다.</p>
           </div>
-          <span>{{ grounding.provider }} · {{ grounding.validation_status }}</span>
         </div>
 
         {% set grounded_sentences = grounding.sentences | selectattr('substantive') | list %}
@@ -362,7 +370,7 @@
   </div>
 
   <aside class="detail-side">
-    <section class="action-card">
+    <section class="action-card" id="officer-review" tabindex="-1">
       <div class="action-card-heading">
         <span class="action-number">03</span>
         <div><p class="section-label">담당자 확인</p><h2>담당자 검토·승인</h2></div>
@@ -384,11 +392,10 @@
           <span>검토 기록 계정</span><strong>{{ current_user.display_name }}</strong><small>{{ current_user.username }} · {{ current_user.role_label }}</small>
         </div>
 
-      <div class="review-checklist" aria-label="승인 전 확인 사항">
-        <strong>승인 전 확인</strong>
-        <label><input type="checkbox" checked disabled><span>비식별된 민원 내용 확인</span></label>
-        <label><input type="checkbox" checked disabled><span>긴급·민감 정책 적용 확인</span></label>
-        <label><input type="checkbox" checked disabled><span>외부 발송 없음 확인</span></label>
+      <div class="review-safety-note">
+        <strong>적용 중인 안전 기준</strong>
+        <ul><li>분류 전 개인정보 비식별</li><li>민감·긴급 민원 자동 배정 차단</li><li>외부 발송 없이 로컬 기록</li></ul>
+        <p>내용과 초안은 담당자가 직접 확인해 주세요.</p>
       </div>
 
         <button class="button button-primary button-block" type="submit" form="review-form">
@@ -447,7 +454,7 @@
       <p class="source-safety-copy">기존 승인 기록은 수정·삭제하지 않고 새 기록만 추가합니다.</p>
     </section>
 
-    <section class="side-card compact-card audit-card">
+    <section class="side-card compact-card audit-card" id="audit-history" tabindex="-1">
       <div class="side-card-heading compact">
         <span class="side-card-icon history-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.5M4 4v4.5h4.5M12 7v5l3 2"/></svg></span>
         <div><p class="section-label">처리 기록</p><h2>처리 이력</h2></div>

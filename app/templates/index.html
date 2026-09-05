@@ -7,7 +7,6 @@
 {% block content %}
 <section class="page-overview">
   <div>
-    <p class="page-path">오늘의 업무 <span>›</span> 통합 현황</p>
     <h1>민원 처리 현황</h1>
     <p>검토 우선순위와 안전 상태를 확인하고 담당자가 다음 처리를 결정합니다.</p>
   </div>
@@ -68,7 +67,6 @@
   <section class="queue-panel" id="complaint-queue">
     <header class="section-heading queue-heading">
       <div>
-        <p class="section-label">민원 목록</p>
         <h2>
           {% if active_filter == 'review' %}검토 대기 민원
           {% elif active_filter == 'urgent' %}긴급 확인 민원
@@ -76,25 +74,37 @@
           {% elif active_filter == 'reviewed' %}검토 완료 민원
           {% else %}최근 접수 민원{% endif %}
         </h2>
-        <p>개인정보가 제거된 내용만 업무 화면에 표시됩니다.</p>
+        <p>선택한 상태의 최근 30건 · 개인정보가 제거된 내용만 표시됩니다.</p>
       </div>
-      <span class="section-count"><strong>{{ complaints|length }}</strong>건 표시</span>
+      <span class="section-count"><strong data-queue-count>{{ complaints|length }}</strong> / {{ complaints|length }}건</span>
     </header>
 
     <div class="queue-toolbar">
       <div class="filter-tabs" role="navigation" aria-label="민원 상태 필터">
-        <a href="/#complaint-queue" class="{{ 'is-active' if active_filter == 'all' else '' }}">전체</a>
-        <a href="/?status=review#complaint-queue" class="{{ 'is-active' if active_filter == 'review' else '' }}">검토 필요</a>
-        <a href="/?status=urgent#complaint-queue" class="{{ 'is-active' if active_filter == 'urgent' else '' }}">긴급</a>
-        <a href="/?status=assigned#complaint-queue" class="{{ 'is-active' if active_filter == 'assigned' else '' }}">배정 완료</a>
-        <a href="/?status=reviewed#complaint-queue" class="{{ 'is-active' if active_filter == 'reviewed' else '' }}">검토 완료</a>
+        {% for value, label, href in [('all', '전체', '/#complaint-queue'), ('review', '검토 필요', '/?status=review#complaint-queue'), ('urgent', '긴급', '/?status=urgent#complaint-queue'), ('assigned', '배정 완료', '/?status=assigned#complaint-queue'), ('reviewed', '검토 완료', '/?status=reviewed#complaint-queue')] %}
+          <a href="{{ href }}" class="{{ 'is-active' if active_filter == value else '' }}" {% if active_filter == value %}aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
       </div>
-      <label class="queue-search">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.3-4.3M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
-        <span class="sr-only">현재 목록 검색</span>
-        <input type="search" placeholder="제목·위치 검색" data-queue-search autocomplete="off">
-      </label>
+      <div class="queue-controls">
+        <div class="queue-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.3-4.3M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
+          <label class="sr-only" for="queue-search">현재 목록 검색</label>
+          <input id="queue-search" type="search" placeholder="목록 검색" data-queue-search autocomplete="off" aria-describedby="queue-scope" aria-keyshortcuts="/">
+          <kbd aria-hidden="true" data-search-shortcut>/</kbd>
+          <button class="search-clear" type="button" data-clear-search aria-label="검색어 지우기" hidden>×</button>
+        </div>
+        <label class="queue-sort">
+          <span class="sr-only">현재 목록 정렬</span>
+          <select data-queue-sort>
+            <option value="newest">최신 접수순</option>
+            <option value="oldest">오래된 접수순</option>
+            <option value="priority">검토 우선순</option>
+          </select>
+        </label>
+      </div>
     </div>
+    <p class="sr-only" id="queue-scope">검색과 정렬은 선택한 상태의 최근 30건 안에서만 적용됩니다.</p>
+    <p class="sr-only" data-queue-announcement role="status" aria-live="polite" aria-atomic="true"></p>
 
     {% if complaints %}
       <div class="queue-column-head" aria-hidden="true">
@@ -104,7 +114,8 @@
         {% for complaint in complaints %}
           <a class="queue-row {{ 'is-urgent' if complaint.status == 'urgent_review' else '' }}"
              href="/complaints/{{ complaint.id }}" data-queue-item
-             data-search-value="{{ complaint.redacted_title }} {{ complaint.redacted_location_text or '' }} {{ complaint.subcategory or '' }}">
+             data-queue-status="{{ complaint.status }}"
+             data-search-value="{{ complaint.redacted_title }} {{ complaint.redacted_location_text or '' }} {{ category_labels.get(complaint.category, '') }} {{ complaint.subcategory or '' }}">
             <span class="queue-status-mark" aria-hidden="true"></span>
             <div class="queue-primary">
               <div class="queue-row-top">
@@ -141,7 +152,8 @@
       <div class="search-empty" data-search-empty hidden>
         <span aria-hidden="true">⌕</span>
         <strong>검색 결과가 없습니다.</strong>
-        <p>제목이나 위치의 다른 단어로 검색해 보세요.</p>
+        <p>현재 목록의 제목·위치·분야에서 다른 단어로 검색해 보세요.</p>
+        <button class="button button-secondary" type="button" data-reset-search>검색 초기화</button>
       </div>
     {% else %}
       <div class="empty-state">
@@ -159,7 +171,7 @@
     {% endif %}
   </section>
 
-  <aside class="workspace-side">
+  <aside class="workspace-side" aria-label="업무 참고">
     <section class="side-card safety-overview">
       <div class="side-card-heading">
         <span class="side-card-icon shield-icon">

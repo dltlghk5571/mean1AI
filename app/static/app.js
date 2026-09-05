@@ -156,38 +156,131 @@ if (intakeForm) {
 const queueSearch = document.querySelector("[data-queue-search]");
 if (queueSearch) {
   const queueItems = [...document.querySelectorAll("[data-queue-item]")];
+  const queueList = document.querySelector("[data-queue-list]");
   const searchEmpty = document.querySelector("[data-search-empty]");
-  const visibleCount = document.querySelector(".section-count strong");
+  const visibleCount = document.querySelector("[data-queue-count]");
+  const clearSearch = document.querySelector("[data-clear-search]");
+  const searchShortcut = document.querySelector("[data-search-shortcut]");
+  const announcement = document.querySelector("[data-queue-announcement]");
+  const queueSort = document.querySelector("[data-queue-sort]");
+  const statusRank = { urgent_review: 0, needs_review: 1, received: 2, assigned: 3, reviewed: 4 };
+  const originalOrder = new Map(queueItems.map((item, index) => [item, index]));
+  const normalizeSearch = (value) => value.normalize("NFKC").toLocaleLowerCase("ko-KR");
+  let announceTimer;
 
-  queueSearch.addEventListener("input", () => {
-    const query = queueSearch.value.trim().toLocaleLowerCase("ko-KR");
+  function filterQueue(announce = true) {
+    const words = normalizeSearch(queueSearch.value).trim().split(/\s+/).filter(Boolean);
     let matches = 0;
     for (const item of queueItems) {
-      const searchable = (item.dataset.searchValue || "").toLocaleLowerCase("ko-KR");
-      const visible = !query || searchable.includes(query);
+      const searchable = normalizeSearch(item.dataset.searchValue || "");
+      const visible = words.every((word) => searchable.includes(word));
       item.hidden = !visible;
       if (visible) matches += 1;
     }
     if (searchEmpty) searchEmpty.hidden = matches !== 0;
     if (visibleCount) visibleCount.textContent = String(matches);
+    if (clearSearch) clearSearch.hidden = queueSearch.value.length === 0;
+    if (searchShortcut) searchShortcut.hidden = queueSearch.value.length !== 0;
+    window.clearTimeout(announceTimer);
+    if (announce && announcement) {
+      announceTimer = window.setTimeout(() => {
+        announcement.textContent = `현재 목록 ${queueItems.length}건 중 ${matches}건 표시, ${queueSort?.selectedOptions[0]?.textContent || "최신 접수순"}.`;
+      }, 180);
+    }
+  }
+
+  function resetSearch() {
+    queueSearch.value = "";
+    filterQueue();
+    queueSearch.focus();
+  }
+
+  queueSearch.addEventListener("input", () => filterQueue());
+  clearSearch?.addEventListener("click", resetSearch);
+  document.querySelector("[data-reset-search]")?.addEventListener("click", resetSearch);
+  queueSearch.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !event.isComposing) {
+      event.preventDefault();
+      resetSearch();
+    }
   });
+  queueSort?.addEventListener("change", () => {
+    if (!queueList) return;
+    const sorted = [...queueItems].sort((a, b) => {
+      const latestFirst = originalOrder.get(a) - originalOrder.get(b);
+      if (queueSort.value === "oldest") return -latestFirst;
+      if (queueSort.value === "priority") {
+        return (statusRank[a.dataset.queueStatus] ?? 5) - (statusRank[b.dataset.queueStatus] ?? 5) || latestFirst;
+      }
+      return latestFirst;
+    });
+    queueList.append(...sorted);
+    filterQueue();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
+    if (document.querySelector("dialog[open]") || document.body.classList.contains("sidebar-open")) return;
+    event.preventDefault();
+    queueSearch.focus();
+  });
+  filterQueue(false);
 }
 
 const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
 const sidebarClose = document.querySelector("[data-sidebar-close]");
+const sidebar = document.querySelector("#app-sidebar");
+const mainPanel = document.querySelector(".app-main");
+const mobileMenu = window.matchMedia("(max-width: 900px)");
 
-function setSidebar(open) {
+function setSidebar(open, restoreFocus = true) {
+  open = open && mobileMenu.matches;
   document.body.classList.toggle("sidebar-open", open);
   sidebarToggle?.setAttribute("aria-expanded", String(open));
+  sidebarToggle?.setAttribute("aria-label", open ? "메뉴 닫기" : "메뉴 열기");
+  if (sidebar) sidebar.inert = mobileMenu.matches && !open;
+  if (mainPanel) mainPanel.inert = open;
+  if (open) sidebar?.querySelector("a")?.focus();
+  else if (restoreFocus) sidebarToggle?.focus();
 }
 
 sidebarToggle?.addEventListener("click", () => {
   setSidebar(!document.body.classList.contains("sidebar-open"));
 });
 sidebarClose?.addEventListener("click", () => setSidebar(false));
-window.addEventListener("resize", () => {
-  if (window.innerWidth > 900) setSidebar(false);
+mobileMenu.addEventListener("change", () => setSidebar(false, false));
+setSidebar(false, false);
+
+document.addEventListener("keydown", (event) => {
+  if (!document.body.classList.contains("sidebar-open")) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    setSidebar(false);
+  } else if (event.key === "Tab") {
+    const controls = [...sidebar.querySelectorAll("a[href], button:not([disabled])")];
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  }
 });
+
+const sectionLinks = [...document.querySelectorAll(".detail-nav a")];
+function syncSectionNavigation() {
+  const current = sectionLinks.find((link) => link.hash === window.location.hash) || sectionLinks[0];
+  for (const link of sectionLinks) {
+    if (link === current) link.setAttribute("aria-current", "location");
+    else link.removeAttribute("aria-current");
+  }
+}
+window.addEventListener("hashchange", syncSectionNavigation);
+syncSectionNavigation();
 
 const currentDate = document.querySelector("[data-current-date]");
 if (currentDate) {
@@ -218,7 +311,9 @@ const candidateButtons = [...document.querySelectorAll("[data-department-choice]
 function syncCandidateSelection() {
   if (!departmentSelect) return;
   for (const button of candidateButtons) {
-    button.classList.toggle("is-selected", button.dataset.departmentChoice === departmentSelect.value);
+    const selected = button.dataset.departmentChoice === departmentSelect.value;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
   }
 }
 
