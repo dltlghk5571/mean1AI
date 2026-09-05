@@ -1,0 +1,55 @@
+{% extends 'citizen_base.html' %}
+{% block title %}대화로 민원 신청 · 성남 생활민원{% endblock %}
+{% block body_class %}chat-page{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='/citizen-chat.css') }}?v=1">
+<script defer src="{{ url_for('static', path='/citizen-chat.js') }}?v=1"></script>
+{% endblock %}
+{% block content %}
+<div class="container chat-shell" data-chat>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <header class="chat-intro">
+    <div><p class="eyebrow">우리 동네의 이야기를 듣습니다</p><h1>복잡한 민원, <em>대화로 쉽게.</em></h1><p>어느 부서인지 몰라도 괜찮아요. 필요한 내용은 하나씩 여쭤볼게요.</p></div>
+    <a class="chat-form-link" href="/minwon/form">직접 작성할래요 {{ icon('arrow') }}</a>
+  </header>
+  <noscript><p class="notice">대화 화면에는 자바스크립트가 필요합니다. 브라우저 설정에서 자바스크립트를 허용해 주세요.</p></noscript>
+  <div class="chat-workspace">
+    <section class="chat-card" aria-labelledby="chat-title">
+      <header class="chat-card-header"><span class="chat-avatar" aria-hidden="true">{{ icon('chat') }}</span><div><h2 id="chat-title">성남 생활민원 도우미</h2><p><span class="chat-status-dot" aria-hidden="true"></span>함께 이야기를 정리해요</p></div><span class="chat-demo-badge">시연 모드</span></header>
+      <p class="chat-mode-note">정해진 대화 흐름을 체험하는 화면이에요. AI 모델과 실시간 정보 검색은 연결 준비 중입니다.</p>
+      <div class="chat-history" data-chat-history role="log" aria-label="대화 내용" tabindex="0" aria-live="off"></div>
+      <div class="chat-busy" data-chat-busy role="status">대화를 불러오는 중이에요…</div>
+      <div class="chat-urgent" data-chat-urgent role="alert" hidden>{{ icon('info') }}<p>위험한 상황이라면 이 서비스의 처리를 기다리지 말고 긴급 신고 창구에 바로 도움을 요청해 주세요. 이 데모는 긴급 신고를 전달하지 않습니다.</p></div>
+      <div class="chat-choices" data-chat-choices aria-label="다음 대화 선택"></div>
+      <div class="chat-sources" data-chat-sources hidden></div>
+      <section class="chat-review" data-chat-review hidden aria-labelledby="chat-review-title">
+        <div class="chat-review-heading"><div><p class="eyebrow">접수 전 마지막 확인</p><h3 id="chat-review-title" tabindex="-1">이 내용으로 전할까요?</h3></div><button type="button" class="chat-text-button" data-chat-edit>수정하기</button></div>
+        <dl class="chat-review-details" data-chat-review-details><div><dt>제목</dt><dd data-draft-title></dd></div><div><dt>장소</dt><dd data-draft-location></dd></div><div><dt>내용</dt><dd data-draft-content></dd></div></dl>
+        <form data-chat-edit-form hidden autocomplete="off">
+          <label for="chat-edit-title">민원 제목</label><input id="chat-edit-title" name="title" required minlength="2" maxlength="200">
+          <label for="chat-edit-location">발생 장소 <span>선택</span></label><input id="chat-edit-location" name="location_text" maxlength="300">
+          <label for="chat-edit-content">불편한 내용</label><textarea id="chat-edit-content" name="content" rows="4" required minlength="5" maxlength="4000"></textarea>
+          <div class="chat-edit-actions"><button type="button" class="button secondary" data-chat-edit-cancel>취소</button><button type="submit" class="button primary">수정 내용 저장</button></div>
+        </form>
+        <div data-chat-confirm-panel><label class="chat-consent"><input type="checkbox" data-chat-consent><span>이 데모에 내용을 저장하고 담당자 검토 화면에 표시하는 데 동의해요.<small>실제 행정기관에 접수되지 않으며, 실제 개인정보를 입력하지 않았어요.</small></span></label><button type="button" class="button primary chat-confirm" data-chat-confirm disabled>확인한 내용으로 데모 접수 {{ icon('arrow') }}</button></div>
+      </section>
+      <div class="chat-error" data-chat-error role="alert" hidden><p data-chat-error-text></p><div><button type="button" data-chat-retry>다시 시도</button><button type="button" data-chat-reload>최신 대화 불러오기</button><a href="/minwon/new" data-chat-session-link hidden>대화 화면 다시 열기</a></div></div>
+      <form class="chat-composer" data-chat-composer autocomplete="off">
+        <label class="sr-only" for="chat-message">도우미에게 보낼 이야기</label>
+        <textarea id="chat-message" name="message" rows="2" maxlength="4000" placeholder="예: 데모공원 산책로 가로등이 어제부터 꺼져 있어요" aria-describedby="chat-input-help" disabled></textarea>
+        <div class="chat-composer-bottom"><span class="chat-photo-note" title="사진 업로드와 모델 전송은 추후 연결됩니다."><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9" r="1.4"/><path d="m4 18 5-5 4 3 3-4 5 5"/></svg>사진 첨부 준비 중</span><span class="chat-character-count" data-chat-count>0 / 4,000</span><button type="submit" class="chat-send" aria-label="메시지 보내기" disabled>{{ icon('arrow') }}</button></div>
+      </form>
+      <p class="chat-input-help" id="chat-input-help">실명·연락처 등 실제 개인정보는 적지 마세요. Enter 전송 · Shift+Enter 줄바꿈</p>
+      <p class="chat-sr-status sr-only" data-chat-status role="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
+    <aside class="chat-aside" aria-label="대화 및 접수 안내">
+      <section class="chat-guide"><span class="chat-guide-icon">{{ icon('write') }}</span><p class="eyebrow">부서를 찾는 대신, 대화부터</p><h2>당신은 이야기만,<br>정리는 함께 할게요.</h2><ol class="chat-steps"><li data-chat-step="1" aria-current="step"><span>1</span><div><strong>편하게 이야기해요</strong><p>불편한 내용과 장소를 알려주세요.</p></div></li><li data-chat-step="2"><span>2</span><div><strong>접수 내용을 확인해요</strong><p>틀린 부분은 직접 고칠 수 있어요.</p></div></li><li data-chat-step="3"><span>3</span><div><strong>접수 후 답변을 기다려요</strong><p>내 민원에서 처리 상태를 확인해요.</p></div></li></ol></section>
+      <section class="chat-collected" data-chat-collected hidden><p class="eyebrow">지금까지 모은 내용</p><h3 data-chat-summary-title></h3><p>{{ icon('pin') }}<span data-chat-summary-location>장소를 여쭤볼게요</span></p><small>아직 접수 전이에요. 마지막에 꼭 확인해 주세요.</small></section>
+      <div class="chat-aside-note">{{ icon('lock') }}<p>대화는 이 브라우저에서 이어볼 수 있어요. 새 대화를 시작하면 작성 중인 내용이 초기화돼요.</p></div>
+      <a class="chat-aside-link" href="/minwon/lookup">내 민원 조회 {{ icon('arrow') }}</a>
+      <button type="button" class="chat-reset" data-chat-reset disabled>{{ icon('chat') }} 새 대화 시작</button>
+    </aside>
+  </div>
+  <dialog class="chat-reset-dialog" data-chat-reset-dialog><h2>새 대화를 시작할까요?</h2><p>지금 작성 중인 대화와 접수 초안이 초기화돼요. 이미 접수한 민원은 내 민원 조회에 남아 있어요.</p><div><button type="button" class="button secondary" data-chat-reset-cancel>계속 이야기하기</button><button type="button" class="button primary" data-chat-reset-confirm>새 대화 시작</button></div></dialog>
+</div>
+{% endblock %}

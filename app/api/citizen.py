@@ -5,12 +5,14 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
+from app.chat_schemas import ChatTurn
 from app.database import get_db
 from app.models import CitizenSession
-from app.services import citizen
+from app.services import citizen, citizen_chat
 
 router = APIRouter(include_in_schema=False)
 DbSession = Annotated[Session, Depends(get_db)]
@@ -67,7 +69,12 @@ def home(request: Request) -> HTMLResponse:
 
 
 @router.get("/minwon/new", response_class=HTMLResponse)
-def new_complaint(request: Request, db: DbSession, topic: str = "") -> HTMLResponse:
+def new_complaint(request: Request, db: DbSession) -> HTMLResponse:
+    return _session_page(request, db, "citizen_chat.html", active_page="new")
+
+
+@router.get("/minwon/form", response_class=HTMLResponse)
+def complaint_form(request: Request, db: DbSession, topic: str = "") -> HTMLResponse:
     category = next((item for item in CATEGORIES if item["key"] == topic), None)
     return _session_page(
         request,
@@ -154,6 +161,52 @@ async def _read_data(request: Request) -> dict[str, str] | JSONResponse:
     ):
         return _error("입력 형식을 확인해 주세요.", 400)
     return data
+
+
+@router.post("/minwon/chat/open")
+async def open_chat(request: Request, db: DbSession) -> Response:
+    session = _action_session(request, db, "chat_open", 30)
+    if isinstance(session, JSONResponse):
+        return session
+    return JSONResponse(await run_in_threadpool(citizen_chat.open_chat, db, session))
+
+
+@router.post("/minwon/chat/turn")
+async def chat_turn(request: Request, db: DbSession) -> Response:
+    session = _action_session(request, db, "chat_turn", 30)
+    if isinstance(session, JSONResponse):
+        return session
+    data = await _read_data(request)
+    if isinstance(data, JSONResponse):
+        return data
+    try:
+        turn = ChatTurn.model_validate(data)
+    except ValidationError:
+        return _error("입력 형식이나 글자 수를 확인해 주세요.", 422)
+    if turn.action == "confirm":
+        address = request.client.host if request.client else "unknown"
+        if not request.app.state.citizen_limiter.allow("submit", address, 5):
+            return _error("접수 요청이 많아요. 1분 후 다시 시도해 주세요.", 429)
+    try:
+        result = await run_in_threadpool(
+            citizen_chat.advance_chat,
+            db,
+            session,
+            request.cookies[citizen.COOKIE_NAME],
+            turn,
+            request.app.state.chat_provider,
+            request.app.state.pipeline,
+        )
+    except citizen_chat.ChatError as exc:
+        return JSONResponse(
+            {"message": str(exc), "errors": {}, "urgent": exc.urgent}, status_code=exc.status
+        )
+    except citizen.CitizenValidationError as exc:
+        return _error("접수할 내용을 확인해 주세요.", 422, exc.errors)
+    except Exception:
+        logger.warning("citizen_chat_failed")
+        return _error("요청을 완료하지 못했어요. 같은 내용으로 다시 시도해 주세요.", 503)
+    return JSONResponse(result)
 
 
 @router.post("/minwon/preview")

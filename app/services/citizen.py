@@ -123,6 +123,39 @@ def previous_submission(db: Session, owner_hash: str, request_key: str) -> Citiz
     )
 
 
+def stage_submission(
+    db: Session,
+    pipeline: ComplaintPipeline,
+    session: CitizenSession,
+    owner_token: str,
+    data: dict[str, str],
+) -> CitizenSubmission:
+    """Prepare an intake in the caller's transaction; never commit here."""
+    payload = validate_submission(data, submitting=True)
+    request_key = str(UUID(data["request_key"]))
+    existing = previous_submission(db, session.token_hash, request_key)
+    if existing:
+        return existing
+    complaint = pipeline.create_and_process(db, payload, commit=False)
+    korean_date = (datetime.now(UTC) + timedelta(hours=9)).strftime("%Y%m%d")
+    submission = CitizenSubmission(
+        complaint_id=complaint.id,
+        receipt_number=f"SN-{korean_date}-{secrets.token_hex(5).upper()}",
+        owner_session_hash=session.token_hash,
+        request_key=request_key,
+        lookup_code_hash=code_digest(lookup_code(owner_token, request_key)),
+    )
+    db.add(submission)
+    record_audit(
+        db,
+        complaint_id=complaint.id,
+        action="citizen_access_created",
+        actor_type="citizen",
+        details={"access": "private", "demo_consent": True},
+    )
+    return submission
+
+
 def submit(
     db: Session,
     pipeline: ComplaintPipeline,
@@ -130,29 +163,10 @@ def submit(
     owner_token: str,
     data: dict[str, str],
 ) -> CitizenSubmission:
-    payload = validate_submission(data, submitting=True)
+    validate_submission(data, submitting=True)
     request_key = str(UUID(data["request_key"]))
-    existing = previous_submission(db, session.token_hash, request_key)
-    if existing:
-        return existing
     try:
-        complaint = pipeline.create_and_process(db, payload, commit=False)
-        korean_date = (datetime.now(UTC) + timedelta(hours=9)).strftime("%Y%m%d")
-        submission = CitizenSubmission(
-            complaint_id=complaint.id,
-            receipt_number=f"SN-{korean_date}-{secrets.token_hex(5).upper()}",
-            owner_session_hash=session.token_hash,
-            request_key=request_key,
-            lookup_code_hash=code_digest(lookup_code(owner_token, request_key)),
-        )
-        db.add(submission)
-        record_audit(
-            db,
-            complaint_id=complaint.id,
-            action="citizen_access_created",
-            actor_type="citizen",
-            details={"access": "private", "demo_consent": True},
-        )
+        submission = stage_submission(db, pipeline, session, owner_token, data)
         db.commit()
         return submission
     except IntegrityError:

@@ -10,6 +10,14 @@
 ## Prototype rules
 
 - Redact direct identifiers before any AI provider call.
+- Citizen chat also redacts these identifier shapes before storing messages and drafts. Names,
+  addresses and all identifying prose are not comprehensively detected; use synthetic examples only.
+- Chat context contains no session token, CSRF token, receipt lookup code or owner identifier.
+- Before intake, append-only `CitizenChatAuditEvent` records contain metadata, not conversation text.
+  Final consent creates both a linked complaint `AuditEvent` and chat event in the intake transaction.
+- One working chat is stored per citizen session. Reset replaces its redacted draft/history while
+  preserving metadata audit events and submitted complaints. Session expiry limits access; it does
+  not delete stored data. No automatic retention cleanup or model-training export is implemented.
 - Do not log complaint title, body, or raw provider prompt at INFO level.
 - Use synthetic data in tests and screenshots.
 - Store only what is necessary for the demo.

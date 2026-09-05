@@ -38,6 +38,7 @@ def install_append_only_guards(engine: Engine) -> None:
     statements = []
     for table_name in (
         "audit_events",
+        "citizen_chat_audit_events",
         "review_decisions",
         "published_replies",
         "department_catalog_versions",

@@ -19,6 +19,8 @@ presented as the current official organization or policy of Seongnam City.
 4. Never include unredacted direct identifiers in model prompts or application logs. Test fixtures may
    use clearly synthetic identifiers only; never copy real complaint data into the repository.
 5. Every AI/rules decision and every human approval must create an `AuditEvent`.
+   Before citizen intake exists, use the equivalent append-only `CitizenChatAuditEvent` journal;
+   link final citizen confirmation to both journals atomically. Never fabricate a complaint to log a chat.
 6. Model confidence never overrides a safety rule.
 7. New external dependencies require a short justification in the final Codex summary.
 8. Keep the rules-based provider operational so the full test suite runs without network or API keys.

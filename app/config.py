@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     app_env: Literal["development", "test", "production"] = "development"
     database_url: str = "sqlite:///./civic_ai.db"
     ai_provider: Literal["rules", "openai"] = "rules"
+    chat_provider: Literal["demo", "unavailable"] = "demo"
     ai_deferred_enabled: bool = False
     ai_queue_max_attempts: int = Field(default=3, ge=1, le=10)
     ai_queue_retry_seconds: int = Field(default=30, ge=1, le=3600)

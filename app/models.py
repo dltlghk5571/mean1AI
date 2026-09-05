@@ -50,6 +50,43 @@ class CitizenSubmission(Base):
     lookup_code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
 
 
+class CitizenChat(Base):
+    """One private, redacted working conversation per citizen session."""
+
+    __tablename__ = "citizen_chats"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    owner_session_hash: Mapped[str] = mapped_column(
+        ForeignKey("citizen_sessions.token_hash"), nullable=False, unique=True
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    state: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    submission_key: Mapped[str] = mapped_column(String(36), nullable=False)
+    submitted_complaint_id: Mapped[str | None] = mapped_column(
+        ForeignKey("complaints.id"), nullable=True
+    )
+    last_request_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    last_request_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now
+    )
+
+
+class CitizenChatAuditEvent(Base):
+    """Append-only pre-intake audit; no fabricated complaint before consent."""
+
+    __tablename__ = "citizen_chat_audit_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chat_id: Mapped[str] = mapped_column(ForeignKey("citizen_chats.id"), nullable=False, index=True)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    action: Mapped[str] = mapped_column(String(80), nullable=False)
+    details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+
+
 class CitizenGrant(Base):
     __tablename__ = "citizen_grants"
 
