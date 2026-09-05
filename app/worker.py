@@ -3,7 +3,7 @@
 import argparse
 import ctypes
 import json
-import os
+import sys
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
@@ -142,7 +142,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--poll-seconds", type=int, choices=range(1, 61), default=2, metavar="1..60"
     )
     args = parser.parse_args(argv)
-    if os.name == "nt":
+    if sys.platform == "win32":
         ctypes.windll.kernel32.SetConsoleTitleW("Seongnam civic AI - local queue worker")
     try:
         settings = Settings()
