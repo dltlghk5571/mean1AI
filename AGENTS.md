@@ -58,6 +58,15 @@ uvicorn app.main:app --reload
 - Never log complaint bodies at INFO level.
 - Prefer deterministic tests; mock any OpenAI calls.
 
+## Git Flow
+
+- Follow `docs/GITFLOW.md`. Start ordinary work from `develop` in a `feature/*` branch and target
+  `develop` in its PR. Release branches start from `develop`; hotfix branches start from `main`.
+- Release/hotfix changes must reach both `main` and `develop`, plus any affected active release.
+- Use merge commits and another team member's review; do not force-push shared branches.
+- The initial Git Flow setup may publish the same configuration to existing `main` and new `develop`.
+  Subsequent work follows the branch and PR workflow. Branch protection needs repository admin access.
+
 ## Definition of done
 
 Before reporting a task complete:

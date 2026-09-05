@@ -38,8 +38,10 @@
 ‘지금 되는 것’과 각 문서의 현재 상태를 기준으로 확인하세요.
 
 4명은 기획·업무 및 데이터 검수, 시민 UI·접근성, 서버·수집·API 연계, 모델·평가를 나눠 맡습니다.
-작업을 Issue로 정리하고 작업별 브랜치에서 개발한 뒤, 다른 팀원 한 명이 PR을 검토해 `main`에
-반영하는 흐름을 권장합니다. 대화·분류 결과의 JSON 명세를 먼저 합의해 각 영역의 연결 기준으로
+**Git Flow**를 사용합니다. 작업을 Issue로 정리하고 `develop`에서 만든 `feature/*` 브랜치의 변경을
+다른 팀원 한 명이 검토한 뒤 `develop`에 병합합니다. 릴리스는 `release/*`, 긴급 수정은 `hotfix/*`를
+통해 `main`과 `develop`에 반영합니다. [브랜치·PR·릴리스 절차와 관리자 설정](docs/GITFLOW.md)을 따르세요.
+대화·분류 결과의 JSON 명세를 먼저 합의해 각 영역의 연결 기준으로
 사용합니다. API 키·실제 민원 원문·모델 가중치는 저장소에 포함하지 않습니다.
 
 ## 1. 가장 빠른 실행
@@ -212,7 +214,7 @@ python -m app.worker --watch --poll-seconds 2
 pytest
 ruff check .
 ruff format --check .
-mypy app evals tests
+mypy app evals tests scripts/check_gitflow.py
 python -m evals.run
 python -m evals.run --format markdown
 python -m evals.rag_run

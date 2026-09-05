@@ -16,7 +16,7 @@ lint:
 	ruff check .
 
 typecheck:
-	mypy app evals tests
+	mypy app evals tests scripts/check_gitflow.py
 
 format:
 	ruff format .
