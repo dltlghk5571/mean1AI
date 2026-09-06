@@ -22,6 +22,16 @@
 - Use synthetic data in tests and screenshots.
 - Store only what is necessary for the demo.
 - Retrieve only approved, currently effective, non-superseded local knowledge documents.
+- Public-service source extraction writes a local review queue; it never publishes or trains.
+  Known direct-identifier shapes are redacted during extraction and rejected in catalog imports.
+  Source text hashes describe normalized, redacted text, not the original downloaded bytes.
+- Preserve unknown publication/effective dates as null. Local imports record ingested_at and do
+  not fabricate fetched_at. Retrieval permission and training permission are separate attributes.
+- Service catalog versions and human publication/withdrawal decisions are append-only. Only the
+  latest approved full snapshot, within its UTC review date and service effective dates, is searched.
+  Expiry/withdrawal does not restore an older version. Pending data is excluded from model context.
+- Agent tool audits contain tool/version/result IDs and outcome, not queries or raw arguments.
+  No tool can read other citizens' complaints, fetch arbitrary URLs, submit or close complaints.
 - Load only an explicitly approved, effective, synthetic department catalog; preserve each imported
   version, checksum, work-assignment snapshot, and body-free change summary as append-only history.
 - Persist source IDs and document-governance metadata snapshots, not hidden prompts or raw model

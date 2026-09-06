@@ -7,12 +7,13 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import auth, citizen, complaints, departments, pages
+from app.api import auth, citizen, complaints, departments, pages, service_catalogs
 from app.config import Settings, get_settings
 from app.database import Base, install_append_only_guards, make_engine, make_session_factory
 from app.services.auth import SESSION_COOKIE_NAME, AuthManager
 from app.services.chat_provider import build_chat_provider
 from app.services.citizen import CitizenRateLimiter
+from app.services.citizen_agent import CitizenAgentExecutor, DemoToolPlanner
 from app.services.department_catalog import import_department_catalog
 from app.services.runtime import build_pipeline
 
@@ -62,6 +63,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.auth_manager = auth_manager
     app.state.citizen_limiter = CitizenRateLimiter()
     app.state.chat_provider = build_chat_provider(effective_settings.chat_provider)
+    app.state.agent_executor = (
+        CitizenAgentExecutor(DemoToolPlanner())
+        if effective_settings.chat_provider == "agent_demo"
+        else None
+    )
     templates_dir = effective_settings.package_dir / "templates"
     app.state.templates = Jinja2Templates(directory=str(templates_dir))
 
@@ -104,6 +110,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(pages.router)
     app.include_router(complaints.router)
     app.include_router(departments.router)
+    app.include_router(service_catalogs.router)
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:

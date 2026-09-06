@@ -112,6 +112,25 @@
       });
     }
     q("urgent").hidden = !state.urgent;
+    const cards = state.service_cards || [];
+    q("service-cards").replaceChildren();
+    q("service-cards").hidden = !cards.length;
+    cards.forEach((card) => {
+      const article = element("article");
+      article.append(element("span", card.synthetic ? "합성 자료 · 시연용" : "검수된 공식 자료", "chat-service-label"));
+      article.append(element("h3", card.title));
+      article.append(element("p", card.summary));
+      article.append(element("small", `출처: ${card.source_title} · 재검수 예정 ${card.review_due_at}`));
+      if (card.source_url) {
+        const link = element("a", "공식 원문 확인 ↗");
+        link.href = card.source_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        article.append(link);
+      }
+      if (card.requires_human_review) article.append(element("small", "개별 자격·처분·적용 여부는 담당자 확인이 필요해요."));
+      q("service-cards").append(article);
+    });
     q("review").hidden = state.stage !== "review";
     root.querySelector("[data-draft-title]").textContent = state.draft.title;
     root.querySelector("[data-draft-content]").textContent = state.draft.content;

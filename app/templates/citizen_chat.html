@@ -16,12 +16,13 @@
   <div class="chat-workspace">
     <section class="chat-card" aria-labelledby="chat-title">
       <header class="chat-card-header"><span class="chat-avatar" aria-hidden="true">{{ icon('chat') }}</span><div><h2 id="chat-title">성남 생활민원 도우미</h2><p><span class="chat-status-dot" aria-hidden="true"></span>함께 이야기를 정리해요</p></div><span class="chat-demo-badge">시연 모드</span></header>
-      <p class="chat-mode-note">정해진 대화 흐름을 체험하는 화면이에요. AI 모델과 실시간 정보 검색은 연결 준비 중입니다.</p>
+      <p class="chat-mode-note">{% if agent_demo %}시연 에이전트가 검수된 로컬 자료를 확인해요. 실제 AI 모델과 행정기관 접수는 연결 준비 중입니다.{% else %}정해진 대화 흐름을 체험하는 화면이에요. AI 모델과 실시간 정보 검색은 연결 준비 중입니다.{% endif %}</p>
       <div class="chat-history" data-chat-history role="log" aria-label="대화 내용" tabindex="0" aria-live="off"></div>
       <div class="chat-busy" data-chat-busy role="status">대화를 불러오는 중이에요…</div>
       <div class="chat-urgent" data-chat-urgent role="alert" hidden>{{ icon('info') }}<p>위험한 상황이라면 이 서비스의 처리를 기다리지 말고 긴급 신고 창구에 바로 도움을 요청해 주세요. 이 데모는 긴급 신고를 전달하지 않습니다.</p></div>
       <div class="chat-choices" data-chat-choices aria-label="다음 대화 선택"></div>
       <div class="chat-sources" data-chat-sources hidden></div>
+      <section class="chat-service-cards" data-chat-service-cards hidden aria-label="검색한 안내 자료"></section>
       <section class="chat-review" data-chat-review hidden aria-labelledby="chat-review-title">
         <div class="chat-review-heading"><div><p class="eyebrow">접수 전 마지막 확인</p><h3 id="chat-review-title" tabindex="-1">이 내용으로 전할까요?</h3></div><button type="button" class="chat-text-button" data-chat-edit>수정하기</button></div>
         <dl class="chat-review-details" data-chat-review-details><div><dt>제목</dt><dd data-draft-title></dd></div><div><dt>장소</dt><dd data-draft-location></dd></div><div><dt>내용</dt><dd data-draft-content></dd></div></dl>

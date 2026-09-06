@@ -53,4 +53,4 @@ class UnavailableChatProvider:
 
 
 def build_chat_provider(name: str) -> ChatAgentProvider:
-    return DemoChatProvider() if name == "demo" else UnavailableChatProvider()
+    return DemoChatProvider() if name in {"demo", "agent_demo"} else UnavailableChatProvider()

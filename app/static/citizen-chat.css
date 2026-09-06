@@ -90,6 +90,13 @@
 .chat-sources { margin: 0 26px 22px; display: grid; gap: 8px; }
 .chat-sources p { margin: 0; font-size: 11px; color: var(--muted); }
 .chat-sources a { display: flex; padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--green); min-height: 48px; align-items: center; }
+.chat-service-cards { margin: 0 26px 22px; display: grid; gap: 12px; }
+.chat-service-cards article { padding: 18px; border: 1px solid #d4e2d2; border-radius: 14px; background: #fcfdf9; overflow-wrap: anywhere; }
+.chat-service-label { display: inline-block; background: #edf2e6; border-radius: 5px; padding: 4px 7px; font-size: 11px; color: #4a6543; }
+.chat-service-cards h3 { font-size: 16px; margin: 12px 0 8px; }
+.chat-service-cards p { font-size: 14px; line-height: 1.85; white-space: pre-wrap; }
+.chat-service-cards small { display: block; font-size: 11px; line-height: 1.8; color: var(--muted); margin-top: 8px; }
+.chat-service-cards a { display: inline-flex; align-items: center; min-height: 48px; color: var(--green); font-size: 13px; text-decoration: underline; }
 .chat-error, .chat-urgent { margin: 10px 26px; padding: 14px 16px; border-radius: 12px; font-size: 13px; line-height: 1.8; background: #fff4e8; color: #875028; border: 1px solid #f0ddc3; }
 .chat-error p, .chat-urgent p { margin: 0; }
 .chat-error > div { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -144,6 +151,7 @@
   .chat-review h3 { font-size: 18px; }
   .chat-review-details > div { gap: 9px; }
   .chat-sources { margin: 0 18px 18px; }
+  .chat-service-cards { margin: 0 14px 18px; }
   .chat-error, .chat-urgent { margin: 10px 14px; font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .chat-composer { transition: none; } }

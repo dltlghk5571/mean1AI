@@ -9,6 +9,8 @@
 - 시민 메인(`/`), 대화형 민원 접수(`/minwon/new`), 직접 작성(`/minwon/form`), 비공개 내 민원 조회
 - 시연 챗봇의 내용·장소 질문, 수정 가능한 접수 요약, 최종 확인 후 기존 민원 접수로 연결
 - 비식별 대화 이어보기, 초안 버전 검사, 동시 접수·재시도 중복 저장 방지
+- 출처·분류·조직·업무·필요 질문 JSON, 본문 추출 CLI와 검수 대기 등록·공개·철회 API
+- 검수 자료 검색과 필요 정보 조회 도구, 최대 3회 실행 제한, 출처 카드와 변경 시 결과 폐기
 - 별도 담당자 대시보드(`/staff`)와 담당자용 접수 모달
 - 접수번호·조회 코드, 중복 제출 방지, 담당자가 명시적으로 공개한 답변 조회
 - 서명 세션, CSRF 검증, 분류 담당·검토 승인·감사 조회 역할 구분
@@ -36,10 +38,15 @@
 - [성남시 업무 프로세스 조사](docs/SEONGNAM_MINWON_WORKFLOW_RESEARCH.md): 접수 창구,
   담당자 처리 흐름과 추가 확인할 사항.
 
-챗봇 UI와 교체 가능한 대화 인터페이스는 구현했습니다. `CHAT_PROVIDER=demo`는 사용자가 고른
-선택지에 따라 진행하는 시연이며 자유 입력을 LLM으로 분류하지 않습니다. 동아리 모델 서버,
-실시간 정보 검색, 사진 전송, 공식 민원 접수 연계는 후속 범위입니다.
-[현재 챗봇 JSON 계약과 연결할 항목](docs/CHAT_API.md)을 팀의 구현 기준으로 사용하세요.
+기본 `CHAT_PROVIDER=agent_demo`는 검수된 로컬 자료를 검색하고 필요 정보를 조회하는 시연
+에이전트입니다. `demo`는 기존 고정 질문 제공자, `unavailable`은 미연결 오류 확인용입니다.
+자유 입력을 LLM으로 분류하지 않으며 동아리 모델 서버·실제 공식 데이터·사진·기관 접수는
+후속 범위입니다. 출처 레지스트리는 실제 선택자·이용 조건 검수가 끝날 때까지 네트워크 수집을
+시작하지 않습니다. 합성 데이터도 자동 공개하지 않습니다.
+
+- [시민 챗봇 HTTP 계약](docs/CHAT_API.md)
+- [에이전트 도구 JSON v2와 모델 팀 연결 작업](docs/AGENT_API.md)
+- [수집·검수 JSON과 합성 자료 등록·승인 실행 방법](docs/SERVICE_DATA_PIPELINE.md)
 
 4명은 기획·업무 및 데이터 검수, 시민 UI·접근성, 서버·수집·API 연계, 모델·평가를 나눠 맡습니다.
 **Git Flow**를 사용합니다. 작업을 Issue로 정리하고 `develop`에서 만든 `feature/*` 브랜치의 변경을
@@ -258,6 +265,10 @@ POST /api/v1/complaints/{complaint_id}/duplicate-candidates/{candidate_id}/decis
 GET  /api/v1/departments
 GET  /api/v1/departments/catalog
 GET  /api/v1/session
+GET  /api/v1/service-catalogs
+POST /api/v1/service-catalogs
+GET  /api/v1/service-catalogs/{version}
+POST /api/v1/service-catalogs/{version}/review
 ```
 
 민원 API는 로그인 쿠키와 변경 요청의 CSRF 헤더가 필요합니다. PowerShell 예시:

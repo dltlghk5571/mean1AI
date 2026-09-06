@@ -1,6 +1,7 @@
 """Private chat drafts, explicit confirmation, and atomic receipt creation."""
 
 import json
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlalchemy import select, update
@@ -12,9 +13,16 @@ from app.models import CitizenChat, CitizenChatAuditEvent, CitizenSession
 from app.services import citizen
 from app.services.audit import record_audit
 from app.services.chat_provider import ChatAgentProvider
+from app.services.citizen_agent import (
+    AgentExecution,
+    AgentRunError,
+    CitizenAgentExecutor,
+    service_card,
+)
 from app.services.emergency import detect_emergency
 from app.services.pii import redact_pii
 from app.services.pipeline import ComplaintPipeline
+from app.services.service_catalog import active_catalog
 
 SOURCES = {
     "bokjiro": {"title": "복지로 · 복지서비스 찾기", "url": "https://www.bokjiro.go.kr/ssis-tbu/"},
@@ -74,11 +82,23 @@ def open_chat(db: Session, session: CitizenSession) -> dict[str, object]:
             chat = find_chat(db, session.token_hash)
             if chat is None:
                 raise
-    return public_state(chat)
+    return public_state(chat, db)
 
 
-def public_state(chat: CitizenChat) -> dict[str, object]:
+def public_state(chat: CitizenChat, db: Session) -> dict[str, object]:
     state = ChatState.model_validate(chat.state)
+    if state.service_cards:
+        catalog = active_catalog(db)
+        eligible = (
+            {item.id: item for item in catalog.services(datetime.now(UTC).date())}
+            if catalog
+            else {}
+        )
+        state.service_cards = [
+            service_card(eligible[card.service_id], catalog)
+            for card in state.service_cards
+            if catalog and card.catalog_version == catalog.version and card.service_id in eligible
+        ]
     return {
         "revision": chat.revision,
         **state.model_dump(mode="json", exclude={"source_ids"}),
@@ -160,6 +180,7 @@ def advance_chat(
     turn: ChatTurn,
     provider: ChatAgentProvider,
     pipeline: ComplaintPipeline,
+    executor: CitizenAgentExecutor | None = None,
 ) -> dict[str, object]:
     turn = clean_turn(turn)
     fingerprint = citizen.digest(json.dumps(turn.model_dump(), sort_keys=True, ensure_ascii=False))
@@ -169,15 +190,16 @@ def advance_chat(
     if chat.last_request_id == turn.request_id:
         if chat.last_request_hash != fingerprint:
             raise ChatError("이미 처리한 요청과 내용이 달라요. 최신 대화를 불러와 주세요.", 409)
-        return public_state(chat)
+        return public_state(chat, db)
     if chat.revision != int(turn.revision):
         raise ChatError("다른 탭에서 대화가 바뀌었어요. 최신 대화를 불러와 주세요.", 409)
     state = ChatState.model_validate(chat.state)
+    execution: AgentExecution | None = None
     if turn.action == "confirm":
         if turn.consent != "yes":
             raise ChatError("데모 접수 안내를 확인하고 동의해 주세요.")
         if chat.submitted_complaint_id:
-            return public_state(chat)
+            return public_state(chat, db)
         if state.stage != "review":
             raise ChatError("접수 내용을 먼저 확인해 주세요.")
         citizen.validate_submission(state.draft.model_dump(), submitting=False)
@@ -193,7 +215,13 @@ def advance_chat(
                     expected_stage=state.stage,
                 )
                 # Revalidate adapters; output cannot choose submission, draft contents, or URLs.
-                reply = AgentReply.model_validate(provider.respond(context).model_dump())
+                if executor:
+                    execution = executor.execute(db, context)
+                    reply = AgentReply.model_validate(execution.reply.model_dump())
+                    state.service_cards = execution.cards
+                else:
+                    reply = AgentReply.model_validate(provider.respond(context).model_dump())
+                    state.service_cards = []
                 if reply.next_stage != state.stage or (
                     state.stage != "information" and reply.source_ids
                 ):
@@ -202,8 +230,11 @@ def advance_chat(
                 state.messages.append(
                     ChatMessage(role="assistant", text=redact_pii(reply.message).text)
                 )
-            except Exception:
+            except Exception as exc:
                 db.rollback()
+                if isinstance(exc, AgentRunError):
+                    for event in exc.events:
+                        audit(db, chat, "agent_step_attempted", **event)
                 audit(
                     db,
                     chat,
@@ -228,16 +259,23 @@ def advance_chat(
     )
     if changed.scalar_one_or_none() is None:
         db.rollback()
+        if execution:
+            for event in execution.events:
+                audit(db, chat, "agent_step_aborted", **event)
+            db.commit()
         latest = find_chat(db, session.token_hash)
         if (
             latest
             and latest.last_request_id == turn.request_id
             and latest.last_request_hash == fingerprint
         ):
-            return public_state(latest)
+            return public_state(latest, db)
         raise ChatError("다른 요청이 먼저 반영됐어요. 최신 대화를 불러와 주세요.", 409)
 
     try:
+        if execution:
+            # The chat CAS holds the SQLite writer lock while the catalog pin is checked.
+            execution.verify_catalog(db)
         chat.revision = int(turn.revision) + 1
         chat.state = state.model_dump(mode="json")
         chat.last_request_id = turn.request_id
@@ -273,8 +311,15 @@ def advance_chat(
             source_ids=state.source_ids,
             complaint_id=chat.submitted_complaint_id,
         )
+        if execution:
+            for event in execution.events:
+                audit(db, chat, "agent_step_completed", **event)
         db.commit()
     except Exception:
         db.rollback()
+        if execution:
+            for event in execution.events:
+                audit(db, chat, "agent_step_aborted", **event)
+            db.commit()
         raise
-    return public_state(chat)
+    return public_state(chat, db)

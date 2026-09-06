@@ -5,6 +5,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.service_data_schemas import ServiceCard
+
 Stage = Literal[
     "welcome", "intent", "description", "location", "review", "information", "submitted"
 ]
@@ -32,6 +34,7 @@ class ChatState(ChatModel):
     draft: ChatDraft = Field(default_factory=ChatDraft)
     source_ids: list[Literal["bokjiro", "seongnam_handbook"]] = Field(default_factory=list)
     urgent: bool = False
+    service_cards: list[ServiceCard] = Field(default_factory=list, max_length=3)
 
 
 class ChatTurn(ChatModel):

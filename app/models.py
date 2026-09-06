@@ -87,6 +87,34 @@ class CitizenChatAuditEvent(Base):
     details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
 
 
+class ServiceCatalogVersion(Base):
+    """Immutable, staged snapshot; importing never grants publication."""
+
+    __tablename__ = "service_catalog_versions"
+
+    version: Mapped[str] = mapped_column(String(80), primary_key=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    bundle: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    imported_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class ServiceCatalogReview(Base):
+    """Append-only import/publication journal, independent of complaint records."""
+
+    __tablename__ = "service_catalog_reviews"
+    __table_args__ = (CheckConstraint("decision IN ('staged', 'approved', 'withdrawn')"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    version: Mapped[str] = mapped_column(ForeignKey("service_catalog_versions.version"), index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    decision: Mapped[str] = mapped_column(String(20), nullable=False)
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    review_due_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class CitizenGrant(Base):
     __tablename__ = "citizen_grants"
 

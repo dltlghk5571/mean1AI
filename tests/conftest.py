@@ -1,4 +1,6 @@
+import json
 from collections.abc import Generator
+from pathlib import Path
 
 import httpx
 import pytest
@@ -7,6 +9,12 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.main import create_app
+
+
+@pytest.fixture
+def service_bundle() -> dict:
+    path = Path(__file__).resolve().parents[1] / "app/data/service_catalog_demo.json"
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 @pytest.fixture(autouse=True)
@@ -27,6 +35,7 @@ def test_app(tmp_path) -> FastAPI:
         app_env="test",
         database_url=f"sqlite:///{database_path}",
         ai_provider="rules",
+        chat_provider="demo",
         auto_route_threshold=0.90,
         log_level="WARNING",
     )

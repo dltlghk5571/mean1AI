@@ -70,7 +70,13 @@ def home(request: Request) -> HTMLResponse:
 
 @router.get("/minwon/new", response_class=HTMLResponse)
 def new_complaint(request: Request, db: DbSession) -> HTMLResponse:
-    return _session_page(request, db, "citizen_chat.html", active_page="new")
+    return _session_page(
+        request,
+        db,
+        "citizen_chat.html",
+        active_page="new",
+        agent_demo=request.app.state.agent_executor is not None,
+    )
 
 
 @router.get("/minwon/form", response_class=HTMLResponse)
@@ -196,6 +202,7 @@ async def chat_turn(request: Request, db: DbSession) -> Response:
             turn,
             request.app.state.chat_provider,
             request.app.state.pipeline,
+            request.app.state.agent_executor,
         )
     except citizen_chat.ChatError as exc:
         return JSONResponse(

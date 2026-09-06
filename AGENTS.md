@@ -21,6 +21,8 @@ presented as the current official organization or policy of Seongnam City.
 5. Every AI/rules decision and every human approval must create an `AuditEvent`.
    Before citizen intake exists, use the equivalent append-only `CitizenChatAuditEvent` journal;
    link final citizen confirmation to both journals atomically. Never fabricate a complaint to log a chat.
+   Public-service data imports and human publication/withdrawal use the equivalent append-only
+   `ServiceCatalogReview` journal, bound to the immutable catalog version and content hash.
 6. Model confidence never overrides a safety rule.
 7. New external dependencies require a short justification in the final Codex summary.
 8. Keep the rules-based provider operational so the full test suite runs without network or API keys.
