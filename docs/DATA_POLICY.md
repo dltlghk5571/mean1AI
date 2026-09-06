@@ -23,6 +23,12 @@
   not delete stored data. No automatic retention cleanup or model-training export is implemented.
 - Do not log complaint title, body, or raw provider prompt at INFO level.
 - Use synthetic data in tests and screenshots.
+- Optional citizen photos stay in page memory until final confirmation. Reloading clears selections.
+  Confirmed photos are decoded with bounded file/pixel limits and re-encoded on a fresh JPEG canvas;
+  source filenames and embedded metadata are discarded. Pixels are not automatically anonymized.
+  Use synthetic photos without identifiers. Images never enter chat state, model context, or logs.
+  Store photos with intake in one database transaction. Reads require complaint-specific citizen
+  access or the existing officer session. Session expiry does not delete stored photos.
 - Store only what is necessary for the demo.
 - Retrieve only approved, currently effective, non-superseded local knowledge documents.
 - Public-service source extraction writes a local review queue; it never publishes or trains.

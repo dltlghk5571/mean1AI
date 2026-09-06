@@ -7,7 +7,16 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import auth, catalog_pages, citizen, complaints, departments, pages, service_catalogs
+from app.api import (
+    auth,
+    catalog_pages,
+    citizen,
+    citizen_photos,
+    complaints,
+    departments,
+    pages,
+    service_catalogs,
+)
 from app.config import Settings, get_settings
 from app.database import Base, install_append_only_guards, make_engine, make_session_factory
 from app.services.auth import SESSION_COOKIE_NAME, AuthManager
@@ -114,6 +123,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(auth.router)
     app.include_router(citizen.router)
+    app.include_router(citizen_photos.router)
     app.include_router(pages.router)
     app.include_router(complaints.router)
     app.include_router(departments.router)

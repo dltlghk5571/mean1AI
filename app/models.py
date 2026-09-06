@@ -14,6 +14,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -48,6 +49,27 @@ class CitizenSubmission(Base):
     )
     request_key: Mapped[str] = mapped_column(String(36), nullable=False)
     lookup_code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class CitizenPhoto(Base):
+    """Re-encoded photos committed with a confirmed intake; never part of model context."""
+
+    __tablename__ = "citizen_photos"
+    __table_args__ = (
+        UniqueConstraint("complaint_id", "position", name="uq_citizen_photo_position"),
+        CheckConstraint("position BETWEEN 1 AND 3"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("citizen_submissions.complaint_id"), nullable=False, index=True
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    content: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class CitizenChat(Base):

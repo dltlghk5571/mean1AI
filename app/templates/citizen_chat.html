@@ -24,6 +24,7 @@
       <div class="chat-sources" data-chat-sources hidden></div>
       <section class="chat-service-cards" data-chat-service-cards hidden aria-label="검색한 안내 자료"></section>
       <section class="chat-review" data-chat-review hidden aria-labelledby="chat-review-title">
+        <link rel="stylesheet" href="{{ url_for('static', path='/citizen-photos.css') }}">
         <div class="chat-review-heading"><div><p class="eyebrow">접수 전 마지막 확인</p><h3 id="chat-review-title" tabindex="-1">이 내용으로 전할까요?</h3></div><button type="button" class="chat-text-button" data-chat-edit>수정하기</button></div>
         <dl class="chat-review-details" data-chat-review-details><div><dt>제목</dt><dd data-draft-title></dd></div><div><dt>장소</dt><dd data-draft-location></dd></div><div><dt>내용</dt><dd data-draft-content></dd></div></dl>
         <form data-chat-edit-form hidden autocomplete="off">
@@ -32,13 +33,20 @@
           <label for="chat-edit-content">불편한 내용</label><textarea id="chat-edit-content" name="content" rows="4" required minlength="5" maxlength="4000"></textarea>
           <div class="chat-edit-actions"><button type="button" class="button secondary" data-chat-edit-cancel>취소</button><button type="submit" class="button primary">수정 내용 저장</button></div>
         </form>
-        <div data-chat-confirm-panel><label class="chat-consent"><input type="checkbox" data-chat-consent><span>이 데모에 내용을 저장하고 담당자 검토 화면에 표시하는 데 동의해요.<small>실제 행정기관에 접수되지 않으며, 실제 개인정보를 입력하지 않았어요.</small></span></label><button type="button" class="button primary chat-confirm" data-chat-confirm disabled>확인한 내용으로 데모 접수 {{ icon('arrow') }}</button></div>
+        <section class="photo-picker" data-chat-photos-panel aria-labelledby="chat-photos-title">
+          <div class="photo-heading"><h4 id="chat-photos-title">사진을 함께 전할까요? <span>선택</span></h4><strong data-chat-photo-count>0 / 3장</strong></div>
+          <label class="photo-selector" for="chat-photo-input">사진 추가 <input id="chat-photo-input" data-chat-photo-input type="file" accept="image/jpeg,image/png" multiple aria-describedby="chat-photo-help" disabled></label>
+          <p id="chat-photo-help">JPG·PNG 최대 3장, 한 장당 5MB·1,600만 화소까지.<br>사진은 접수할 때 함께 저장돼요. <strong>새로고침하면 선택한 사진은 지워져요.</strong><br>얼굴·연락처·차량번호가 없는 시연용 사진을 골라 주세요.</p>
+          <div class="photo-gallery" data-chat-photo-list aria-label="선택한 사진"></div>
+          <p class="photo-feedback" data-chat-photo-feedback role="status" aria-live="polite" hidden></p>
+        </section>
+        <div data-chat-confirm-panel><label class="chat-consent"><input type="checkbox" data-chat-consent><span>이 데모에 내용과 선택한 사진을 저장하고 담당자 검토 화면에 표시하는 데 동의해요.<small>실제 행정기관에 접수되지 않으며, 실제 개인정보를 입력하지 않았어요.</small></span></label><button type="button" class="button primary chat-confirm" data-chat-confirm disabled>확인한 내용으로 데모 접수 {{ icon('arrow') }}</button></div>
       </section>
       <div class="chat-error" data-chat-error role="alert" hidden><p data-chat-error-text></p><div><button type="button" data-chat-retry>다시 시도</button><button type="button" data-chat-reload>최신 대화 불러오기</button><a href="/minwon/new" data-chat-session-link hidden>대화 화면 다시 열기</a></div></div>
       <form class="chat-composer" data-chat-composer autocomplete="off">
         <label class="sr-only" for="chat-message">도우미에게 보낼 이야기</label>
         <textarea id="chat-message" name="message" rows="2" maxlength="4000" placeholder="예: 데모공원 산책로 가로등이 어제부터 꺼져 있어요" aria-describedby="chat-input-help" disabled></textarea>
-        <div class="chat-composer-bottom"><span class="chat-photo-note" title="사진 업로드와 모델 전송은 추후 연결됩니다."><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9" r="1.4"/><path d="m4 18 5-5 4 3 3-4 5 5"/></svg>사진 첨부 준비 중</span><span class="chat-character-count" data-chat-count>0 / 4,000</span><button type="submit" class="chat-send" aria-label="메시지 보내기" disabled>{{ icon('arrow') }}</button></div>
+        <div class="chat-composer-bottom"><span class="chat-photo-note">사진은 마지막 확인 단계에서 추가해요</span><span class="chat-character-count" data-chat-count>0 / 4,000</span><button type="submit" class="chat-send" aria-label="메시지 보내기" disabled>{{ icon('arrow') }}</button></div>
       </form>
       <p class="chat-input-help" id="chat-input-help">실명·연락처 등 실제 개인정보는 적지 마세요. Enter 전송 · Shift+Enter 줄바꿈</p>
       <p class="chat-sr-status sr-only" data-chat-status role="status" aria-live="polite" aria-atomic="true"></p>

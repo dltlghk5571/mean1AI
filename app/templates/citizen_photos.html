@@ -1,0 +1,13 @@
+{% if photos %}
+<link rel="stylesheet" href="{{ url_for('static', path='/citizen-photos.css') }}">
+<section class="photo-section" aria-labelledby="saved-photos-title">
+  <div class="photo-heading"><h2 id="saved-photos-title">첨부 사진</h2><strong>{{ photos|length }}장</strong></div>
+  <p>접수한 사진입니다. 선택하면 크게 볼 수 있어요. <span class="sr-only">새 탭으로 열립니다.</span></p>
+  <div class="photo-gallery">
+    {% for photo in photos %}
+    <figure><a href="{{ photo.url }}" target="_blank" rel="noopener noreferrer" aria-label="첨부 사진 {{ photo.position }} 크게 보기 · 새 탭"><img src="{{ photo.url }}" alt="민원에 첨부한 사진 {{ photo.position }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"></a><figcaption>사진 {{ photo.position }}</figcaption></figure>
+    {% endfor %}
+  </div>
+  <p class="photo-footnote">촬영 위치 등 파일 메타데이터는 제거했습니다. 사진 속 얼굴·문자는 자동으로 가리지 않습니다.</p>
+</section>
+{% endif %}

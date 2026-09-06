@@ -29,6 +29,7 @@ from app.services.auth import (
     require_role,
 )
 from app.services.citizen import latest_reply, publish_reply
+from app.services.citizen_photos import photo_summaries
 from app.services.duplicates import (
     confirm_location,
     decide_duplicate_candidate,
@@ -251,6 +252,7 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
         name="complaint_detail.html",
         context={
             "complaint": complaint,
+            "photos": photo_summaries(db, complaint_id, officer=True),
             "location_review": location_review,
             "grounding": grounding,
             "duplicate_candidates": duplicate_candidates,

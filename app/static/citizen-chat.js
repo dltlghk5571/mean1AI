@@ -13,6 +13,8 @@
   let pending = null;
   let sessionExpired = false;
   let displayedMessages = "";
+  let photos = [];
+  let pendingPhotos = null;
 
   function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -21,9 +23,9 @@
     return node;
   }
 
-  async function api(path, data = {}) {
+  async function api(path, data = {}, timeoutMs = 25000) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(path, {
         method: "POST",
@@ -59,8 +61,62 @@
     editForm.querySelectorAll("input, textarea, button").forEach((field) => { field.disabled = blocked; });
     q("retry").disabled = busy;
     q("reload").disabled = busy;
+    q("photo-input").disabled = blocked || state?.stage !== "review" || photos.length >= 3;
+    q("photo-list").querySelectorAll("button").forEach((button) => { button.disabled = blocked; });
     q("busy").hidden = !busy;
     history.setAttribute("aria-busy", String(busy));
+  }
+
+  function photoFeedback(text, error = false) {
+    q("photo-feedback").textContent = text;
+    q("photo-feedback").hidden = false;
+    q("photo-feedback").classList.toggle("is-error", error);
+  }
+
+  function renderPhotos() {
+    q("photo-count").textContent = `${photos.length} / 3장`;
+    q("photo-list").replaceChildren();
+    photos.forEach((photo, index) => {
+      const figure = element("figure");
+      const img = element("img");
+      img.src = photo.url;
+      img.alt = `선택한 사진 ${index + 1}`;
+      const caption = element("figcaption", `사진 ${index + 1}`);
+      const remove = element("button", "삭제");
+      remove.type = "button";
+      remove.setAttribute("aria-label", `사진 ${index + 1} 삭제`);
+      remove.addEventListener("click", () => {
+        if (busy || pending || sessionExpired) return;
+        URL.revokeObjectURL(photo.url);
+        photos = photos.filter((item) => item !== photo);
+        q("consent").checked = false;
+        renderPhotos();
+        photoFeedback(`사진을 삭제했어요. 현재 ${photos.length}장이 선택되어 있어요.`);
+        q("photo-input").focus();
+      });
+      caption.append(remove);
+      figure.append(img, caption);
+      q("photo-list").append(figure);
+    });
+    controls();
+  }
+
+  function clearPhotos() {
+    photos.forEach((photo) => URL.revokeObjectURL(photo.url));
+    photos = [];
+    pendingPhotos = null;
+    q("photo-input").value = "";
+    q("photo-feedback").hidden = true;
+    renderPhotos();
+  }
+
+  function encodePhoto(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ media_type: file.type, data: String(reader.result).split(",", 2)[1] });
+      reader.onerror = () => reject(Object.assign(new Error("사진을 읽지 못했어요. 삭제한 뒤 다시 선택해 주세요."), {status:422}));
+      reader.readAsDataURL(file);
+    });
   }
 
   function choice(label, action, href) {
@@ -76,6 +132,7 @@
   function render(next, announce = false) {
     const changed = !state || next.revision !== state.revision;
     state = next;
+    if (["welcome", "submitted"].includes(state.stage)) clearPhotos();
     const messageKey = JSON.stringify(state.messages);
     if (displayedMessages !== messageKey) {
       const wasAtBottom = history.scrollHeight - history.scrollTop - history.clientHeight < 70;
@@ -176,7 +233,7 @@
     q("error").hidden = false;
     sessionExpired = error.status === 403;
     q("session-link").hidden = !sessionExpired;
-    if ([400, 409, 413, 422, 403].includes(error.status)) pending = null;
+    if ([400, 409, 413, 415, 422, 403].includes(error.status)) { pending = null; pendingPhotos = null; }
     q("retry").hidden = !pending || sessionExpired;
     q("reload").hidden = sessionExpired;
   }
@@ -190,6 +247,7 @@
     try {
       const next = await api("/minwon/chat/open");
       pending = null;
+      pendingPhotos = null;
       sessionExpired = false;
       busy = false;
       render(next);
@@ -209,8 +267,15 @@
     q("busy").textContent = sent.action === "confirm" ? "데모 민원을 접수하고 있어요…" : "이야기를 정리하고 있어요…";
     controls();
     try {
-      const next = await api("/minwon/chat/turn", sent);
+      let next;
+      if (sent.action === "confirm" && photos.length) {
+        if (!pendingPhotos) pendingPhotos = await Promise.all(photos.map((photo) => encodePhoto(photo.file)));
+        next = await api("/minwon/chat/confirm-with-photos", { turn: sent, photos: pendingPhotos }, 60000);
+      } else {
+        next = await api("/minwon/chat/turn", sent);
+      }
       pending = null;
+      pendingPhotos = null;
       busy = false;
       if (sent.action === "say" || sent.action === "reset") input.value = "";
       render(next, true);
@@ -238,6 +303,7 @@
     editForm.hidden = !editing;
     q("review-details").hidden = editing;
     q("confirm-panel").hidden = editing;
+    q("photos-panel").hidden = editing;
     q("edit").hidden = editing;
     q("consent").checked = false;
     if (editing && state) {
@@ -259,6 +325,20 @@
     }
   });
   q("consent").addEventListener("change", controls);
+  q("photo-input").addEventListener("change", (event) => {
+    if (busy || pending || sessionExpired) return;
+    const selected = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!selected.length) return;
+    if (photos.length + selected.length > 3) { photoFeedback("사진은 최대 3장까지 선택할 수 있어요.", true); return; }
+    if (selected.some((file) => !["image/jpeg", "image/png"].includes(file.type) || file.size > 5000000 || file.size === 0)) {
+      photoFeedback("한 장당 5MB 이하의 JPG·PNG 사진을 골라 주세요.", true); return;
+    }
+    photos.push(...selected.map((file) => ({ file, url: URL.createObjectURL(file) })));
+    q("consent").checked = false;
+    renderPhotos();
+    photoFeedback(`${photos.length}장을 선택했어요. 접수 전까지 사진을 바꿀 수 있어요.`);
+  });
   q("confirm").addEventListener("click", () => {
     if (q("consent").checked) send("confirm", { consent: "yes" });
   });

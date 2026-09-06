@@ -19,6 +19,7 @@ from app.services.citizen_agent import (
     CitizenAgentExecutor,
     service_card,
 )
+from app.services.citizen_photos import PreparedPhoto, attach_photos
 from app.services.emergency import detect_emergency
 from app.services.pii import redact_pii
 from app.services.pipeline import ComplaintPipeline
@@ -181,9 +182,15 @@ def advance_chat(
     provider: ChatAgentProvider,
     pipeline: ComplaintPipeline,
     executor: CitizenAgentExecutor | None = None,
+    photos: tuple[PreparedPhoto, ...] = (),
 ) -> dict[str, object]:
     turn = clean_turn(turn)
-    fingerprint = citizen.digest(json.dumps(turn.model_dump(), sort_keys=True, ensure_ascii=False))
+    if photos and turn.action != "confirm":
+        raise ChatError("사진은 최종 접수 확인과 함께 저장할 수 있어요.")
+    fingerprint_data = turn.model_dump()
+    if photos:
+        fingerprint_data["photo_hashes"] = [photo.source_hash for photo in photos]
+    fingerprint = citizen.digest(json.dumps(fingerprint_data, sort_keys=True, ensure_ascii=False))
     chat = find_chat(db, session.token_hash)
     if chat is None:
         raise ChatError("대화를 먼저 열어 주세요. 페이지를 새로고침하면 이어갈 수 있어요.", 409)
@@ -292,12 +299,18 @@ def advance_chat(
                 {**state.draft.model_dump(), "consent": "yes", "request_key": chat.submission_key},
             )
             chat.submitted_complaint_id = submission.complaint_id
+            photo_ids = attach_photos(db, submission.complaint_id, photos) if photos else []
             record_audit(
                 db,
                 complaint_id=submission.complaint_id,
                 action="citizen_chat_confirmed",
                 actor_type="citizen",
-                details={"chat_id": chat.id, "revision": chat.revision, "demo_consent": True},
+                details={
+                    "chat_id": chat.id,
+                    "revision": chat.revision,
+                    "demo_consent": True,
+                    "photo_ids": photo_ids,
+                },
             )
         audit(
             db,

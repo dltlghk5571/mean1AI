@@ -13,6 +13,7 @@ from app.chat_schemas import ChatTurn
 from app.database import get_db
 from app.models import CitizenSession
 from app.services import citizen, citizen_chat
+from app.services.citizen_photos import photo_summaries
 
 router = APIRouter(include_in_schema=False)
 DbSession = Annotated[Session, Depends(get_db)]
@@ -111,6 +112,7 @@ def _private_page(
         request,
         "citizen_receipt.html" if receipt else "citizen_detail.html",
         record=citizen.public_record(db, submission),
+        photos=photo_summaries(db, complaint_id),
         lookup_code=citizen.lookup_code(token, submission.request_key)
         if receipt and owner and token
         else None,
