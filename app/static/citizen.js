@@ -171,6 +171,72 @@
       }
     });
     count();
+
+    const chatWidget = $('[data-chat-widget]');
+    if (chatWidget) {
+      const CHAT_MAX_TURNS = 8;
+      const log = $('[data-chat-log]', chatWidget);
+      const chatForm = $('[data-chat-form]', chatWidget);
+      const chatInput = $('[data-chat-input]', chatWidget);
+      const chatAlert = $('[data-chat-alert]', chatWidget);
+      let chatHistory = [];
+      let chatBusy = false;
+      const addBubble = (role, text) => {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${role}`;
+        bubble.textContent = text;
+        log.appendChild(bubble);
+        log.scrollTop = log.scrollHeight;
+      };
+      const stopChat = (message) => {
+        chatAlert.textContent = message;
+        chatAlert.hidden = false;
+        chatInput.disabled = true;
+        chatForm.querySelector('button').disabled = true;
+      };
+      chatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (chatBusy || !chatInput.value.trim()) return;
+        const message = chatInput.value.trim();
+        chatAlert.hidden = true;
+        addBubble('user', message);
+        chatInput.value = '';
+        chatBusy = true;
+        chatInput.disabled = true;
+        try {
+          const response = await fetch('/minwon/chat/message', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-Citizen-CSRF': form.elements.csrf_token.value },
+            body: JSON.stringify({ history: chatHistory, message }),
+            cache: 'no-store',
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.message || '지금은 대화형 작성을 사용할 수 없어요.');
+          chatHistory.push({ role: 'user', content: message }, { role: 'assistant', content: result.reply });
+          addBubble('assistant', result.reply);
+          if (result.ready && result.draft) {
+            if (!form.elements.title.value && !form.elements.content.value && !form.elements.location_text.value) {
+              form.elements.title.value = result.draft.title;
+              form.elements.location_text.value = result.draft.location_text;
+              form.elements.content.value = result.draft.content;
+              dirty = true;
+              count();
+              toast('대화 내용을 바탕으로 양식을 채웠어요. 접수 전에 확인해 주세요.');
+            }
+            stopChat('아래 양식에서 내용을 확인하고 접수해 주세요.');
+          } else if (chatHistory.length >= CHAT_MAX_TURNS * 2) {
+            stopChat('대화가 길어졌어요. 지금까지 나눈 내용을 바탕으로 아래 양식에서 직접 마무리해 주세요.');
+          }
+        } catch (error) {
+          addBubble('assistant', error instanceof TypeError ? '연결을 확인해 주세요.' : error.message);
+        } finally {
+          chatBusy = false;
+          chatInput.disabled = false;
+          chatInput.focus();
+        }
+      });
+    }
   }
 
   const lookup = $('[data-lookup-form]');

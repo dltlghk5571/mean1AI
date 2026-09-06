@@ -5,12 +5,15 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
 from app.database import get_db
 from app.models import CitizenSession
 from app.services import citizen
+from app.services.chat_agent import ChatMessage
+from app.services.classifier import ClassifierError
 
 router = APIRouter(include_in_schema=False)
 DbSession = Annotated[Session, Depends(get_db)]
@@ -76,6 +79,7 @@ def new_complaint(request: Request, db: DbSession, topic: str = "") -> HTMLRespo
         active_page="new",
         category=category,
         request_key=str(uuid4()),
+        chat_enabled=request.app.state.chat_agent is not None,
     )
 
 
@@ -154,6 +158,60 @@ async def _read_data(request: Request) -> dict[str, str] | JSONResponse:
     ):
         return _error("입력 형식을 확인해 주세요.", 400)
     return data
+
+
+_CHAT_MAX_BODY_BYTES = 40_000
+_CHAT_MAX_HISTORY = 16
+
+
+async def _read_chat_turn(
+    request: Request,
+) -> tuple[list[ChatMessage], ChatMessage] | JSONResponse:
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > _CHAT_MAX_BODY_BYTES:
+            return _error("대화 내용이 너무 깁니다.", 413)
+    try:
+        data = json.loads(body)
+    except (ValueError, UnicodeDecodeError):
+        return _error("입력 정보를 읽을 수 없습니다. 다시 시도해 주세요.", 400)
+    if not isinstance(data, dict):
+        return _error("입력 형식을 확인해 주세요.", 400)
+    raw_history = data.get("history", [])
+    raw_message = data.get("message", "")
+    if (
+        not isinstance(raw_history, list)
+        or len(raw_history) > _CHAT_MAX_HISTORY
+        or not isinstance(raw_message, str)
+    ):
+        return _error("입력 형식을 확인해 주세요.", 400)
+    try:
+        history = [ChatMessage.model_validate(item) for item in raw_history]
+        message = ChatMessage.model_validate({"role": "user", "content": raw_message})
+    except ValidationError:
+        return _error("입력 형식을 확인해 주세요.", 400)
+    return history, message
+
+
+@router.post("/minwon/chat/message")
+async def chat_message(request: Request, db: DbSession) -> Response:
+    agent = request.app.state.chat_agent
+    if agent is None:
+        return _error("지금은 대화형 작성을 사용할 수 없어요. 직접 작성해 주세요.", 503)
+    session = _action_session(request, db, "chat", 20)
+    if isinstance(session, JSONResponse):
+        return session
+    parsed = await _read_chat_turn(request)
+    if isinstance(parsed, JSONResponse):
+        return parsed
+    history, message = parsed
+    try:
+        result = await run_in_threadpool(agent.step, history=history, message=message)
+    except ClassifierError:
+        logger.warning("citizen_chat_failed")
+        return _error("지금은 대화형 작성을 사용할 수 없어요. 직접 작성해 주세요.", 503)
+    return JSONResponse({"reply": result.reply, "ready": result.ready, "draft": result.draft})
 
 
 @router.post("/minwon/preview")
