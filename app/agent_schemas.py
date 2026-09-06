@@ -78,3 +78,16 @@ class PlanningContext(ChatModel):
     messages: list[ChatMessage]
     observations: list[ToolObservation] = Field(default_factory=list)
     remaining_tool_calls: int = Field(ge=0, le=3)
+    time_budget_seconds: float = Field(default=30, gt=0, le=60)
+
+
+class ClubPlanRequest(ChatModel):
+    schema_version: Literal["1"] = "1"
+    model_id: str = Field(min_length=1, max_length=120)
+    context: PlanningContext
+
+
+class ClubPlanResponse(ChatModel):
+    schema_version: Literal["1"] = "1"
+    model_id: str = Field(min_length=1, max_length=120)
+    step: AgentStep

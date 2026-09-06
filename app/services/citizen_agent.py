@@ -1,8 +1,10 @@
 """A bounded planner/tool loop. No submission, network or arbitrary SQL tool exists."""
 
 import re
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from threading import BoundedSemaphore
 from typing import Protocol
 
 from sqlalchemy.orm import Session
@@ -108,10 +110,20 @@ def service_card(service: PublicService, catalog: ActiveCatalog) -> ServiceCard:
 
 
 class CitizenAgentExecutor:
-    def __init__(self, planner: AgentPlanner) -> None:
+    def __init__(self, planner: AgentPlanner, *, timeout: float = 30, concurrency: int = 4) -> None:
         self.planner = planner
+        self.timeout = timeout
+        self.capacity = BoundedSemaphore(concurrency)
 
     def execute(self, db: Session, context: AgentContext) -> AgentExecution:
+        if not self.capacity.acquire(blocking=False):
+            raise AgentRunError([{"status": "busy"}])
+        try:
+            return self._execute(db, context, time.monotonic() + self.timeout)
+        finally:
+            self.capacity.release()
+
+    def _execute(self, db: Session, context: AgentContext, deadline: float) -> AgentExecution:
         catalog = active_catalog(db)
         events: list[dict[str, object]] = []
         observations: list[ToolObservation] = []
@@ -123,14 +135,20 @@ class CitizenAgentExecutor:
         safe_context.state.service_cards = []
         try:
             for _ in range(4):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise ValueError("agent_deadline_exceeded")
                 planning = PlanningContext(
                     stage=safe_context.expected_stage,
                     draft=safe_context.state.draft.model_copy(deep=True),
                     messages=[item.model_copy(deep=True) for item in safe_context.state.messages],
                     observations=[item.model_copy(deep=True) for item in observations],
                     remaining_tool_calls=3 - len(call_ids),
+                    time_budget_seconds=min(60, remaining),
                 )
                 step = STEP_ADAPTER.validate_python(self.planner.plan(planning))
+                if time.monotonic() >= deadline:
+                    raise ValueError("agent_deadline_exceeded")
                 if isinstance(step, ToolStep):
                     call = step.call
                     if len(call_ids) >= 3 or call.call_id in call_ids:

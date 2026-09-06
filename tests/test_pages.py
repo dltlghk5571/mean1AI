@@ -6,7 +6,7 @@ def test_home_page_loads(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert "성남 민원 업무지원" in response.text
-    assert "합성 데이터만 사용" in response.text
+    assert "민원에는 합성 예시만 사용" in response.text
     assert "민원 처리 현황" in response.text
     assert "처리 원칙" in response.text
     assert "data-open-intake" in response.text

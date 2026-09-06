@@ -76,6 +76,7 @@ def new_complaint(request: Request, db: DbSession) -> HTMLResponse:
         "citizen_chat.html",
         active_page="new",
         agent_demo=request.app.state.agent_executor is not None,
+        club_mode=request.app.state.settings.chat_provider == "club",
     )
 
 

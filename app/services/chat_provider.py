@@ -48,9 +48,12 @@ class DemoChatProvider:
 class UnavailableChatProvider:
     provider_name = "unavailable"
 
+    def __init__(self, name: str = "unavailable") -> None:
+        self.provider_name = name
+
     def respond(self, context: AgentContext) -> AgentReply:
         raise RuntimeError("chat_provider_unavailable")
 
 
 def build_chat_provider(name: str) -> ChatAgentProvider:
-    return DemoChatProvider() if name in {"demo", "agent_demo"} else UnavailableChatProvider()
+    return DemoChatProvider() if name in {"demo", "agent_demo"} else UnavailableChatProvider(name)

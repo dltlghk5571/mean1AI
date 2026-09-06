@@ -11,6 +11,8 @@
 - 비식별 대화 이어보기, 초안 버전 검사, 동시 접수·재시도 중복 저장 방지
 - 출처·분류·조직·업무·필요 질문 JSON, 본문 추출 CLI와 검수 대기 등록·공개·철회 API
 - 검수 자료 검색과 필요 정보 조회 도구, 최대 3회 실행 제한, 출처 카드와 변경 시 결과 폐기
+- 담당자 자료 검수 화면(`/staff/service-catalogs`), 공개 목록 조사 후보 12개와 조직 표시 검토
+- 선택적 동아리 대화 모델 HTTP 연결, 응답·실행 시간·동시 실행·크기 제한
 - 별도 담당자 대시보드(`/staff`)와 담당자용 접수 모달
 - 접수번호·조회 코드, 중복 제출 방지, 담당자가 명시적으로 공개한 답변 조회
 - 서명 세션, CSRF 검증, 분류 담당·검토 승인·감사 조회 역할 구분
@@ -40,13 +42,16 @@
 
 기본 `CHAT_PROVIDER=agent_demo`는 검수된 로컬 자료를 검색하고 필요 정보를 조회하는 시연
 에이전트입니다. `demo`는 기존 고정 질문 제공자, `unavailable`은 미연결 오류 확인용입니다.
-자유 입력을 LLM으로 분류하지 않으며 동아리 모델 서버·실제 공식 데이터·사진·기관 접수는
-후속 범위입니다. 출처 레지스트리는 실제 선택자·이용 조건 검수가 끝날 때까지 네트워크 수집을
+`club`은 별도 설정을 요구하는 전용 HTTP 대화 모델 어댑터입니다. 실제 동아리 서버는 미연결이며
+자유 입력 의도 분류·공식 데이터 최종 검수·사진·기관 접수는 후속 범위입니다.
+출처 레지스트리는 실제 선택자·이용 조건 검수가 끝날 때까지 네트워크 수집을
 시작하지 않습니다. 합성 데이터도 자동 공개하지 않습니다.
 
 - [시민 챗봇 HTTP 계약](docs/CHAT_API.md)
 - [에이전트 도구 JSON v2와 모델 팀 연결 작업](docs/AGENT_API.md)
 - [수집·검수 JSON과 합성 자료 등록·승인 실행 방법](docs/SERVICE_DATA_PIPELINE.md)
+- [담당자 화면에서 검수할 성남시 공개 목록 후보](docs/SEONGNAM_REVIEW_CANDIDATES.md)
+- [동아리 대화 모델 서버 연결 설정과 전용 JSON 계약](docs/CLUB_MODEL_SERVER.md)
 
 4명은 기획·업무 및 데이터 검수, 시민 UI·접근성, 서버·수집·API 연계, 모델·평가를 나눠 맡습니다.
 **Git Flow**를 사용합니다. 작업을 Issue로 정리하고 `develop`에서 만든 `feature/*` 브랜치의 변경을
@@ -268,6 +273,7 @@ GET  /api/v1/session
 GET  /api/v1/service-catalogs
 POST /api/v1/service-catalogs
 GET  /api/v1/service-catalogs/{version}
+GET  /api/v1/service-catalogs/candidates/{name}
 POST /api/v1/service-catalogs/{version}/review
 ```
 

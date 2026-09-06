@@ -3,8 +3,8 @@
 2026-09-06 · 구현 기준
 
 공개 문서 추출 → 업무·분류·조직 대응표 작성 → 검수 대기 등록 → 담당자 승인 → 시민 검색 순서다.
-수집 성공은 공개 승인이 아니다. 현재 저장소에는 **합성 업무 3개**만 있으며, 실제 성남시 전체
-분류표·조직도·복지 DB를 구축한 상태가 아니다. 기존 민원 배정 카탈로그와도 분리되어 있다.
+수집 성공은 공개 승인이 아니다. 저장소에는 합성 업무 3개와 [공개 목록 조사 후보 12개](SEONGNAM_REVIEW_CANDIDATES.md)가
+있다. 실제 성남시 전체 분류표·조직도·복지 DB를 구축한 상태는 아니며 기존 민원 배정 카탈로그와도 분리되어 있다.
 
 ## 현재 수집 범위
 
@@ -86,6 +86,7 @@ URL을 `--source-url`로 지정한다. 로컬 파일의 원격 수집일은 알 
 | `GET /api/v1/service-catalogs` | 담당자 조회, 현재 공개 버전과 최근 50개 등록 버전 |
 | `POST /api/v1/service-catalogs` | 분류 담당 또는 검토 승인, `ServiceBundle` 등록만 수행 |
 | `GET /api/v1/service-catalogs/{version}` | 원본 묶음·해시·검수 이력 조회 |
+| `GET /api/v1/service-catalogs/candidates/{name}` | 담당자 조회, `seongnam` 조사 후보 또는 `synthetic` 예시 반환만 수행 |
 | `POST /api/v1/service-catalogs/{version}/review` | 검토 승인 역할만 공개·철회 |
 
 본문은 최대 2MB다. 같은 버전·같은 내용 재등록은 새 이력을 만들지 않는다. 같은 버전의 다른
@@ -128,8 +129,9 @@ Invoke-RestMethod -Method Post -Uri "$catalogBase/api/v1/service-catalogs/$($cat
 동시 검수 변경이 감지되면 거부하므로 상태를 다시 읽고 판단한다.
 
 버전과 검수 이력은 `ServiceCatalogVersion`, `ServiceCatalogReview`에 추가만 하며 SQLite
-수정·삭제 방지 트리거로 보호한다. 담당자 ID는 로그인 세션에서 결정한다. 별도 검수 UI,
-운영용 권한·이관·보존 정책, PostgreSQL 마이그레이션은 후속 작업이다.
+수정·삭제 방지 트리거로 보호한다. 담당자 ID는 로그인 세션에서 결정한다.
+`/staff/service-catalogs`에서 후보 불러오기·파일 등록·상세 검수·승인·철회를 할 수 있다.
+운영용 권한·이관·보존 정책과 PostgreSQL 마이그레이션은 후속 작업이다.
 
 ## 다음 전달물
 

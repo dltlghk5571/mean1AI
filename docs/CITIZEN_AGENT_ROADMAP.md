@@ -9,7 +9,8 @@
 
 이 문서는 향후 작업 계획과 조사 자료다. 시연 챗봇 UI·접수 확인·검수 자료·도구 실행기는
 구현했으며, 현재 동작하는 범위는 [챗봇 HTTP 계약](CHAT_API.md)과 [도구 JSON v2](AGENT_API.md)를
-기준으로 한다. 실제 모델의 도구 선택, 동아리 서버, 실제 부서 카탈로그 교체와 대량 수집은 후속 범위다.
+기준으로 한다. 동아리 대화 모델용 HTTP 어댑터와 담당자 자료 검수 화면도 준비했다.
+실제 서버 접속·모델 평가, 실제 부서 카탈로그 교체와 대량 수집은 후속 범위다.
 구체적인 분류표와 API·수집 출처는 [분류·데이터 조사 문서](SERVICE_TAXONOMY_AND_SOURCES.md)에 정리했다.
 
 ## 1. 현재 구현에서 출발할 수 있는 부분
@@ -268,8 +269,8 @@ LLM은 임의 SQL, 임의 URL 호출, 타인 민원 검색 권한을 갖지 않�
 
 v1 `ChatAgentProvider`와 v2 `AgentPlanner`, 엄격한 JSON, 서버 소유 초안·최종 확인 API를
 구현했다. v2는 검수한 로컬 자료 검색과 필요 정보 조회를 실행하며, 실제 추론·외부 검색·첨부·
-정부 연결은 후속 작업이다. 현재 설정은 `CHAT_PROVIDER=agent_demo|demo|unavailable`이고
-기본값은 `agent_demo`다. 나머지 설정 후보는 아직 활성화하지 않는다.
+정부 연결은 후속 작업이다. 현재 설정은 `CHAT_PROVIDER=agent_demo|demo|club|unavailable`이고
+기본값은 `agent_demo`다. `club`의 현재 설정은 [전용 서버 계약](CLUB_MODEL_SERVER.md)을 따른다.
 
 | 연결부 | 준비할 인터페이스 | 나중에 받을 정보 |
 | --- | --- | --- |
@@ -280,8 +281,9 @@ v1 `ChatAgentProvider`와 v2 `AgentPlanner`, 엄격한 JSON, 서버 소유 초�
 | 사진 | `AttachmentService` / 선택적 `VisionProvider` | 저장소, 크기 제한, 검사·OCR·식별정보 처리 방식 |
 | 정부 접수 | `GovernmentSubmissionAdapter` | 기관 승인, 테스트 환경, 접수·조회·첨부·통지 명세 |
 
-설정 후보는 `CHAT_PROVIDER`, `CHAT_BASE_URL`, `CHAT_MODEL_ID`, `CLASSIFIER_PROVIDER`,
-`CLASSIFIER_BASE_URL`, `CLASSIFIER_MODEL_ID`, `GOV_SUBMISSION_MODE`다. 인증키는 서버의
+대화 연결에는 `CHAT_ENDPOINT_URL`, `CHAT_MODEL_ID`, `CHAT_API_KEY`를 사용한다.
+후속 설정 후보는 `CLASSIFIER_PROVIDER`, `CLASSIFIER_BASE_URL`, `CLASSIFIER_MODEL_ID`,
+`GOV_SUBMISSION_MODE`다. 인증키는 서버의
 비밀값 설정으로 받고 브라우저·Git·일반 로그에 넣지 않는다. 현재의 `AI_PROVIDER` 설정과는
 마이그레이션 방침을 정한 뒤 연결한다.
 
@@ -399,7 +401,8 @@ D는 분류 계약과 평가셋을 먼저 진행할 수 있다.
 등록/승인/철회, 읽기 도구 실행기와 출처 카드다. [시민 HTTP 계약](CHAT_API.md),
 [도구 JSON v2](AGENT_API.md), [데이터 수집·검수 절차](SERVICE_DATA_PIPELINE.md)를 기준으로 연결한다.
 
-다음 우선순위는 실제 대표 업무 10~15개 검수, 동아리 대화 모델·LLM 분류기 어댑터, 동적
+다음 우선순위는 조사 후보 12개의 최신 원문·이용 조건 검수와 생활불편·복지 혜택 확장,
+동아리 대화 모델의 실제 연결·평가와 별도 LLM 분류기 어댑터, 동적
 추가 질문과 사진 첨부다. 실제 HTML 선택자·이용 조건 확인 전에는 네트워크 수집을 활성화하지
-않으며, 현재 합성 업무 3개를 실제 조직·정책으로 소개하지 않는다. 기관 접수와 의미상 중복
+않으며, 합성 업무 3개와 미확인 사항이 남은 조사 후보를 구분한다. 기관 접수와 의미상 중복
 사건 연결, 음성·스트리밍은 별도 단계다. 기존 시민 조회·명시적 답변 공개·감사 기능은 재사용한다.

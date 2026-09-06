@@ -13,6 +13,9 @@
 - Citizen chat also redacts these identifier shapes before storing messages and drafts. Names,
   addresses and all identifying prose are not comprehensively detected; use synthetic examples only.
 - Chat context contains no session token, CSRF token, receipt lookup code or owner identifier.
+- Club HTTP requests are opt-in, redact context again, and send at most 12 recent messages plus
+  the current draft and tool results. Credentials remain in a server-side SecretStr and Bearer header.
+  Redirects, compressed responses and raw response logging are disabled. No training export occurs.
 - Before intake, append-only `CitizenChatAuditEvent` records contain metadata, not conversation text.
   Final consent creates both a linked complaint `AuditEvent` and chat event in the intake transaction.
 - One working chat is stored per citizen session. Reset replaces its redacted draft/history while

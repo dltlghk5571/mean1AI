@@ -103,6 +103,19 @@ def get_catalog(version: str, db: DbSession) -> dict[str, object]:
     }
 
 
+@router.get("/candidates/{name}")
+def get_bundled_candidate(name: str, request: Request) -> dict[str, object]:
+    names = {
+        "seongnam": "seongnam_service_candidates.json",
+        "synthetic": "service_catalog_demo.json",
+    }
+    if name not in names:
+        raise HTTPException(404, "candidate_not_found")
+    path = request.app.state.settings.package_dir / "data" / names[name]
+    bundle = ServiceBundle.model_validate_json(path.read_text(encoding="utf-8"))
+    return bundle.model_dump(mode="json")
+
+
 @router.post("/{version}/review")
 async def decide_catalog(version: str, request: Request, db: DbSession) -> dict[str, object]:
     actor = _require_action(request, "reviewer")

@@ -63,6 +63,10 @@
         </a>
 
         <p class="nav-label nav-label-secondary">시스템</p>
+        <a href="/staff/service-catalogs" class="{{ 'is-active' if active_filter|default('') == 'service_catalogs' else '' }}" {% if active_filter|default('') == 'service_catalogs' %}aria-current="page"{% endif %}>
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
+          <span>안내 자료 검수</span>
+        </a>
         <a href="/">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-7h6v7"/></svg>
           <span>시민 접수 홈</span>
@@ -133,7 +137,7 @@
 
       <div class="demo-banner" role="note">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 21 20H3zM12 9v4M12 16.5h.01"/></svg>
-        <p><strong>시연 환경</strong> 합성 데이터만 사용하며 실제 성남시·국민신문고에는 저장·전송되지 않습니다.</p>
+        <p><strong>시연 환경</strong> 민원에는 합성 예시만 사용합니다. 실제 성남시·국민신문고에는 저장·전송되지 않습니다.</p>
       </div>
 
       <main id="main-content" class="page-shell">

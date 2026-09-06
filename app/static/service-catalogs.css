@@ -1,0 +1,43 @@
+body.catalog-review-page { min-width:0; }
+.catalog-page { max-width: 1250px; margin: 0 auto; color: var(--ink, #233d35); }
+.catalog-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:24px; }
+.catalog-heading h1 { margin:8px 0; font-size:30px; letter-spacing:-1px; }
+.catalog-heading p, .catalog-panel > p { line-height:1.8; color:#60746c; }
+.catalog-eyebrow { font-size:12px; font-weight:700; color:#557961; }
+.catalog-status { padding:10px 15px; border-radius:20px; background:#e9f1e4; font-size:13px; white-space:nowrap; }
+.catalog-notice, .catalog-message { padding:16px 20px; background:#edf3e8; border:1px solid #d9e4d5; border-radius:12px; line-height:1.8; overflow-wrap:anywhere; }
+.catalog-message.is-error { background:#fff1e7; border-color:#eed6c3; color:#81502b; }
+.catalog-panel { padding:24px; border:1px solid #dfe7e0; border-radius:18px; background:white; margin-bottom:20px; min-width:0; }
+.catalog-panel h2 { margin:0 0 16px; font-size:19px; overflow-wrap:anywhere; }
+.catalog-panel h3 { font-size:16px; margin:8px 0 12px; }
+.catalog-panel p { font-size:14px; line-height:1.85; }
+.catalog-layout { display:grid; grid-template-columns:260px minmax(0,1fr); gap:20px; align-items:start; }
+.catalog-versions a { display:grid; gap:8px; padding:14px 12px; margin-bottom:8px; border-radius:10px; border:1px solid #e4e9e1; overflow-wrap:anywhere; font-size:13px; }
+.catalog-versions a[aria-current] { background:#edf5eb; border-color:#aac4a6; }
+.catalog-versions span { color:#687b71; font-size:12px; }
+.catalog-detail { min-width:0; }
+.catalog-actions { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+.catalog-page button { min-height:48px; padding:12px 18px; border:1px solid #c6d9c4; border-radius:10px; color:#255843; background:#f0f6ed; cursor:pointer; font:inherit; font-size:14px; }
+.catalog-page button:hover { background:#e3eddf; }
+.catalog-page button:disabled { opacity:.45; cursor:not-allowed; }
+.catalog-page button:focus-visible, .catalog-page input:focus-visible, .catalog-page textarea:focus-visible, .catalog-page summary:focus-visible { outline:3px solid #598969; outline-offset:3px; }
+.catalog-page label { display:grid; gap:10px; margin:16px 0; font-size:14px; }
+.catalog-page input:not([type=checkbox]), .catalog-page textarea { width:100%; max-width:100%; min-height:48px; padding:12px; border:1px solid #cedbcf; border-radius:9px; font:inherit; background:#fff; box-sizing:border-box; }
+.catalog-page input[type=file] { font-size:13px; }
+.catalog-check { grid-template-columns:auto 1fr; align-items:start; line-height:1.8; }
+.catalog-check input { width:20px; height:20px; margin-top:3px; }
+.catalog-page .catalog-withdraw { border-color:#e2c7b5; color:#87502d; background:#fff6ed; }
+.catalog-preview { padding:16px; background:#f6f8f2; border-radius:12px; overflow-wrap:anywhere; }
+.catalog-panel summary { padding:14px 0; cursor:pointer; font-size:14px; }
+.catalog-source { border-top:1px solid #e1e9df; padding:16px 0; }
+.catalog-source-text { white-space:pre-wrap; overflow-wrap:anywhere; background:#f8faf5; padding:14px; border-radius:8px; }
+.catalog-source a { display:inline-flex; min-height:48px; align-items:center; color:#286247; text-decoration:underline; }
+.catalog-services article { padding:20px 0; border-top:1px solid #e5eae2; }
+.catalog-services dl { display:grid; grid-template-columns:80px minmax(0,1fr); gap:10px; font-size:13px; line-height:1.8; }
+.catalog-services dt { color:#6e7d72; }
+.catalog-services dd { margin:0; overflow-wrap:anywhere; }
+.catalog-reviews { padding-left:22px; }
+.catalog-reviews li { padding:10px 0; font-size:13px; }
+.catalog-reviews small { color:#6e7d72; overflow-wrap:anywhere; }
+@media(max-width:1000px) { .catalog-layout { grid-template-columns:1fr; } .catalog-versions { display:flex; flex-wrap:wrap; gap:10px; } .catalog-versions h2 { width:100%; } .catalog-versions a { flex:1 1 190px; } }
+@media(max-width:560px) { .catalog-heading { align-items:start; flex-direction:column; } .catalog-heading h1 { font-size:25px; } .catalog-panel { padding:17px; } .catalog-actions { flex-direction:column; } .catalog-actions button { width:100%; } .catalog-services dl { grid-template-columns:64px minmax(0,1fr); } }
