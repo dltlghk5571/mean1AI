@@ -30,6 +30,9 @@
   Store photos with intake in one database transaction. Reads require complaint-specific citizen
   access or the existing officer session. Session expiry does not delete stored photos.
 - Store only what is necessary for the demo.
+- The citizen text-size setting stores only `standard`, `large`, or `extra` under the localStorage
+  key `seongnam.citizen.text-size.v1`. No complaint, chat, photo, lookup code, or authentication
+  data is copied into that preference. Storage failure leaves the current-page control usable.
 - Citizen follow-ups store only redacted text with a keyed request fingerprint, safety metadata,
   and append-only audits in one transaction. They never enter model prompts or logs. Only the
   original unexpired citizen session can write; lookup-code grants remain read-only. Explicit

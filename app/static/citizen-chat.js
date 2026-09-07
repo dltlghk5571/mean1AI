@@ -65,6 +65,7 @@
     q("photo-list").querySelectorAll("button").forEach((button) => { button.disabled = blocked; });
     q("busy").hidden = !busy;
     history.setAttribute("aria-busy", String(busy));
+    q("latest").disabled = !state || !history.lastElementChild;
   }
 
   function photoFeedback(text, error = false) {
@@ -130,6 +131,8 @@
   }
 
   function render(next, announce = false) {
+    const active = document.activeElement;
+    const moveFocus = announce && (active === document.body || (root.contains(active) && active.disabled));
     const changed = !state || next.revision !== state.revision;
     state = next;
     if (["welcome", "submitted"].includes(state.stage)) clearPhotos();
@@ -139,12 +142,13 @@
       history.replaceChildren();
       state.messages.forEach((message) => {
         const article = element("div", null, `chat-message chat-message-${message.role}`);
+        article.tabIndex = -1;
         article.append(element("span", message.role === "user" ? "나" : "생활민원 도우미", "chat-message-label"));
         article.append(element("p", message.text));
         history.append(article);
       });
       displayedMessages = messageKey;
-      if (wasAtBottom || announce) history.scrollTop = history.scrollHeight;
+      if (wasAtBottom || moveFocus) history.scrollTop = history.scrollHeight;
     }
     q("choices").replaceChildren();
     if (["welcome", "intent", "information"].includes(state.stage)) {
@@ -215,8 +219,9 @@
     }
     updateCount();
     controls();
-    if (announce) {
-      q("status").textContent = state.messages.at(-1).text;
+    const lastReply = state.messages.filter((message) => message.role === "assistant").at(-1);
+    if (lastReply) q("status").textContent = `생활민원 도우미: ${lastReply.text}`;
+    if (moveFocus) {
       if (state.stage === "review") {
         root.querySelector("#chat-review-title").focus({ preventScroll: true });
         q("review").scrollIntoView({ block: "nearest" });
@@ -236,9 +241,20 @@
     if ([400, 409, 413, 415, 422, 403].includes(error.status)) { pending = null; pendingPhotos = null; }
     q("retry").hidden = !pending || sessionExpired;
     q("reload").hidden = sessionExpired;
+    if (!editForm.hidden) {
+      Object.entries(error.fields || {}).forEach(([name, message]) => {
+        const field = editForm.elements.namedItem(name);
+        const note = [...editForm.querySelectorAll('[data-chat-field-error]')].find((item) => item.dataset.chatFieldError === name);
+        if (field && note) {
+          field.setAttribute("aria-invalid", "true");
+          note.textContent = message;
+        }
+      });
+    }
+    q("error").focus();
   }
 
-  async function load() {
+  async function load(announce = false) {
     if (busy) return;
     busy = true;
     q("error").hidden = true;
@@ -250,7 +266,7 @@
       pendingPhotos = null;
       sessionExpired = false;
       busy = false;
-      render(next);
+      render(next, announce);
     } catch (error) {
       showError(error);
     } finally {
@@ -264,6 +280,8 @@
     busy = true;
     const sent = pending;
     q("error").hidden = true;
+    editForm.querySelectorAll('[aria-invalid]').forEach((field) => field.removeAttribute('aria-invalid'));
+    editForm.querySelectorAll('[data-chat-field-error]').forEach((note) => { note.textContent = ''; });
     q("busy").textContent = sent.action === "confirm" ? "데모 민원을 접수하고 있어요…" : "이야기를 정리하고 있어요…";
     controls();
     try {
@@ -319,7 +337,7 @@
   });
   input.addEventListener("input", updateCount);
   input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && !event.isComposing && event.keyCode !== 229) {
       event.preventDefault();
       composer.requestSubmit();
     }
@@ -352,12 +370,21 @@
     if (editForm.reportValidity()) send("edit", Object.fromEntries(new FormData(editForm)));
   });
   q("retry").addEventListener("click", deliver);
-  q("reload").addEventListener("click", load);
+  q("latest").addEventListener("click", () => {
+    const latest = history.lastElementChild;
+    if (!latest) return;
+    latest.focus({ preventScroll: true });
+    latest.scrollIntoView({ block: "nearest" });
+  });
+  q("reload").addEventListener("click", () => load(true));
   q("reset").addEventListener("click", () => q("reset-dialog").showModal());
   q("reset-cancel").addEventListener("click", () => q("reset-dialog").close());
   q("reset-confirm").addEventListener("click", () => {
     q("reset-dialog").close();
     send("reset");
+  });
+  q("reset-dialog").addEventListener("close", () => {
+    if (!busy) q("reset").focus();
   });
   load();
 })();

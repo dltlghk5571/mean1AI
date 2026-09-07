@@ -1,0 +1,62 @@
+/* The citizen root scales text, including shared photo and follow-up components. */
+:root[data-text-size="standard"] { font-size: 100%; --citizen-text-scale: 1; }
+:root[data-text-size="large"] { font-size: 150%; --citizen-text-scale: 1.5; }
+:root[data-text-size="extra"] { font-size: 200%; --citizen-text-scale: 2; }
+.reading-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.reading-tools { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 4px 18px; padding-block: 12px; color: #3f5f50; }
+.reading-tools[hidden] { display: none; }
+.reading-tools fieldset { border: 0; padding: 0; margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; min-width: 0; }
+.reading-tools legend { float: left; padding: 8px 14px 8px 0; font-size: .8125rem; font-weight: 700; }
+.reading-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.reading-options label { position: relative; cursor: pointer; }
+.reading-options input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.reading-options span { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 12px; border: 1px solid #b1c7b8; border-radius: 9px; font-size: .8125rem; line-height: 1.4; background: #fff; }
+.reading-options input:checked + span { background: #176749; color: #fff; border-color: #176749; font-weight: 700; }
+.reading-options input:focus-visible + span { outline: 3px solid #176749; outline-offset: 3px; }
+.reading-tools > p:not(.reading-sr-only) { margin: 0; font-size: .75rem; }
+.chat-history-tools { display: flex; align-items: center; justify-content: flex-end; padding: 4px 22px 0; }
+.chat-latest { min-height: 44px; background: transparent; border: 0; padding: 8px 4px; color: var(--green); font: inherit; font-size: .8125rem; text-decoration: underline; cursor: pointer; }
+.chat-message:focus { outline: 3px solid #176749; outline-offset: 3px; }
+.chat-composer-bottom { flex-wrap: wrap; }
+.chat-composer .chat-photo-note { flex-basis: 100%; }
+.chat-composer .chat-send { width: auto; min-width: 90px; height: auto; min-height: 48px; padding: 10px 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: .9375rem; font-weight: 700; }
+.chat-character-count { margin-left: 0; margin-right: auto; }
+.chat-input-help { color: #4e6555; font-size: .8125rem; }
+.chat-composer textarea::placeholder { color: #607363; }
+.chat-field-error { display: block; font-size: .8125rem; line-height: 1.6; color: #883e28; }
+.chat-field-error:empty { display: none; }
+.chat-review [aria-invalid="true"] { border: 2px solid #a04029; }
+.chat-error:focus { outline: 3px solid #a04029; outline-offset: 3px; }
+.chat-reset-dialog > div, .chat-edit-actions { flex-wrap: wrap; }
+.lookup-recovery summary { min-height: 44px; }
+.primary-nav a { min-height: 44px; }
+:root[data-text-size]:not([data-text-size="standard"]) .header-inner { height: auto; min-height: 90px; padding-block: 14px; gap: 10px 28px; }
+:root[data-text-size]:not([data-text-size="standard"]) .brand { white-space: normal; min-width: 0; }
+:root[data-text-size]:not([data-text-size="standard"]) .brand-mark { flex-shrink: 0; }
+:root[data-text-size]:not([data-text-size="standard"]) .primary-nav { height: auto; flex-wrap: wrap; }
+:root[data-text-size]:not([data-text-size="standard"]) .chat-card-header { flex-wrap: wrap; }
+:root[data-text-size]:not([data-text-size="standard"]) .chat-card-header > div { min-width: 0; flex: 1; }
+:root[data-text-size]:not([data-text-size="standard"]) .chat-demo-badge { white-space: normal; }
+:root[data-text-size]:not([data-text-size="standard"]) .chat-review-heading { flex-wrap: wrap; }
+:root[data-text-size]:not([data-text-size="standard"]) .chat-review-details > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+:root[data-text-size]:not([data-text-size="standard"]) .button { height: auto; white-space: normal; }
+:root[data-text-size]:not([data-text-size="standard"]) :is(.field input, .chat-review input) { height: auto; min-height: 2.75rem; }
+:root[data-text-size]:not([data-text-size="standard"]) .chat-composer textarea { max-height: 14rem; }
+:root[data-text-size]:not([data-text-size="standard"]) :is(.page-heading, .surface-heading, .receipt-top, .detail-meta, .form-actions, .field-help-row, .record-item > div, .detail-bottom) { flex-wrap: wrap; }
+:root[data-text-size]:not([data-text-size="standard"]) :is(.page-shell, .chat-shell, .hero, .topics-section, .how-section, .help-section, .site-footer) { overflow-wrap: anywhere; }
+:root[data-text-size]:not([data-text-size="standard"]) .hero-art { display: block; width: 100%; margin: 0; min-height: 0; max-height: none; }
+:root[data-text-size]:not([data-text-size="standard"]) .art-note { position: static; width: auto; max-width: 100%; margin-top: 10px; transform: none; }
+@media (max-width: 980px) {
+  :root[data-text-size]:not([data-text-size="standard"]) :is(.chat-workspace, .detail-grid, .lookup-layout, .form-layout, .hero-inner) { grid-template-columns: minmax(0, 1fr); }
+  :root[data-text-size]:not([data-text-size="standard"]) .header-inner { flex-wrap: wrap; }
+  :root[data-text-size]:not([data-text-size="standard"]) .primary-nav { margin-left: 0; gap: 12px 24px; width: 100%; }
+}
+@media (max-width: 600px) {
+  .reading-tools { justify-content: flex-start; }
+  :root[data-text-size]:not([data-text-size="standard"]) .topic-grid { grid-template-columns: minmax(0, 1fr); }
+  :root[data-text-size]:not([data-text-size="standard"]) .topic-card:last-child { grid-column: auto; }
+  :root[data-text-size]:not([data-text-size="standard"]) :is(.how-steps, .form-aside) { display: grid; grid-template-columns: minmax(0, 1fr); }
+  :root[data-text-size]:not([data-text-size="standard"]) .how-steps li { border: 0; }
+  :root[data-text-size]:not([data-text-size="standard"]) :is(.section-heading, .chat-intro, .progress-steps, .status-track) { flex-wrap: wrap; gap: 14px; }
+  :root[data-text-size]:not([data-text-size="standard"]) .receipt-data > div { grid-template-columns: minmax(0, 1fr); }
+}

@@ -175,6 +175,10 @@ v2에는 도구 호출·결과, 승인된 자료 ID와 필요한 질문 조회, 
 
 ## 4명이 다음에 넘겨줄 것
 
+시민 화면은 글자 크기 100·150·200%와 키보드 조작을 지원한다. Enter는 줄바꿈이고,
+메시지 전송은 보내기 버튼 또는 Ctrl+Enter(Mac은 ⌘+Enter)다.
+[읽기·키보드 UI 계약](CITIZEN_ACCESSIBILITY.md)을 참고한다. HTTP 메시지·접수 계약은 동일하다.
+
 접수 이후의 문의는 채팅 초안을 다시 접수하지 않고 기존 민원에 연결한다.
 `POST /minwon/{complaint_id}/follow-ups`와 담당자 답변 공개는
 [추가 문의 HTTP 계약](CITIZEN_FOLLOWUPS.md)을 따른다. 이 이력은 모델 컨텍스트에 자동 포함하지 않는다.

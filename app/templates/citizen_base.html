@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="{{ url_for('static', path='/citizen.css') }}?v=1">
   <script defer src="{{ url_for('static', path='/citizen.js') }}?v=1"></script>
   {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', path='/citizen-accessibility.css') }}?v=1">
+  <script src="{{ url_for('static', path='/citizen-accessibility.js') }}?v=1"></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#main">본문으로 바로가기</a>
@@ -26,6 +28,15 @@
       <a class="staff-link" href="/login">담당자 로그인 <span aria-hidden="true">↗</span></a>
     </div>
   </header>
+  <div class="reading-tools container" data-reading-tools hidden>
+    <fieldset aria-describedby="reading-help"><legend>글자 크기</legend><div class="reading-options">
+      <label><input type="radio" name="citizen_text_size" value="standard" checked><span>기본</span></label>
+      <label><input type="radio" name="citizen_text_size" value="large"><span>크게</span></label>
+      <label><input type="radio" name="citizen_text_size" value="extra"><span>아주 크게</span></label>
+    </div></fieldset>
+    <p id="reading-help">이 브라우저에 글자 크기를 기억해요.</p>
+    <p class="reading-sr-only" data-reading-status role="status" aria-live="polite" aria-atomic="true"></p>
+  </div>
   <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
   <footer class="site-footer"><div class="container footer-inner"><div><a class="footer-brand" href="/">성남 생활민원 <span>DEMO</span></a><p>작은 불편을 듣고, 더 나은 일상을 함께 만듭니다.</p><small>본 서비스는 시연용입니다. 실제 성남시의 공식 민원 접수·처리 서비스가 아닙니다.</small></div><a href="/login">담당자 업무 공간 <span aria-hidden="true">↗</span></a></div></footer>
   <div class="toast" role="status" data-toast hidden></div>
