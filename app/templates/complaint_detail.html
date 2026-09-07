@@ -5,6 +5,8 @@
 {% block topbar_subtitle %}분류 근거와 답변 초안을 확인합니다{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/followups.css') }}">
+<script defer src="{{ url_for('static', path='/followups.js') }}"></script>
 {% set ai_job = complaint.ai_processing %}
 {% if ai_job %}
   {% set ai_label = 'AI 분석 중단 · 담당자 검토 반영' if ai_job.last_error_code == 'human_review_superseded' else ai_state_labels[ai_job.state] %}
@@ -116,6 +118,7 @@
   <a href="#draft-review">답변 초안</a>
   <a href="#officer-review">담당자 검토</a>
   <a href="#audit-history">처리 이력</a>
+  {% if citizen_submission %}<a href="#followups">추가 문의 {{ followups.total }}</a>{% endif %}
 </nav>
 
 <div class="detail-workspace">
@@ -162,6 +165,9 @@
         </div>
       </dl>
     </section>
+
+    {% include 'citizen_photos.html' %}
+    {% include 'followup_staff_history.html' %}
 
     <section class="content-card duplicate-review-card" id="duplicate-review" tabindex="-1">
       <header class="card-heading">

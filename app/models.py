@@ -14,6 +14,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -50,6 +51,92 @@ class CitizenSubmission(Base):
     lookup_code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
 
 
+class CitizenPhoto(Base):
+    """Re-encoded photos committed with a confirmed intake; never part of model context."""
+
+    __tablename__ = "citizen_photos"
+    __table_args__ = (
+        UniqueConstraint("complaint_id", "position", name="uq_citizen_photo_position"),
+        CheckConstraint("position BETWEEN 1 AND 3"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("citizen_submissions.complaint_id"), nullable=False, index=True
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    content: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class CitizenChat(Base):
+    """One private, redacted working conversation per citizen session."""
+
+    __tablename__ = "citizen_chats"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    owner_session_hash: Mapped[str] = mapped_column(
+        ForeignKey("citizen_sessions.token_hash"), nullable=False, unique=True
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    state: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    submission_key: Mapped[str] = mapped_column(String(36), nullable=False)
+    submitted_complaint_id: Mapped[str | None] = mapped_column(
+        ForeignKey("complaints.id"), nullable=True
+    )
+    last_request_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    last_request_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now
+    )
+
+
+class CitizenChatAuditEvent(Base):
+    """Append-only pre-intake audit; no fabricated complaint before consent."""
+
+    __tablename__ = "citizen_chat_audit_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chat_id: Mapped[str] = mapped_column(ForeignKey("citizen_chats.id"), nullable=False, index=True)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    action: Mapped[str] = mapped_column(String(80), nullable=False)
+    details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+
+
+class ServiceCatalogVersion(Base):
+    """Immutable, staged snapshot; importing never grants publication."""
+
+    __tablename__ = "service_catalog_versions"
+
+    version: Mapped[str] = mapped_column(String(80), primary_key=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    bundle: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    imported_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class ServiceCatalogReview(Base):
+    """Append-only import/publication journal, independent of complaint records."""
+
+    __tablename__ = "service_catalog_reviews"
+    __table_args__ = (CheckConstraint("decision IN ('staged', 'approved', 'withdrawn')"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    version: Mapped[str] = mapped_column(ForeignKey("service_catalog_versions.version"), index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    decision: Mapped[str] = mapped_column(String(20), nullable=False)
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    review_due_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class CitizenGrant(Base):
     __tablename__ = "citizen_grants"
 
@@ -75,6 +162,42 @@ class PublishedReply(Base):
     )
     actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
     answer_text: Mapped[str] = mapped_column(Text, nullable=False)
+    published_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+
+
+class CitizenFollowUp(Base):
+    """Immutable citizen message attached to an existing private intake."""
+
+    __tablename__ = "citizen_followups"
+    __table_args__ = (
+        UniqueConstraint("complaint_id", "request_key", name="uq_citizen_followup_request"),
+        CheckConstraint("urgency IN ('normal', 'high', 'critical')"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("citizen_submissions.complaint_id"), nullable=False, index=True
+    )
+    request_key: Mapped[str] = mapped_column(String(36), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    urgency: Mapped[str] = mapped_column(String(20), nullable=False)
+    review_reasons: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+
+
+class CitizenFollowUpReply(Base):
+    """One explicitly published human response per follow-up; never an AI draft."""
+
+    __tablename__ = "citizen_followup_replies"
+
+    followup_id: Mapped[str] = mapped_column(ForeignKey("citizen_followups.id"), primary_key=True)
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
     published_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )

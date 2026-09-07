@@ -3,14 +3,17 @@ import logging
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
+from app.chat_schemas import ChatTurn
 from app.database import get_db
 from app.models import CitizenSession
-from app.services import citizen
+from app.services import citizen, citizen_chat, citizen_followups
+from app.services.citizen_photos import photo_summaries
 
 router = APIRouter(include_in_schema=False)
 DbSession = Annotated[Session, Depends(get_db)]
@@ -67,7 +70,19 @@ def home(request: Request) -> HTMLResponse:
 
 
 @router.get("/minwon/new", response_class=HTMLResponse)
-def new_complaint(request: Request, db: DbSession, topic: str = "") -> HTMLResponse:
+def new_complaint(request: Request, db: DbSession) -> HTMLResponse:
+    return _session_page(
+        request,
+        db,
+        "citizen_chat.html",
+        active_page="new",
+        agent_demo=request.app.state.agent_executor is not None,
+        club_mode=request.app.state.settings.chat_provider == "club",
+    )
+
+
+@router.get("/minwon/form", response_class=HTMLResponse)
+def complaint_form(request: Request, db: DbSession, topic: str = "") -> HTMLResponse:
     category = next((item for item in CATEGORIES if item["key"] == topic), None)
     return _session_page(
         request,
@@ -85,7 +100,7 @@ def lookup_page(request: Request, db: DbSession) -> HTMLResponse:
 
 
 def _private_page(
-    request: Request, db: Session, complaint_id: str, *, receipt: bool
+    request: Request, db: Session, complaint_id: str, *, receipt: bool, followup_page: int = 1
 ) -> HTMLResponse:
     token = request.cookies.get(citizen.COOKIE_NAME)
     session = citizen.read_session(db, token)
@@ -97,10 +112,16 @@ def _private_page(
         request,
         "citizen_receipt.html" if receipt else "citizen_detail.html",
         record=citizen.public_record(db, submission),
+        photos=photo_summaries(db, complaint_id),
         lookup_code=citizen.lookup_code(token, submission.request_key)
         if receipt and owner and token
         else None,
         is_owner=owner,
+        csrf_token=session.csrf_token if session else None,
+        followup_key=str(uuid4()),
+        followups=citizen_followups.history(db, complaint_id, followup_page)
+        if not receipt
+        else None,
         active_page="lookup",
     )
 
@@ -111,8 +132,13 @@ def receipt_page(complaint_id: str, request: Request, db: DbSession) -> HTMLResp
 
 
 @router.get("/minwon/{complaint_id}", response_class=HTMLResponse)
-def detail_page(complaint_id: str, request: Request, db: DbSession) -> HTMLResponse:
-    return _private_page(request, db, complaint_id, receipt=False)
+def detail_page(
+    complaint_id: str,
+    request: Request,
+    db: DbSession,
+    followup_page: Annotated[int, Query(ge=1, le=100_000)] = 1,
+) -> HTMLResponse:
+    return _private_page(request, db, complaint_id, receipt=False, followup_page=followup_page)
 
 
 def _error(message: str, status: int, errors: dict[str, str] | None = None) -> JSONResponse:
@@ -154,6 +180,77 @@ async def _read_data(request: Request) -> dict[str, str] | JSONResponse:
     ):
         return _error("입력 형식을 확인해 주세요.", 400)
     return data
+
+
+@router.post("/minwon/chat/open")
+async def open_chat(request: Request, db: DbSession) -> Response:
+    session = _action_session(request, db, "chat_open", 30)
+    if isinstance(session, JSONResponse):
+        return session
+    return JSONResponse(await run_in_threadpool(citizen_chat.open_chat, db, session))
+
+
+@router.post("/minwon/{complaint_id}/follow-ups")
+async def add_followup(complaint_id: str, request: Request, db: DbSession) -> Response:
+    session = _action_session(request, db, "followup", 5)
+    if isinstance(session, JSONResponse):
+        return session
+    data = await _read_data(request)
+    if isinstance(data, JSONResponse):
+        return data
+    try:
+        followup = await run_in_threadpool(
+            citizen_followups.add_followup, db, session, complaint_id, data
+        )
+    except citizen_followups.FollowUpError as exc:
+        db.rollback()
+        return _error(str(exc), exc.status)
+    except Exception:
+        db.rollback()
+        logger.warning("citizen_followup_failed")
+        return _error("저장 결과를 확인하지 못했어요. 같은 내용으로 다시 시도해 주세요.", 503)
+    return JSONResponse(
+        {"redirect": f"/minwon/{complaint_id}?saved={followup.id}#followup-{followup.id}"}
+    )
+
+
+@router.post("/minwon/chat/turn")
+async def chat_turn(request: Request, db: DbSession) -> Response:
+    session = _action_session(request, db, "chat_turn", 30)
+    if isinstance(session, JSONResponse):
+        return session
+    data = await _read_data(request)
+    if isinstance(data, JSONResponse):
+        return data
+    try:
+        turn = ChatTurn.model_validate(data)
+    except ValidationError:
+        return _error("입력 형식이나 글자 수를 확인해 주세요.", 422)
+    if turn.action == "confirm":
+        address = request.client.host if request.client else "unknown"
+        if not request.app.state.citizen_limiter.allow("submit", address, 5):
+            return _error("접수 요청이 많아요. 1분 후 다시 시도해 주세요.", 429)
+    try:
+        result = await run_in_threadpool(
+            citizen_chat.advance_chat,
+            db,
+            session,
+            request.cookies[citizen.COOKIE_NAME],
+            turn,
+            request.app.state.chat_provider,
+            request.app.state.pipeline,
+            request.app.state.agent_executor,
+        )
+    except citizen_chat.ChatError as exc:
+        return JSONResponse(
+            {"message": str(exc), "errors": {}, "urgent": exc.urgent}, status_code=exc.status
+        )
+    except citizen.CitizenValidationError as exc:
+        return _error("접수할 내용을 확인해 주세요.", 422, exc.errors)
+    except Exception:
+        logger.warning("citizen_chat_failed")
+        return _error("요청을 완료하지 못했어요. 같은 내용으로 다시 시도해 주세요.", 503)
+    return JSONResponse(result)
 
 
 @router.post("/minwon/preview")
