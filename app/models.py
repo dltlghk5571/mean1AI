@@ -167,6 +167,42 @@ class PublishedReply(Base):
     )
 
 
+class CitizenFollowUp(Base):
+    """Immutable citizen message attached to an existing private intake."""
+
+    __tablename__ = "citizen_followups"
+    __table_args__ = (
+        UniqueConstraint("complaint_id", "request_key", name="uq_citizen_followup_request"),
+        CheckConstraint("urgency IN ('normal', 'high', 'critical')"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("citizen_submissions.complaint_id"), nullable=False, index=True
+    )
+    request_key: Mapped[str] = mapped_column(String(36), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    urgency: Mapped[str] = mapped_column(String(20), nullable=False)
+    review_reasons: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+
+
+class CitizenFollowUpReply(Base):
+    """One explicitly published human response per follow-up; never an AI draft."""
+
+    __tablename__ = "citizen_followup_replies"
+
+    followup_id: Mapped[str] = mapped_column(ForeignKey("citizen_followups.id"), primary_key=True)
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    published_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+
+
 class Department(Base):
     __tablename__ = "departments"
 

@@ -3,7 +3,7 @@ import logging
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -12,7 +12,7 @@ from starlette.concurrency import run_in_threadpool
 from app.chat_schemas import ChatTurn
 from app.database import get_db
 from app.models import CitizenSession
-from app.services import citizen, citizen_chat
+from app.services import citizen, citizen_chat, citizen_followups
 from app.services.citizen_photos import photo_summaries
 
 router = APIRouter(include_in_schema=False)
@@ -100,7 +100,7 @@ def lookup_page(request: Request, db: DbSession) -> HTMLResponse:
 
 
 def _private_page(
-    request: Request, db: Session, complaint_id: str, *, receipt: bool
+    request: Request, db: Session, complaint_id: str, *, receipt: bool, followup_page: int = 1
 ) -> HTMLResponse:
     token = request.cookies.get(citizen.COOKIE_NAME)
     session = citizen.read_session(db, token)
@@ -117,6 +117,11 @@ def _private_page(
         if receipt and owner and token
         else None,
         is_owner=owner,
+        csrf_token=session.csrf_token if session else None,
+        followup_key=str(uuid4()),
+        followups=citizen_followups.history(db, complaint_id, followup_page)
+        if not receipt
+        else None,
         active_page="lookup",
     )
 
@@ -127,8 +132,13 @@ def receipt_page(complaint_id: str, request: Request, db: DbSession) -> HTMLResp
 
 
 @router.get("/minwon/{complaint_id}", response_class=HTMLResponse)
-def detail_page(complaint_id: str, request: Request, db: DbSession) -> HTMLResponse:
-    return _private_page(request, db, complaint_id, receipt=False)
+def detail_page(
+    complaint_id: str,
+    request: Request,
+    db: DbSession,
+    followup_page: Annotated[int, Query(ge=1, le=100_000)] = 1,
+) -> HTMLResponse:
+    return _private_page(request, db, complaint_id, receipt=False, followup_page=followup_page)
 
 
 def _error(message: str, status: int, errors: dict[str, str] | None = None) -> JSONResponse:
@@ -178,6 +188,30 @@ async def open_chat(request: Request, db: DbSession) -> Response:
     if isinstance(session, JSONResponse):
         return session
     return JSONResponse(await run_in_threadpool(citizen_chat.open_chat, db, session))
+
+
+@router.post("/minwon/{complaint_id}/follow-ups")
+async def add_followup(complaint_id: str, request: Request, db: DbSession) -> Response:
+    session = _action_session(request, db, "followup", 5)
+    if isinstance(session, JSONResponse):
+        return session
+    data = await _read_data(request)
+    if isinstance(data, JSONResponse):
+        return data
+    try:
+        followup = await run_in_threadpool(
+            citizen_followups.add_followup, db, session, complaint_id, data
+        )
+    except citizen_followups.FollowUpError as exc:
+        db.rollback()
+        return _error(str(exc), exc.status)
+    except Exception:
+        db.rollback()
+        logger.warning("citizen_followup_failed")
+        return _error("저장 결과를 확인하지 못했어요. 같은 내용으로 다시 시도해 주세요.", 503)
+    return JSONResponse(
+        {"redirect": f"/minwon/{complaint_id}?saved={followup.id}#followup-{followup.id}"}
+    )
 
 
 @router.post("/minwon/chat/turn")

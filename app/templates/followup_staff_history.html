@@ -1,0 +1,7 @@
+{% if citizen_submission %}
+<section class="followup-panel" id="followups" aria-labelledby="followup-history-title">
+  <header class="followup-heading"><div><p class="followup-eyebrow">접수 이후의 대화</p><h2 id="followup-history-title">추가 문의 <span>{{ followups.total }}</span></h2></div><a class="followup-link" href="/staff/follow-ups">미답변 문의 목록 ↗</a></header>
+  <div class="followup-history">{% for item in followups['items'] %}{% include 'followup_staff_item.html' %}{% else %}<p class="followup-note">시민이 추가 문의를 남기면 이곳에 표시됩니다.</p>{% endfor %}</div>
+  {% if followups.total > 20 %}<nav class="followup-pagination" aria-label="추가 문의 내역 페이지">{% if followups.page > 1 %}<a href="?followup_page={{ followups.page - 1 }}#followups">이전 내역</a>{% endif %}<span>{{ followups.page }} 페이지 · 최신순</span>{% if followups.has_next %}<a href="?followup_page={{ followups.page + 1 }}#followups">다음 내역</a>{% endif %}</nav>{% endif %}
+</section>
+{% endif %}
