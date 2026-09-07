@@ -114,6 +114,16 @@ def preview_submission(payload: ComplaintCreate) -> dict[str, str]:
     }
 
 
+def _valid_chat_draft_id(value: str) -> bool:
+    """A bounded, canonical UUID string; not trusted for anything beyond correlation."""
+    if not value or len(value) > 36:
+        return False
+    try:
+        return str(UUID(value)) == value
+    except ValueError:
+        return False
+
+
 def previous_submission(db: Session, owner_hash: str, request_key: str) -> CitizenSubmission | None:
     return db.scalar(
         select(CitizenSubmission).where(
@@ -153,6 +163,18 @@ def submit(
             actor_type="citizen",
             details={"access": "private", "demo_consent": True},
         )
+        chat_draft_id = data.get("chat_draft_id", "")
+        if _valid_chat_draft_id(chat_draft_id):
+            # draft_id is the join key back to the app.chat_eval log line for this
+            # draft; "edited" is a self-reported client signal (the server never
+            # persisted the draft text to check it against), so it's advisory only.
+            record_audit(
+                db,
+                complaint_id=complaint.id,
+                action="citizen_chat_draft",
+                actor_type="citizen",
+                details={"draft_id": chat_draft_id, "edited": data.get("chat_edited") == "yes"},
+            )
         db.commit()
         return submission
     except IntegrityError:

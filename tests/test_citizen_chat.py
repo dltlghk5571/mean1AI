@@ -1,3 +1,5 @@
+import json
+import logging
 import re
 from unittest.mock import Mock
 
@@ -54,7 +56,10 @@ def test_chat_widget_hidden_and_endpoint_disabled_without_api_key(
 
 
 def test_chat_widget_visible_and_turn_returns_draft_when_ready(
-    anonymous_client: TestClient, test_app: FastAPI, monkeypatch: pytest.MonkeyPatch
+    anonymous_client: TestClient,
+    test_app: FastAPI,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     parsed = _ChatExtraction(
         assistant_message="말씀 감사합니다. 접수 전 내용을 확인해 주세요.",
@@ -67,10 +72,11 @@ def test_chat_widget_visible_and_turn_returns_draft_when_ready(
     page = _start(anonymous_client)
     assert "data-chat-widget" in page
 
-    response = anonymous_client.post(
-        "/minwon/chat/message",
-        json={"history": [], "message": "어제 저녁 공원 가로등이 꺼져 있었어요"},
-    )
+    with caplog.at_level(logging.INFO, logger="app.chat_eval"):
+        response = anonymous_client.post(
+            "/minwon/chat/message",
+            json={"history": [], "message": "어제 저녁 공원 가로등이 꺼져 있었어요"},
+        )
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["ready"] is True
@@ -79,7 +85,51 @@ def test_chat_widget_visible_and_turn_returns_draft_when_ready(
         "content": "어제 저녁 공원 산책로 가로등이 꺼져 있었습니다.",
         "location_text": "데모공원 산책로",
     }
+    assert isinstance(body["draft_id"], str) and body["draft_id"]
     sdk.responses.parse.assert_called_once()
+
+    [record] = [r for r in caplog.records if r.name == "app.chat_eval"]
+    eval_payload = json.loads(record.message.removeprefix("chat_turn_extraction "))
+    assert eval_payload["draft_id"] == body["draft_id"]
+    assert "어제 저녁 공원 가로등이 꺼져 있었어요" in eval_payload["transcript"]
+    assert eval_payload["model_output"] == {
+        "assistant_message": "말씀 감사합니다. 접수 전 내용을 확인해 주세요.",
+        "title": "가로등이 꺼져 있어요",
+        "content": "어제 저녁 공원 산책로 가로등이 꺼져 있었습니다.",
+        "location_text": "데모공원 산책로",
+        "ready_to_submit": True,
+    }
+    assert eval_payload["safety_overridden"] is False
+    assert eval_payload["final_ready"] is True
+
+
+def test_chat_redacts_pii_from_model_output_before_logging(
+    anonymous_client: TestClient,
+    test_app: FastAPI,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    parsed = _ChatExtraction(
+        assistant_message="확인했습니다.",
+        title="가로등 민원 010-1111-2222",
+        content="연락처는 010-1111-2222 입니다.",
+        location_text="",
+        ready_to_submit=True,
+    )
+    _enable_chat(test_app, monkeypatch, parsed)
+    _start(anonymous_client)
+    with caplog.at_level(logging.INFO, logger="app.chat_eval"):
+        response = anonymous_client.post(
+            "/minwon/chat/message", json={"history": [], "message": "가로등이 꺼졌어요"}
+        )
+    assert response.status_code == 200, response.text
+
+    [record] = [r for r in caplog.records if r.name == "app.chat_eval"]
+    eval_payload = json.loads(record.message.removeprefix("chat_turn_extraction "))
+    assert "010-1111-2222" not in eval_payload["model_output"]["title"]
+    assert "010-1111-2222" not in eval_payload["model_output"]["content"]
+    assert "[전화번호]" in eval_payload["model_output"]["title"]
+    assert "[전화번호]" in eval_payload["model_output"]["content"]
 
 
 def test_chat_requires_csrf(
@@ -117,7 +167,10 @@ def test_chat_rejects_oversized_body(
 
 
 def test_chat_safety_gate_overrides_ready_for_sensitive_content(
-    anonymous_client: TestClient, test_app: FastAPI, monkeypatch: pytest.MonkeyPatch
+    anonymous_client: TestClient,
+    test_app: FastAPI,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     parsed = _ChatExtraction(
         assistant_message="정리했습니다.",
@@ -128,10 +181,19 @@ def test_chat_safety_gate_overrides_ready_for_sensitive_content(
     )
     _enable_chat(test_app, monkeypatch, parsed)
     _start(anonymous_client)
-    response = anonymous_client.post(
-        "/minwon/chat/message", json={"history": [], "message": "이웃이 걱정돼요"}
-    )
+    with caplog.at_level(logging.INFO, logger="app.chat_eval"):
+        response = anonymous_client.post(
+            "/minwon/chat/message", json={"history": [], "message": "이웃이 걱정돼요"}
+        )
     assert response.status_code == 200
     body = response.json()
     assert body["ready"] is False
     assert body["draft"] is None
+    assert body["draft_id"] is None
+
+    [record] = [r for r in caplog.records if r.name == "app.chat_eval"]
+    eval_payload = json.loads(record.message.removeprefix("chat_turn_extraction "))
+    assert eval_payload["draft_id"] is None
+    assert eval_payload["model_output"]["ready_to_submit"] is True  # raw model judgment
+    assert eval_payload["safety_overridden"] is True
+    assert eval_payload["final_ready"] is False

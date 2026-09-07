@@ -10,8 +10,11 @@ purpose keeps the security-reviewed pipeline the single source of truth.
 
 from __future__ import annotations
 
+import json
+import logging
 from dataclasses import dataclass
 from typing import Any, Literal, TypedDict
+from uuid import uuid4
 
 from langgraph.graph import END, StateGraph
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,6 +26,13 @@ from app.services.policy import evaluate_policy
 
 # ponytail: fixed turn cap, promote to a Settings field if teams need to tune it.
 MAX_TURNS = 8
+
+# Separate logger name so eval/training data collection can be routed (e.g. to a
+# file) independently of ordinary app logs, without adding a DB table or changing
+# the "no server-side conversation storage" design. Payload is PII-redacted (same
+# text already sent to OpenAI), embedded as JSON text since the app's default log
+# formatter does not render `extra=`.
+_eval_logger = logging.getLogger("app.chat_eval")
 
 
 class ChatMessage(BaseModel):
@@ -37,6 +47,7 @@ class ChatTurnResult:
     reply: str
     ready: bool
     draft: dict[str, str] | None
+    draft_id: str | None = None
 
 
 class _ChatExtraction(BaseModel):
@@ -56,6 +67,7 @@ class _ChatState(TypedDict):
     content: str
     location_text: str
     ready: bool
+    draft_id: str | None
 
 
 _INSTRUCTIONS = """
@@ -118,15 +130,47 @@ class ChatAgent:
         combined = f"{state['title']}\n{state['content']}\n{state['location_text']}"
         emergency = detect_emergency(combined)
         policy = evaluate_policy(combined, "other")
-        if emergency.signals or policy.reasons:
-            return {
-                "ready": False,
-                "assistant_message": (
-                    "안전 또는 민감한 내용이 포함된 것 같아요. "
-                    "직접 작성 화면에서 내용을 확인하고 접수해 주세요."
-                ),
-            }
-        return {}
+        unsafe = bool(emergency.signals or policy.reasons)
+        final_ready = False if unsafe else state["ready"]
+        # A draft_id is minted only when a draft actually exists, so it never
+        # leaks into a request the citizen never sees drafted content for.
+        draft_id = (
+            str(uuid4())
+            if final_ready and state["title"].strip() and state["content"].strip()
+            else None
+        )
+
+        # Model output can restate PII the citizen typed (the redaction upstream
+        # only covers the transcript sent *into* the model); redact again on the
+        # way into the eval log, which is the one place this text is persisted
+        # (as a log line, never in the DB).
+        _eval_logger.info(
+            "chat_turn_extraction %s",
+            json.dumps(
+                {
+                    "draft_id": draft_id,
+                    "transcript": redact_pii(state["transcript"]).text,
+                    "model_output": {
+                        "assistant_message": redact_pii(state["assistant_message"]).text,
+                        "title": redact_pii(state["title"]).text,
+                        "content": redact_pii(state["content"]).text,
+                        "location_text": redact_pii(state["location_text"]).text,
+                        "ready_to_submit": state["ready"],
+                    },
+                    "safety_overridden": unsafe and state["ready"],
+                    "final_ready": final_ready,
+                },
+                ensure_ascii=False,
+            ),
+        )
+        update: dict[str, object] = {"draft_id": draft_id}
+        if unsafe:
+            update["ready"] = False
+            update["assistant_message"] = (
+                "안전 또는 민감한 내용이 포함된 것 같아요. "
+                "직접 작성 화면에서 내용을 확인하고 접수해 주세요."
+            )
+        return update
 
     def step(self, *, history: list[ChatMessage], message: ChatMessage) -> ChatTurnResult:
         turns = [*history, message]
@@ -152,6 +196,7 @@ class ChatAgent:
                     "content": "",
                     "location_text": "",
                     "ready": False,
+                    "draft_id": None,
                 }
             )
         except ClassifierError:
@@ -167,5 +212,8 @@ class ChatAgent:
                 "location_text": result["location_text"].strip(),
             }
         return ChatTurnResult(
-            reply=result["assistant_message"], ready=draft is not None, draft=draft
+            reply=result["assistant_message"],
+            ready=draft is not None,
+            draft=draft,
+            draft_id=result["draft_id"] if draft is not None else None,
         )

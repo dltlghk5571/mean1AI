@@ -74,6 +74,7 @@
     let busy = false;
     let dirty = false;
     let completed = false;
+    let chatDraft = null; // ponytail: in-memory only, drives the submit-time edited/unedited signal
     const writePanel = $('[data-write-panel]');
     const reviewPanel = $('[data-review-panel]');
     const count = () => {
@@ -96,6 +97,12 @@
       location_text: form.elements.location_text.value,
       request_key: form.elements.request_key.value,
       consent: form.elements.consent.checked ? 'yes' : '',
+      chat_draft_id: chatDraft ? chatDraft.id : '',
+      chat_edited: chatDraft && (
+        form.elements.title.value !== chatDraft.title
+        || form.elements.content.value !== chatDraft.content
+        || form.elements.location_text.value !== chatDraft.location_text
+      ) ? 'yes' : '',
     });
     form.addEventListener('input', () => { dirty = true; count(); });
     window.addEventListener('beforeunload', (event) => {
@@ -220,6 +227,7 @@
               form.elements.title.value = result.draft.title;
               form.elements.location_text.value = result.draft.location_text;
               form.elements.content.value = result.draft.content;
+              chatDraft = { ...result.draft, id: result.draft_id };
               dirty = true;
               count();
               toast('대화 내용을 바탕으로 양식을 채웠어요. 접수 전에 확인해 주세요.');

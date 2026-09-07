@@ -211,7 +211,14 @@ async def chat_message(request: Request, db: DbSession) -> Response:
     except ClassifierError:
         logger.warning("citizen_chat_failed")
         return _error("지금은 대화형 작성을 사용할 수 없어요. 직접 작성해 주세요.", 503)
-    return JSONResponse({"reply": result.reply, "ready": result.ready, "draft": result.draft})
+    return JSONResponse(
+        {
+            "reply": result.reply,
+            "ready": result.ready,
+            "draft": result.draft,
+            "draft_id": result.draft_id,
+        }
+    )
 
 
 @router.post("/minwon/preview")
