@@ -2,7 +2,7 @@
 :root {
   --ink:#17382f;
   --text:#304a42;
-  --muted:#677c73;
+  --muted:#52685e;
   --green:#176749;
   --green-dark:#104c36;
   --mint:#eaf6ef;
@@ -628,7 +628,7 @@ main:focus {
   height:55px;
   border-radius:17px;
   border:1px solid #d9e3d4;
-  color:#5b855c;
+  color:#4e683c;
   background:#f9fcf5;
   margin-bottom:20px
 }
@@ -1365,7 +1365,7 @@ main:focus {
 
 .status-pill.checking {
   background:#edf4e6;
-  color:#638143
+  color:#466426
 }
 
 .status-pill.answered {
@@ -1532,7 +1532,7 @@ main:focus {
 .records-footnote {
   border-top:1px solid #ebefe5;
   padding-top:18px;
-  color:#88917e;
+  color:#596d60;
   font-size:0.625rem;
   line-height:1.9
 }
@@ -1676,7 +1676,7 @@ main:focus {
   position:relative;
   text-align:center;
   font-size:0.75rem;
-  color:#8b9981;
+  color:#52685e;
   display:flex;
   flex-direction:column;
   align-items:center
@@ -1720,7 +1720,7 @@ main:focus {
 }
 
 .status-track li.complete {
-  color:#6c8e53
+  color:#4e683c
 }
 
 .status-track li.complete>span {

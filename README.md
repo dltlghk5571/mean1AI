@@ -58,6 +58,7 @@
 - [AI 서버 없이 쓰는 사진 첨부와 저장·조회 계약](docs/CITIZEN_PHOTOS.md)
 - [기존 민원 추가 문의·담당자 답변과 권한·저장 계약](docs/CITIZEN_FOLLOWUPS.md)
 - [시민 화면 글자 확대·키보드 동작과 사용성 검증 계획](docs/CITIZEN_ACCESSIBILITY.md)
+- [4명 역할별 시민 사용성·스크린리더·실기기 검증 과제와 기록 양식](docs/CITIZEN_USABILITY_TEST.md)
 
 4명은 기획·업무 및 데이터 검수, 시민 UI·접근성, 서버·수집·API 연계, 모델·평가를 나눠 맡습니다.
 **Git Flow**를 사용합니다. 작업을 Issue로 정리하고 `develop`에서 만든 `feature/*` 브랜치의 변경을

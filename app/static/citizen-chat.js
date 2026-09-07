@@ -356,6 +356,8 @@
     q("consent").checked = false;
     renderPhotos();
     photoFeedback(`${photos.length}장을 선택했어요. 접수 전까지 사진을 바꿀 수 있어요.`);
+    // The full picker becomes disabled; keep keyboard focus in the photo controls.
+    if (q("photo-input").disabled) q("photo-list").querySelector("button")?.focus();
   });
   q("confirm").addEventListener("click", () => {
     if (q("consent").checked) send("confirm", { consent: "yes" });
