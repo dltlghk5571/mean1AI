@@ -1,10 +1,12 @@
 # 공식 자료 수집·검수 계약 v1
 
-2026-09-06 · 구현 기준
+2026-09-07 · 구현 기준
 
 공개 문서 추출 → 업무·분류·조직 대응표 작성 → 검수 대기 등록 → 담당자 승인 → 시민 검색 순서다.
-수집 성공은 공개 승인이 아니다. 저장소에는 합성 업무 3개와 [공개 목록 조사 후보 12개](SEONGNAM_REVIEW_CANDIDATES.md)가
-있다. 실제 성남시 전체 분류표·조직도·복지 DB를 구축한 상태는 아니며 기존 민원 배정 카탈로그와도 분리되어 있다.
+수집 성공은 공개 승인이 아니다. 저장소에는 합성 업무 3개, [공개 목록 조사 후보 12개](SEONGNAM_REVIEW_CANDIDATES.md),
+[생활불편·복지 대표 업무 12개](SEONGNAM_PILOT_SERVICES.md)가 별도 버전으로 있다. 대표 업무는 공식 화면에서
+구별 업무분장과 복지 상세 절차를 대조한 수동 요약이다. 실제 성남시 전체 분류표·조직도·복지 DB를
+구축한 상태는 아니며 기존 민원 배정 카탈로그와도 분리되어 있다.
 
 ## 현재 수집 범위
 
@@ -15,9 +17,11 @@
 | `seongnam-handbook` | [성남시 민원편람](https://www.seongnam.go.kr/bbs020405) | 수집 조건·본문 선택자 검수 대기 |
 | `seongnam-services` | [성남시 민원/제안/신고](https://www.seongnam.go.kr/pm02020101?curPage=1) | 수집 조건·본문 선택자 검수 대기 |
 
-이번 환경에서 직접 HTTPS 요청은 TLS handshake 오류로 실패했다. 실제 페이지의 선택자와
-상세 링크 규칙을 확인하지 못했으므로 `collection_reviewed=false`이며 네트워크 수집은 시작하지
-않는다. `contents` 선택자는 합성 HTML에서만 검증했다. 인증·TLS 우회는 하지 않는다.
+2026-09-06 직접 HTTPS 수집 시험은 TLS handshake 오류로 실패했다. 2026-09-07에는 브라우저로
+공식 조직도와 복지 목록·상세 화면을 읽었다. 복지 경로 `/wf-pm020101`의 본문은 `#contentLoad`로
+확인되어 기존 민원 수집기의 `contents`와 다르다. 이 경로는 수집기에 아직 등록하지 않았다.
+출처별 이용 조건·robots·실제 추출 검증이 남아 있으므로 `collection_reviewed=false`를 유지한다.
+기존 `contents` 선택자는 합성 HTML에서만 검증했다. 인증·TLS 우회는 하지 않는다.
 
 데이터 담당자가 실제 공개 응답과 이용 조건을 확인하고 선택자·상세 경로·페이지 이동 규칙을
 맞춘 뒤, 근거를 남긴 PR로 해당 출처를 활성화한다. 활성화 후에도 매 실행에서 robots.txt를
@@ -86,7 +90,7 @@ URL을 `--source-url`로 지정한다. 로컬 파일의 원격 수집일은 알 
 | `GET /api/v1/service-catalogs` | 담당자 조회, 현재 공개 버전과 최근 50개 등록 버전 |
 | `POST /api/v1/service-catalogs` | 분류 담당 또는 검토 승인, `ServiceBundle` 등록만 수행 |
 | `GET /api/v1/service-catalogs/{version}` | 원본 묶음·해시·검수 이력 조회 |
-| `GET /api/v1/service-catalogs/candidates/{name}` | 담당자 조회, `seongnam` 조사 후보 또는 `synthetic` 예시 반환만 수행 |
+| `GET /api/v1/service-catalogs/candidates/{name}` | 담당자 조회, `seongnam` 공개 목록 후보, `seongnam-pilot` 대표 업무 후보, `synthetic` 예시 반환만 수행 |
 | `POST /api/v1/service-catalogs/{version}/review` | 검토 승인 역할만 공개·철회 |
 
 본문은 최대 2MB다. 같은 버전·같은 내용 재등록은 새 이력을 만들지 않는다. 같은 버전의 다른
@@ -135,7 +139,7 @@ Invoke-RestMethod -Method Post -Uri "$catalogBase/api/v1/service-catalogs/$($cat
 
 ## 다음 전달물
 
-- A 기획·데이터: 실제 대표 업무 10~15개, 원본 코드·분류·부서·관할·필요 질문·적용일 검수.
+- A 기획·데이터: 대표 업무 12개 범위 검토, 복지 2개 부서 표기 불일치·구별 세부 관할·질문·적용일 검수.
 - C 서버·수집: 출처별 이용 조건과 실제 선택자 확인, 첨부 추출·표 대조, API 활용 신청.
 - D 모델·평가: 검수된 서비스 ID로 검색하는 예시와 범위 밖·누락 정보·혼합 요청 평가셋.
 - B UI·접근성: 필요한 추가 질문 형식, 사진 흐름, 출처 안내에 대한 사용성 검증.

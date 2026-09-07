@@ -107,6 +107,7 @@ def get_catalog(version: str, db: DbSession) -> dict[str, object]:
 def get_bundled_candidate(name: str, request: Request) -> dict[str, object]:
     names = {
         "seongnam": "seongnam_service_candidates.json",
+        "seongnam-pilot": "seongnam_pilot_candidates.json",
         "synthetic": "service_catalog_demo.json",
     }
     if name not in names:

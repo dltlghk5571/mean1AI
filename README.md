@@ -15,6 +15,7 @@
 - 출처·분류·조직·업무·필요 질문 JSON, 본문 추출 CLI와 검수 대기 등록·공개·철회 API
 - 검수 자료 검색과 필요 정보 조회 도구, 최대 3회 실행 제한, 출처 카드와 변경 시 결과 폐기
 - 담당자 자료 검수 화면(`/staff/service-catalogs`), 공개 목록 조사 후보 12개와 조직 표시 검토
+- 생활불편·복지 대표 업무 12개, 실제 구별 업무분장 후보 32개와 추가 질문안 44개 검수
 - 선택적 동아리 대화 모델 HTTP 연결, 응답·실행 시간·동시 실행·크기 제한
 - 별도 담당자 대시보드(`/staff`)와 담당자용 접수 모달
 - 접수번호·조회 코드, 중복 제출 방지, 담당자가 명시적으로 공개한 답변 조회
@@ -54,6 +55,7 @@
 - [에이전트 도구 JSON v2와 모델 팀 연결 작업](docs/AGENT_API.md)
 - [수집·검수 JSON과 합성 자료 등록·승인 실행 방법](docs/SERVICE_DATA_PIPELINE.md)
 - [담당자 화면에서 검수할 성남시 공개 목록 후보](docs/SEONGNAM_REVIEW_CANDIDATES.md)
+- [생활불편·복지 대표 업무와 실제 부서·관할·질문 설계](docs/SEONGNAM_PILOT_SERVICES.md)
 - [동아리 대화 모델 서버 연결 설정과 전용 JSON 계약](docs/CLUB_MODEL_SERVER.md)
 - [AI 서버 없이 쓰는 사진 첨부와 저장·조회 계약](docs/CITIZEN_PHOTOS.md)
 - [기존 민원 추가 문의·담당자 답변과 권한·저장 계약](docs/CITIZEN_FOLLOWUPS.md)

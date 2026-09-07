@@ -73,6 +73,7 @@ def catalog_page(request: Request, db: DbSession, version: str | None = None) ->
             "usage_ready": ready,
             "today": datetime.now(UTC).date().isoformat(),
             "taxonomy": {item.id: item.label for item in bundle.taxonomy} if bundle else {},
+            "work_assignments": work,
             "organization_path": organization_path,
             "decision_labels": {
                 "staged": "검수 대기 등록",

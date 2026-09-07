@@ -36,6 +36,9 @@ body.catalog-review-page { min-width:0; }
 .catalog-services dl { display:grid; grid-template-columns:80px minmax(0,1fr); gap:10px; font-size:13px; line-height:1.8; }
 .catalog-services dt { color:#6e7d72; }
 .catalog-services dd { margin:0; overflow-wrap:anywhere; }
+.catalog-assignment + .catalog-assignment { border-top:1px solid #e5eae2; margin-top:12px; padding-top:12px; }
+.catalog-assignment p, .catalog-question { margin:4px 0; }
+.catalog-question small { display:block; color:#526559; }
 .catalog-reviews { padding-left:22px; }
 .catalog-reviews li { padding:10px 0; font-size:13px; }
 .catalog-reviews small { color:#6e7d72; overflow-wrap:anywhere; }
