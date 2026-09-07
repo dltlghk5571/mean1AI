@@ -15,3 +15,9 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+# generated chat dataset exports / baseline runs (evals/chat_dataset_run.py,
+# evals/chat_baseline_run.py) -- never commit real logs or derived JSONL/metrics
+dataset/
+*.log
+baseline_metrics.json
