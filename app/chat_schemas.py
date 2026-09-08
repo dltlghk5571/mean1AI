@@ -5,12 +5,34 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.intake_schemas import IntakeState
 from app.service_data_schemas import ServiceCard
 
 Stage = Literal[
-    "welcome", "intent", "description", "location", "review", "information", "submitted"
+    "welcome",
+    "intent",
+    "description",
+    "location",
+    "questions",
+    "review",
+    "information",
+    "submitted",
 ]
-Action = Literal["say", "complaint", "information", "skip_location", "edit", "reset", "confirm"]
+Action = Literal[
+    "say",
+    "complaint",
+    "information",
+    "skip_location",
+    "edit",
+    "reset",
+    "confirm",
+    "choose_topic",
+    "answer_question",
+    "skip_question",
+    "already_described",
+    "finish_questions",
+    "revise_question",
+]
 
 
 class ChatModel(BaseModel):
@@ -35,6 +57,8 @@ class ChatState(ChatModel):
     source_ids: list[Literal["bokjiro", "seongnam_handbook"]] = Field(default_factory=list)
     urgent: bool = False
     service_cards: list[ServiceCard] = Field(default_factory=list, max_length=3)
+    intake: IntakeState | None = None
+    location_checked: bool = False
 
 
 class ChatTurn(ChatModel):
@@ -47,6 +71,8 @@ class ChatTurn(ChatModel):
     content: str = Field(default="", max_length=4000)
     location_text: str = Field(default="", max_length=300)
     consent: Literal["", "yes"] = ""
+    template_id: str = Field(default="", pattern=r"^[a-z-]{0,40}$")
+    field_id: str = Field(default="", pattern=r"^[a-z_]{0,40}$")
 
     @field_validator("request_id")
     @classmethod

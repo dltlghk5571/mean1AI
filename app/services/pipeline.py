@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.models import Complaint, Department, GroundedDraftRecord, ReviewDecision
+from app.models import AuditEvent, Complaint, Department, GroundedDraftRecord, ReviewDecision
 from app.schemas import (
     ClassificationCandidate,
     ClassificationResult,
@@ -65,6 +65,7 @@ class ComplaintPipeline:
         *,
         actor_id: str | None = None,
         commit: bool = True,
+        welfare_intake: bool = False,
     ) -> Complaint:
         complaint = Complaint(
             title=payload.title,
@@ -82,6 +83,15 @@ class ComplaintPipeline:
             actor_type="citizen",
             details={"channel": payload.channel.value, "has_location": bool(payload.location_text)},
         )
+        if welfare_intake:
+            record_audit(
+                db,
+                complaint_id=complaint.id,
+                action="citizen_welfare_intake",
+                actor_type="rules",
+                details={"requires_human_review": True},
+            )
+            db.flush()
         if self.deferred:
             self._enqueue_processing(db, complaint, request_key="initial", actor_id=actor_id)
         else:
@@ -424,6 +434,19 @@ class ComplaintPipeline:
         )
 
         review_reasons = set(classification.review_reasons)
+        # Preserve the citizen's explicit welfare context across reclassification and queued work.
+        if (
+            db.scalar(
+                select(AuditEvent.id)
+                .where(
+                    AuditEvent.complaint_id == complaint.id,
+                    AuditEvent.action == "citizen_welfare_intake",
+                )
+                .limit(1)
+            )
+            is not None
+        ):
+            review_reasons.add("citizen_welfare_intake")
         if force_review_reason:
             review_reasons.add(force_review_reason)
         review_reasons.update(policy.reasons)

@@ -50,7 +50,8 @@
 
   function controls() {
     const blocked = busy || !state || !!pending || sessionExpired;
-    const canType = state && ["welcome", "intent", "description", "location", "information"].includes(state.stage);
+    const canType = state && (["welcome", "intent", "description", "location", "information"].includes(state.stage)
+      || (state.stage === "questions" && !state.current_question?.choices_only));
     input.disabled = blocked || !canType;
     composer.querySelector("button").disabled = blocked || !canType || !input.value.trim();
     q("reset").disabled = blocked;
@@ -58,6 +59,10 @@
     q("consent").disabled = blocked;
     q("edit").disabled = blocked;
     q("choices").querySelectorAll("button").forEach((button) => { button.disabled = blocked; });
+    const unsentText = (canType && !!input.value.trim()) || !editForm.hidden;
+    q("topic-hint").hidden = !unsentText;
+    q("topic-options").querySelectorAll("button").forEach((button) => { button.disabled = blocked || unsentText; });
+    q("answer-list").querySelectorAll("button").forEach((button) => { button.disabled = blocked || !editForm.hidden; });
     editForm.querySelectorAll("input, textarea, button").forEach((field) => { field.disabled = blocked; });
     q("retry").disabled = busy;
     q("reload").disabled = busy;
@@ -120,14 +125,60 @@
     });
   }
 
-  function choice(label, action, href) {
+  function choice(label, action, href, fields = {}) {
     const button = element(href ? "a" : "button", label);
     if (href) button.href = href;
     else {
       button.type = "button";
-      button.addEventListener("click", () => send(action));
+      button.addEventListener("click", () => send(action, fields));
     }
     q("choices").append(button);
+  }
+
+  function renderQuestions() {
+    const intake = state.intake;
+    const question = state.current_question;
+    q("topics").hidden = !["welcome", "intent", "description", "location", "review", "information"].includes(state.stage);
+    q("topic-options").replaceChildren();
+    ["complaint", "information"].forEach((purpose) => {
+      const group = element("div", null, "chat-topic-group");
+      group.append(element("h3", purpose === "complaint" ? "생활 불편" : "복지 알아보기"));
+      (state.topic_options || []).filter((topic) => topic.purpose === purpose).forEach((topic) => {
+        const button = element("button", topic.title);
+        button.type = "button";
+        button.setAttribute("aria-pressed", String(intake?.template.id === topic.id));
+        button.addEventListener("click", () => send("choose_topic", { template_id: topic.id }));
+        group.append(button);
+      });
+      q("topic-options").append(group);
+    });
+    q("question-panel").hidden = !question;
+    if (question) {
+      const index = intake.template.questions.findIndex((item) => item.field_id === question.field_id) + 1;
+      q("question-progress").textContent = `${intake.purpose === "information" ? "정보 안내 · " : ""}${intake.template.title} · 추가 질문 ${index} / ${intake.template.questions.length}`;
+      q("question-title").textContent = question.question;
+      question.choices.forEach((value) => choice(value, "answer_question", null, { field_id: question.field_id, message: value }));
+      choice("잘 모르겠어요 · 건너뛰기", "skip_question", null, { field_id: question.field_id });
+      choice("처음 내용에 이미 적었어요", "already_described", null, { field_id: question.field_id });
+      choice("추가 질문은 여기까지 할게요", "finish_questions");
+      input.setAttribute("aria-labelledby", "chat-question-title");
+    } else input.removeAttribute("aria-labelledby");
+    q("answers").hidden = !intake || !["review", "information"].includes(state.stage);
+    q("answer-list").replaceChildren();
+    if (intake) intake.template.questions.forEach((item) => {
+      const answer = intake.answers[item.field_id];
+      const row = element("div", null, "chat-answer-row");
+      const text = element("div");
+      const statuses = { skipped: "건너뜀", in_description: "처음 내용에 설명함", not_asked: "위험 안내를 우선해 생략함" };
+      text.append(element("strong", item.label));
+      text.append(element("p", answer?.status === "answered" ? answer.value : statuses[answer?.status] || "미입력"));
+      const button = element("button", "수정", "chat-text-button");
+      button.type = "button";
+      button.setAttribute("aria-label", `${item.label} 답변 수정`);
+      button.addEventListener("click", () => send("revise_question", { field_id: item.field_id }));
+      row.append(text, button);
+      q("answer-list").append(row);
+    });
   }
 
   function render(next, announce = false) {
@@ -160,6 +211,7 @@
     } else if (state.stage === "submitted") {
       choice("접수 결과 확인하기", null, state.redirect);
     }
+    renderQuestions();
     q("sources").replaceChildren();
     q("sources").hidden = !state.sources.length;
     if (state.sources.length) {
@@ -194,24 +246,29 @@
     });
     q("review").hidden = state.stage !== "review";
     root.querySelector("[data-draft-title]").textContent = state.draft.title;
-    root.querySelector("[data-draft-content]").textContent = state.draft.content;
+    root.querySelector("[data-draft-content]").textContent = state.submission_content || state.draft.content;
     root.querySelector("[data-draft-location]").textContent = state.draft.location_text || "장소 미입력 · 담당자 확인이 필요해요";
-    q("collected").hidden = !state.draft.content || ["information", "submitted"].includes(state.stage);
+    q("collected").hidden = !state.draft.content || state.intake?.purpose === "information" || ["information", "submitted"].includes(state.stage);
     q("summary-title").textContent = state.draft.title;
-    q("summary-location").textContent = state.draft.location_text || "장소를 여쭤볼게요";
+    q("summary-location").textContent = state.draft.location_text || (state.location_checked ? "장소를 건너뛰었어요" : "장소를 여쭤볼게요");
     root.querySelectorAll("[data-chat-step]").forEach((step) => {
       const current = state.stage === "submitted" ? "3" : state.stage === "review" ? "2" : "1";
       if (step.dataset.chatStep === current) step.setAttribute("aria-current", "step");
       else step.removeAttribute("aria-current");
     });
-    input.maxLength = state.stage === "location" ? 300 : 4000;
+    input.maxLength = state.stage === "questions" ? 500 : state.stage === "location" ? 300 : 4000;
     input.placeholder = {
       location: "예: 가상 데모공원 정문 앞 산책로",
       review: "아래 접수 내용을 확인해 주세요.",
       submitted: "접수 결과에서 접수번호와 조회 코드를 확인해 주세요.",
       information: "다른 궁금한 점이나 불편한 일을 적어 주세요.",
+      questions: "알고 계신 만큼 답해 주세요.",
     }[state.stage] || "예: 데모공원 산책로 가로등이 어제부터 꺼져 있어요";
-    composer.hidden = ["review", "submitted"].includes(state.stage);
+    if (state.stage === "location" && state.intake?.purpose === "information") input.placeholder = "안내받고 싶은 구·동을 알려 주세요.";
+    composer.querySelector(".chat-photo-note").textContent = state.intake?.purpose === "information"
+      ? "정보 안내만으로는 민원이 접수되지 않아요"
+      : "사진은 마지막 확인 단계에서 추가해요";
+    composer.hidden = ["review", "submitted"].includes(state.stage) || !!state.current_question?.choices_only;
     root.querySelector("#chat-input-help").hidden = composer.hidden;
     if (changed) {
       q("consent").checked = false;
@@ -225,6 +282,9 @@
       if (state.stage === "review") {
         root.querySelector("#chat-review-title").focus({ preventScroll: true });
         q("review").scrollIntoView({ block: "nearest" });
+      } else if (state.stage === "questions") {
+        q("question-title").focus({ preventScroll: true });
+        q("question-panel").scrollIntoView({ block: "nearest" });
       } else if (!input.disabled) input.focus({ preventScroll: true });
     }
   }
@@ -295,7 +355,9 @@
       pending = null;
       pendingPhotos = null;
       busy = false;
-      if (sent.action === "say" || sent.action === "reset") input.value = "";
+      if (sent.action === "choose_topic") q("topics").open = false;
+      if (["say", "reset", "answer_question", "skip_question", "already_described", "finish_questions"].includes(sent.action)) input.value = "";
+      if (sent.action === "revise_question") input.value = next.intake?.answers[sent.field_id]?.value || "";
       render(next, true);
       if (sent.action === "confirm" && next.redirect) window.location.assign(next.redirect);
     } catch (error) {
@@ -333,7 +395,9 @@
 
   composer.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (input.value.trim()) send("say", { message: input.value });
+    if (input.disabled || !input.value.trim()) return;
+    if (state.current_question) send("answer_question", { field_id: state.current_question.field_id, message: input.value });
+    else send("say", { message: input.value });
   });
   input.addEventListener("input", updateCount);
   input.addEventListener("keydown", (event) => {

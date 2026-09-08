@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.chat_schemas import AgentContext, AgentReply, ChatDraft, ChatMessage, ChatState, ChatTurn
 from app.models import CitizenChat, CitizenChatAuditEvent, CitizenSession
 from app.services import citizen
+from app.services import citizen_questions as questions
 from app.services.audit import record_audit
 from app.services.chat_provider import ChatAgentProvider
 from app.services.citizen_agent import (
@@ -104,6 +105,11 @@ def public_state(chat: CitizenChat, db: Session) -> dict[str, object]:
         "revision": chat.revision,
         **state.model_dump(mode="json", exclude={"source_ids"}),
         "sources": [SOURCES[source_id] for source_id in state.source_ids],
+        "topic_options": questions.topic_options(),
+        "current_question": question.model_dump(mode="json")
+        if state.stage == "questions" and (question := questions.current_question(state))
+        else None,
+        "submission_content": questions.submission_data(state)["content"],
         "redirect": f"/minwon/{chat.submitted_complaint_id}/receipt"
         if chat.submitted_complaint_id
         else None,
@@ -115,10 +121,25 @@ def clean_turn(turn: ChatTurn) -> ChatTurn:
         "say": {"message"},
         "edit": {"title", "content", "location_text"},
         "confirm": {"consent"},
+        "choose_topic": {"template_id"},
+        "answer_question": {"field_id", "message"},
+        "skip_question": {"field_id"},
+        "already_described": {"field_id"},
+        "revise_question": {"field_id"},
     }.get(turn.action, set())
-    for field in ("message", "title", "content", "location_text", "consent"):
+    for field in (
+        "message",
+        "title",
+        "content",
+        "location_text",
+        "consent",
+        "template_id",
+        "field_id",
+    ):
         if getattr(turn, field) and field not in expected_fields:
             raise ChatError("현재 단계에 맞는 입력인지 확인해 주세요.")
+    if turn.action == "answer_question" and len(turn.message) > 500:
+        raise ChatError("추가 답변은 500자 이내로 적어 주세요.")
     return turn.model_copy(
         update={
             field: redact_pii(getattr(turn, field).strip()).text
@@ -133,15 +154,24 @@ def prepare_state(state: ChatState, turn: ChatTurn) -> ChatState:
     user_text = turn.message
     if turn.action == "say" and not user_text:
         raise ChatError("이야기를 한 글자 이상 적어 주세요.")
-    if state.stage in {"welcome", "intent", "information"}:
+    question_text = questions.apply_turn(state, turn)
+    if question_text is not None:
+        user_text = question_text
+    elif state.stage in {"welcome", "intent", "information"}:
         if turn.action == "information":
             state.stage = "information"
             user_text = "복지·생활정보를 알아볼게요."
         elif turn.action == "complaint":
             state.stage = "location" if len(state.draft.content) >= 5 else "description"
+            if state.intake:
+                state.intake.purpose = "complaint"
+                if state.stage == "location" and state.location_checked:
+                    state.stage = "review"
             user_text = "민원으로 접수할게요."
         elif turn.action == "say":
             state.draft = ChatDraft(title=user_text.splitlines()[0][:80], content=user_text)
+            state.intake = None
+            state.location_checked = False
             state.stage = "intent"
         else:
             raise ChatError("아래 선택지에서 이어갈 내용을 골라 주세요.")
@@ -154,6 +184,7 @@ def prepare_state(state: ChatState, turn: ChatTurn) -> ChatState:
         if len(user_text) > 300:
             raise ChatError("장소는 300자 이내로 알려 주세요.")
         state.draft.location_text = user_text
+        state.location_checked = True
         user_text = user_text or "정확한 장소를 모르겠어요."
         state.stage = "review"
     elif state.stage == "review" and turn.action == "edit":
@@ -171,6 +202,8 @@ def prepare_state(state: ChatState, turn: ChatTurn) -> ChatState:
     state.urgent = state.urgent or bool(
         detect_emergency(f"{user_text}\n{state.draft.model_dump_json()}").signals
     )
+    questions.continue_questions(state)
+    questions.submission_data(state)
     return state
 
 
@@ -209,20 +242,30 @@ def advance_chat(
             return public_state(chat, db)
         if state.stage != "review":
             raise ChatError("접수 내용을 먼저 확인해 주세요.")
-        citizen.validate_submission(state.draft.model_dump(), submitting=False)
+        citizen.validate_submission(questions.submission_data(state), submitting=False)
         state.stage = "submitted"
         state.messages.append(ChatMessage(role="assistant", text="데모 민원 접수가 완료됐어요."))
     else:
-        state = prepare_state(state, turn)
+        try:
+            state = prepare_state(state, turn)
+        except questions.QuestionError as exc:
+            raise ChatError(str(exc)) from None
         if turn.action != "reset":
             try:
+                local_reply = questions.local_reply(state)
+                provider_state = state.model_copy(deep=True)
+                # Approved-source lookup can use answers, but cannot mutate the stored draft.
+                provider_state.draft = ChatDraft(**questions.submission_data(state))
                 context = AgentContext(
-                    state=state.model_copy(deep=True),
+                    state=provider_state,
                     action=turn.action,
                     expected_stage=state.stage,
                 )
                 # Revalidate adapters; output cannot choose submission, draft contents, or URLs.
-                if executor:
+                if local_reply:
+                    reply = local_reply
+                    state.service_cards = []
+                elif executor:
                     execution = executor.execute(db, context)
                     reply = AgentReply.model_validate(execution.reply.model_dump())
                     state.service_cards = execution.cards
@@ -296,7 +339,14 @@ def advance_chat(
                 pipeline,
                 session,
                 owner_token,
-                {**state.draft.model_dump(), "consent": "yes", "request_key": chat.submission_key},
+                {
+                    **questions.submission_data(state),
+                    "consent": "yes",
+                    "request_key": chat.submission_key,
+                },
+                welfare_intake=bool(
+                    state.intake and state.intake.template.purpose == "information"
+                ),
             )
             chat.submitted_complaint_id = submission.complaint_id
             photo_ids = attach_photos(db, submission.complaint_id, photos) if photos else []
@@ -310,6 +360,7 @@ def advance_chat(
                     "revision": chat.revision,
                     "demo_consent": True,
                     "photo_ids": photo_ids,
+                    **questions.audit_details(state),
                 },
             )
         audit(
@@ -317,12 +368,13 @@ def advance_chat(
             chat,
             "citizen_confirmed" if turn.action == "confirm" else "conversation_advanced",
             actor_type="citizen" if turn.action in {"reset", "confirm"} else "rules",
-            provider=provider.provider_name,
+            provider="intake_questions" if questions.local_reply(state) else provider.provider_name,
             input_action=turn.action,
             stage=state.stage,
             urgent=state.urgent,
             source_ids=state.source_ids,
             complaint_id=chat.submitted_complaint_id,
+            **questions.audit_details(state),
         )
         if execution:
             for event in execution.events:

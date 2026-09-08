@@ -129,6 +129,8 @@ def stage_submission(
     session: CitizenSession,
     owner_token: str,
     data: dict[str, str],
+    *,
+    welfare_intake: bool = False,
 ) -> CitizenSubmission:
     """Prepare an intake in the caller's transaction; never commit here."""
     payload = validate_submission(data, submitting=True)
@@ -136,7 +138,9 @@ def stage_submission(
     existing = previous_submission(db, session.token_hash, request_key)
     if existing:
         return existing
-    complaint = pipeline.create_and_process(db, payload, commit=False)
+    complaint = pipeline.create_and_process(
+        db, payload, commit=False, welfare_intake=welfare_intake
+    )
     korean_date = (datetime.now(UTC) + timedelta(hours=9)).strftime("%Y%m%d")
     submission = CitizenSubmission(
         complaint_id=complaint.id,

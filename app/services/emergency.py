@@ -21,6 +21,9 @@ _CRITICAL_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 _HIGH_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    # Exact affirmative choices are citizen statements. Never scan generated question wording.
+    ("citizen_reported_danger", re.compile(r"지금\s*사람이\s*다칠\s*위험이\s*있(?:어요|습니다)")),
+    ("immediate_help", re.compile(r"지금\s*긴급한\s*도움이\s*필요(?:해요|합니다)")),
     ("flooding", re.compile(r"침수|물이\s*(?:차오|넘쳐)|하천.{0,8}범람")),
     ("fallen_tree", re.compile(r"나무.{0,8}(?:쓰러|넘어|도로를\s*막)")),
     ("open_manhole", re.compile(r"맨홀.{0,8}(?:열려|뚜껑이\s*없|빠졌)")),

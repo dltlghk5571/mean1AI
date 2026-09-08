@@ -2,8 +2,8 @@
 {% block title %}대화로 민원 신청 · 성남 생활민원{% endblock %}
 {% block body_class %}chat-page{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', path='/citizen-chat.css') }}?v=1">
-<script defer src="{{ url_for('static', path='/citizen-chat.js') }}?v=1"></script>
+<link rel="stylesheet" href="{{ url_for('static', path='/citizen-chat.css') }}?v=2">
+<script defer src="{{ url_for('static', path='/citizen-chat.js') }}?v=2"></script>
 {% endblock %}
 {% block content %}
 <div class="container chat-shell" data-chat>
@@ -21,9 +21,24 @@
       <div class="chat-history" data-chat-history role="log" aria-label="대화 내용" tabindex="0" aria-live="off"></div>
       <div class="chat-busy" data-chat-busy role="status">대화를 불러오는 중이에요…</div>
       <div class="chat-urgent" data-chat-urgent role="alert" hidden>{{ icon('info') }}<p>위험한 상황이라면 이 서비스의 처리를 기다리지 말고 긴급 신고 창구에 바로 도움을 요청해 주세요. 이 데모는 긴급 신고를 전달하지 않습니다.</p></div>
+      <details class="chat-topics" data-chat-topics hidden>
+        <summary>어떻게 말할지 막막하다면, 상황부터 골라 보세요</summary>
+        <p>선택하면 필요한 내용을 하나씩 여쭤볼게요. 바로 이야기만 적어도 괜찮아요.<br>상황을 바꾸면 추가 답변은 새로 시작해요. 처음 적은 내용과 장소는 남아요.</p>
+        <p data-chat-topic-hint hidden>작성 중인 내용을 먼저 보내거나 저장하면 상황을 선택할 수 있어요.</p>
+        <div data-chat-topic-options></div>
+      </details>
+      <section class="chat-question-panel" data-chat-question-panel hidden aria-labelledby="chat-question-title">
+        <p class="eyebrow" data-chat-question-progress></p>
+        <h3 id="chat-question-title" tabindex="-1" data-chat-question-title></h3>
+        <p>아는 만큼만 알려 주세요. 모르면 건너뛰어도 돼요.</p>
+      </section>
       <div class="chat-choices" data-chat-choices aria-label="다음 대화 선택"></div>
       <div class="chat-sources" data-chat-sources hidden></div>
       <section class="chat-service-cards" data-chat-service-cards hidden aria-label="검색한 안내 자료"></section>
+      <details class="chat-answers" data-chat-answers hidden>
+        <summary>추가 답변 확인·수정</summary>
+        <div data-chat-answer-list></div>
+      </details>
       <section class="chat-review" data-chat-review hidden aria-labelledby="chat-review-title">
         <link rel="stylesheet" href="{{ url_for('static', path='/citizen-photos.css') }}">
         <div class="chat-review-heading"><div><p class="eyebrow">접수 전 마지막 확인</p><h3 id="chat-review-title" tabindex="-1">이 내용으로 전할까요?</h3></div><button type="button" class="chat-text-button" data-chat-edit>수정하기</button></div>
