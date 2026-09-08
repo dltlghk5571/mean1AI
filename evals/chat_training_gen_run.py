@@ -37,6 +37,7 @@ from evals.chat_training_gen import (
     TeacherGeneration,
     TrainingGenerationResult,
     generate_pilot,
+    load_seed_templates_jsonl,
 )
 from evals.reserved_seed_registry import load_registry, reserved_seed_ids
 
@@ -76,24 +77,6 @@ transcript:
 - title/content/location_text must be polite, concrete Korean complaint prose
   derived only from the transcript.
 """.strip()
-
-
-def _load_seed_templates(paths: Sequence[Path]) -> list[SeedTemplate]:
-    templates: list[SeedTemplate] = []
-    seen_ids: set[str] = set()
-    for path in paths:
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            if not line.strip():
-                continue
-            template = SeedTemplate.model_validate_json(line)
-            if template.seed_template_id in seen_ids:
-                raise ValueError(
-                    f"Duplicate seed_template_id at {path}:{line_number}: "
-                    f"{template.seed_template_id}"
-                )
-            seen_ids.add(template.seed_template_id)
-            templates.append(template)
-    return templates
 
 
 def build_teacher_call(client: Any, model: str) -> TeacherCall:
@@ -159,7 +142,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     try:
-        seeds = _load_seed_templates(args.seed_file)
+        seeds = load_seed_templates_jsonl(args.seed_file)
     except (OSError, ValueError) as exc:
         print(f"Unable to load seed templates: {exc}", file=sys.stderr)
         return 2

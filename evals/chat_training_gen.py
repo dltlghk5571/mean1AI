@@ -68,6 +68,22 @@ RejectionReason = Literal[
     "pii_leak_in_target",
     "duplicate_content_hash",
     "near_duplicate_content",
+    # Manual/offline teacher workflow only (evals/chat_training_manual_import.py) --
+    # the API workflow above can never produce these, since it never reads a
+    # human-pasted file. All of these are completeness/structural issues (a
+    # response file that never arrived or never parsed into a usable variant),
+    # never a content-quality judgment on an actual generated transcript --
+    # evals/chat_training_manual_import.py keeps them out of its
+    # content_rejected_count for exactly that reason.
+    "response_file_missing",
+    "seed_not_found_in_seed_file",
+    "markdown_fence_detected",
+    "invalid_json",
+    "schema_invalid",
+    "seed_id_mismatch",
+    "missing_variant",
+    "duplicate_variant",
+    "unexpected_variant",
 ]
 
 
@@ -217,6 +233,111 @@ def load_training_jsonl(paths: Sequence[Path]) -> list[TrainingRecord]:
     return records
 
 
+def load_seed_templates_jsonl(paths: Sequence[Path]) -> list[SeedTemplate]:
+    """Shared loader for seed-template files, used by both the API-backed
+    generator CLI and the manual/offline prompt-export and import CLIs, so
+    all three agree on what counts as a duplicate seed_template_id."""
+    templates: list[SeedTemplate] = []
+    seen_ids: set[str] = set()
+    for path in paths:
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if not line.strip():
+                continue
+            template = SeedTemplate.model_validate_json(line)
+            if template.seed_template_id in seen_ids:
+                raise ValueError(
+                    f"Duplicate seed_template_id at {path}:{line_number}: "
+                    f"{template.seed_template_id}"
+                )
+            seen_ids.add(template.seed_template_id)
+            templates.append(template)
+    return templates
+
+
+def evaluate_teacher_generation(
+    seed: SeedTemplate,
+    generation: TeacherGeneration,
+    *,
+    teacher_model: str,
+    generation_version: str,
+    prompt_version: str,
+    seen_hash_by_seed: dict[str, str],
+    seen_transcripts: list[tuple[str, str]],
+    training_id: str | None = None,
+) -> TrainingRecord | RejectedGeneration:
+    """The one place that decides accept-or-reject for a single (seed,
+    generation) pair once a transcript+target already exist: PII leak check,
+    exact/near-duplicate dedup against everything already seen in this run,
+    then safety-signal bucketing. Shared by `generate_pilot` (one generation
+    per seed, straight from the API) and
+    evals/chat_training_manual_import.py (two independently-generated
+    variants per seed, pasted in by hand) so a manually-pasted response is
+    held to the exact same acceptance bar as an API response. Mutates
+    `seen_hash_by_seed`/`seen_transcripts` in place on acceptance, so callers
+    processing multiple generations in a loop dedup against each other.
+    """
+    training_id = training_id or seed.seed_template_id
+    target_text = (
+        f"{generation.target.title}\n{generation.target.content}\n{generation.target.location_text}"
+    )
+    redaction = redact_pii(target_text)
+    if redaction.detected_types:
+        return RejectedGeneration(
+            seed_template_id=seed.seed_template_id,
+            reason="pii_leak_in_target",
+            detail=f"detected_types={redaction.detected_types}",
+        )
+
+    digest = content_hash(generation.transcript)
+    if digest in seen_hash_by_seed:
+        return RejectedGeneration(
+            seed_template_id=seed.seed_template_id,
+            reason="duplicate_content_hash",
+            detail=f"exact duplicate of {seen_hash_by_seed[digest]}",
+        )
+    near_dup_of = next(
+        (
+            other_id
+            for other_id, other_text in seen_transcripts
+            if is_near_duplicate(other_text, generation.transcript)
+        ),
+        None,
+    )
+    if near_dup_of is not None:
+        return RejectedGeneration(
+            seed_template_id=seed.seed_template_id,
+            reason="near_duplicate_content",
+            detail=f"near-duplicate of {near_dup_of}",
+        )
+
+    seen_hash_by_seed[digest] = training_id
+    seen_transcripts.append((training_id, generation.transcript))
+
+    bucket, safety_signal = _classify_safety(seed, generation.target)
+    return TrainingRecord(
+        training_id=training_id,
+        case_type=seed.case_type,
+        bucket=bucket,
+        messages=[
+            {"role": "system", "content": _INSTRUCTIONS},
+            {"role": "user", "content": generation.transcript},
+        ],
+        target=generation.target,
+        provenance=TrainingProvenance(
+            source_id=seed.source_id,
+            seed_template_id=seed.seed_template_id,
+            region_scope=seed.region_scope,
+            origin="synthetic_teacher",
+            license=seed.license,
+            teacher_model=teacher_model,
+            prompt_version=prompt_version,
+            content_hash=digest,
+            generation_version=generation_version,
+        ),
+        safety_signal=safety_signal,
+    )
+
+
 def generate_pilot(
     seeds: Sequence[SeedTemplate],
     teacher_call: TeacherCall,
@@ -254,77 +375,19 @@ def generate_pilot(
             )
             continue
 
-        target_text = (
-            f"{generation.target.title}\n{generation.target.content}\n"
-            f"{generation.target.location_text}"
+        outcome = evaluate_teacher_generation(
+            seed,
+            generation,
+            teacher_model=teacher_model,
+            generation_version=generation_version,
+            prompt_version=prompt_version,
+            seen_hash_by_seed=seen_hash_by_seed,
+            seen_transcripts=seen_transcripts,
         )
-        redaction = redact_pii(target_text)
-        if redaction.detected_types:
-            rejected.append(
-                RejectedGeneration(
-                    seed_template_id=seed.seed_template_id,
-                    reason="pii_leak_in_target",
-                    detail=f"detected_types={redaction.detected_types}",
-                )
-            )
-            continue
-
-        digest = content_hash(generation.transcript)
-        if digest in seen_hash_by_seed:
-            rejected.append(
-                RejectedGeneration(
-                    seed_template_id=seed.seed_template_id,
-                    reason="duplicate_content_hash",
-                    detail=f"exact duplicate of seed {seen_hash_by_seed[digest]}",
-                )
-            )
-            continue
-        near_dup_seed = next(
-            (
-                other_seed_id
-                for other_seed_id, other_text in seen_transcripts
-                if is_near_duplicate(other_text, generation.transcript)
-            ),
-            None,
-        )
-        if near_dup_seed is not None:
-            rejected.append(
-                RejectedGeneration(
-                    seed_template_id=seed.seed_template_id,
-                    reason="near_duplicate_content",
-                    detail=f"near-duplicate of seed {near_dup_seed}",
-                )
-            )
-            continue
-
-        seen_hash_by_seed[digest] = seed.seed_template_id
-        seen_transcripts.append((seed.seed_template_id, generation.transcript))
-
-        bucket, safety_signal = _classify_safety(seed, generation.target)
-        records.append(
-            TrainingRecord(
-                training_id=seed.seed_template_id,
-                case_type=seed.case_type,
-                bucket=bucket,
-                messages=[
-                    {"role": "system", "content": _INSTRUCTIONS},
-                    {"role": "user", "content": generation.transcript},
-                ],
-                target=generation.target,
-                provenance=TrainingProvenance(
-                    source_id=seed.source_id,
-                    seed_template_id=seed.seed_template_id,
-                    region_scope=seed.region_scope,
-                    origin="synthetic_teacher",
-                    license=seed.license,
-                    teacher_model=teacher_model,
-                    prompt_version=prompt_version,
-                    content_hash=digest,
-                    generation_version=generation_version,
-                ),
-                safety_signal=safety_signal,
-            )
-        )
+        if isinstance(outcome, RejectedGeneration):
+            rejected.append(outcome)
+        else:
+            records.append(outcome)
 
     summary = _summarize(
         seeds, records, rejected, teacher_model, generation_version, prompt_version
