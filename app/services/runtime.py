@@ -1,5 +1,6 @@
 from app.config import Settings
 from app.services.ai_queue import validate_local_queue
+from app.services.chat_agent import ChatAgent
 from app.services.classifier import Classifier, DepartmentCatalog, RuleBasedClassifier
 from app.services.knowledge import KnowledgeRetriever
 from app.services.openai_classifier import OpenAIClassifier
@@ -31,4 +32,13 @@ def build_pipeline(settings: Settings) -> ComplaintPipeline:
         classifier = RuleBasedClassifier(catalog)
     return ComplaintPipeline(
         settings=settings, classifier=classifier, catalog=catalog, retriever=retriever
+    )
+
+
+def build_chat_agent(settings: Settings) -> ChatAgent | None:
+    """The chat drafting widget is independent of `ai_provider`; it just needs a key."""
+    if settings.openai_api_key is None or not settings.openai_api_key.get_secret_value().strip():
+        return None
+    return ChatAgent(
+        api_key=settings.openai_api_key.get_secret_value(), model=settings.openai_model
     )

@@ -125,6 +125,57 @@ def test_intake_receipt_and_private_allowlist(client: TestClient, test_app: Fast
     assert "[전화번호]" in client.get("/staff").text
 
 
+def test_submit_without_chat_records_no_chat_draft_audit(
+    client: TestClient, test_app: FastAPI
+) -> None:
+    complaint_id, _, _ = submit(client)
+    with test_app.state.session_factory() as db:
+        event = db.scalar(
+            select(AuditEvent).where(
+                AuditEvent.complaint_id == complaint_id,
+                AuditEvent.action == "citizen_chat_draft",
+            )
+        )
+        assert event is None
+
+
+@pytest.mark.parametrize("edited", ["", "yes"])
+def test_submit_with_chat_draft_records_edited_flag(
+    client: TestClient, test_app: FastAPI, edited: str
+) -> None:
+    data = start(client)
+    draft_id = str(uuid4())
+    data["chat_draft_id"] = draft_id
+    data["chat_edited"] = edited
+    complaint_id, _, _ = submit(client, data)
+    with test_app.state.session_factory() as db:
+        event = db.scalar(
+            select(AuditEvent).where(
+                AuditEvent.complaint_id == complaint_id,
+                AuditEvent.action == "citizen_chat_draft",
+            )
+        )
+        assert event.details == {"draft_id": draft_id, "edited": edited == "yes"}
+
+
+@pytest.mark.parametrize("bad_id", ["not-a-uuid", "a" * 40, ""])
+def test_submit_with_invalid_chat_draft_id_records_no_audit(
+    client: TestClient, test_app: FastAPI, bad_id: str
+) -> None:
+    data = start(client)
+    data["chat_draft_id"] = bad_id
+    data["chat_edited"] = "yes"
+    complaint_id, _, _ = submit(client, data)
+    with test_app.state.session_factory() as db:
+        event = db.scalar(
+            select(AuditEvent).where(
+                AuditEvent.complaint_id == complaint_id,
+                AuditEvent.action == "citizen_chat_draft",
+            )
+        )
+        assert event is None
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [

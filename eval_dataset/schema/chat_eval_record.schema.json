@@ -1,0 +1,190 @@
+{
+  "$defs": {
+    "ChatModelOutput": {
+      "additionalProperties": false,
+      "description": "Exactly the `_ChatExtraction` field set (see app/services/chat_agent.py).",
+      "properties": {
+        "assistant_message": {
+          "title": "Assistant Message",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "location_text": {
+          "title": "Location Text",
+          "type": "string"
+        },
+        "ready_to_submit": {
+          "title": "Ready To Submit",
+          "type": "boolean"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assistant_message",
+        "title",
+        "content",
+        "location_text",
+        "ready_to_submit"
+      ],
+      "title": "ChatModelOutput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "case_type": {
+      "enum": [
+        "complete",
+        "incomplete_one_followup",
+        "vague_location",
+        "unknown_time",
+        "ambiguous_request",
+        "multi_issue",
+        "emergency",
+        "policy_sensitive",
+        "pii_bearing_fictional",
+        "prompt_injection",
+        "not_ready_to_submit",
+        "real_landmark_unverified_jurisdiction"
+      ],
+      "title": "Case Type",
+      "type": "string"
+    },
+    "content_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Content Hash",
+      "type": "string"
+    },
+    "dataset_version": {
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Dataset Version",
+      "type": "string"
+    },
+    "district": {
+      "enum": [
+        "bundang",
+        "sujeong",
+        "jungwon",
+        "unknown"
+      ],
+      "title": "District",
+      "type": "string"
+    },
+    "eval_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Eval Id",
+      "type": "string"
+    },
+    "expected": {
+      "$ref": "#/$defs/ChatModelOutput"
+    },
+    "forbidden_inferences": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Forbidden Inferences",
+      "type": "array"
+    },
+    "region": {
+      "const": "seongnam",
+      "title": "Region",
+      "type": "string"
+    },
+    "required_facts": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Required Facts",
+      "type": "array"
+    },
+    "review_notes": {
+      "default": "",
+      "maxLength": 1000,
+      "title": "Review Notes",
+      "type": "string"
+    },
+    "review_status": {
+      "enum": [
+        "draft",
+        "approved",
+        "rejected"
+      ],
+      "title": "Review Status",
+      "type": "string"
+    },
+    "reviewer": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Reviewer",
+      "type": "string"
+    },
+    "safety_expectation": {
+      "default": "",
+      "maxLength": 500,
+      "title": "Safety Expectation",
+      "type": "string"
+    },
+    "seed_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Seed Id",
+      "type": "string"
+    },
+    "source_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Id"
+    },
+    "source_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Url"
+    },
+    "transcript": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Transcript",
+      "type": "string"
+    }
+  },
+  "required": [
+    "eval_id",
+    "seed_id",
+    "region",
+    "district",
+    "case_type",
+    "transcript",
+    "expected",
+    "reviewer",
+    "review_status",
+    "content_hash",
+    "dataset_version"
+  ],
+  "title": "EvalRecord",
+  "type": "object"
+}

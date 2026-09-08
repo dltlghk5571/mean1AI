@@ -13,7 +13,7 @@ from app.database import Base, install_append_only_guards, make_engine, make_ses
 from app.services.auth import SESSION_COOKIE_NAME, AuthManager
 from app.services.citizen import CitizenRateLimiter
 from app.services.department_catalog import import_department_catalog
-from app.services.runtime import build_pipeline
+from app.services.runtime import build_chat_agent, build_pipeline
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -26,6 +26,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     engine = make_engine(effective_settings.database_url)
     session_factory = make_session_factory(engine)
     pipeline = build_pipeline(effective_settings)
+    chat_agent = build_chat_agent(effective_settings)
     raw_session_secret = (
         effective_settings.session_secret.get_secret_value()
         if effective_settings.session_secret
@@ -58,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = session_factory
     app.state.pipeline = pipeline
+    app.state.chat_agent = chat_agent
     app.state.auth_manager = auth_manager
     app.state.citizen_limiter = CitizenRateLimiter()
     templates_dir = effective_settings.package_dir / "templates"
