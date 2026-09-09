@@ -248,6 +248,7 @@ python -m evals.run
 python -m evals.run --format markdown
 python -m evals.rag_run
 python -m evals.rag_run --format markdown
+python -m evals.pilot_run validate
 ```
 
 `python -m evals.run`은 네트워크나 API 키 없이 `rules` 제공자만 사용합니다. 버전이 고정된
@@ -262,6 +263,12 @@ python -m evals.rag_run --format markdown
 재현율·무관 문서 기권율이 모두 100%이고, 한 단어만 겹치는 단일 신호 함정 사례 8건도 모두 거절합니다.
 학습 모델이나 임베딩 서비스는 사용하지 않습니다. 지표 정의와 한계, 문장별 인용 검증 규칙은
 `docs/RAG.md`에 있습니다.
+
+대표 업무 12개를 위한 [분류·대화 모델 평가 준비](docs/PILOT_MODEL_EVALS.md)도 있습니다.
+합성 대화 100건을 가족 단위로 train/dev/test에 나누고, 모델 입력·학습 시작 예시를 JSONL로
+내보냅니다. `python -m evals.pilot_run score`는 추후 받은 예측 파일만 채점합니다.
+현재는 데이터·채점기 검증만 완료했으며 LLM 성능은 미측정입니다. 공식 후보의 미해결 항목은
+`python -m evals.pilot_run source-review`와 [검수 작업표](docs/SEONGNAM_DATA_REVIEW.md)로 확인합니다.
 
 ## 5. 주요 API
 

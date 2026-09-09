@@ -36,3 +36,4 @@ jobs:
       - run: pytest
       - run: python -m evals.run
       - run: python -m evals.rag_run
+      - run: python -m evals.pilot_run validate
