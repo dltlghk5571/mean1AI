@@ -3,7 +3,6 @@
 import hashlib
 import re
 import time
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from html.parser import HTMLParser
 from typing import Protocol
@@ -14,54 +13,16 @@ from urllib.robotparser import RobotFileParser
 
 from pydantic import ValidationError
 
+from app.collection_schemas import ExtractedPage, InputKind
 from app.service_data_schemas import SourceDocument, official_url
+from app.services.collection_report import build_report
+from app.services.collection_sources import SOURCES as SOURCES
+from app.services.collection_sources import CollectionError, CollectionSource
 from app.services.pii import redact_pii
+from app.services.service_html import extract_structured_page
 
 USER_AGENT = "SeongnamMinwonResearch/0.1"
 MAX_BYTES = 1_000_000
-
-
-@dataclass(frozen=True)
-class CollectionSource:
-    id: str
-    seed_url: str
-    path_pattern: str
-    content_id: str
-    collection_reviewed: bool = False
-
-    def allows(self, url: str) -> bool:
-        try:
-            official_url(url)
-        except ValueError:
-            return False
-        parsed = urlsplit(url)
-        return (
-            parsed.netloc == urlsplit(self.seed_url).netloc
-            and re.fullmatch(self.path_pattern, parsed.path) is not None
-            and (not parsed.query or re.fullmatch(r"curPage=[1-9][0-9]?", parsed.query) is not None)
-        )
-
-
-# Selectors and collection terms need verification against an accessible live response.
-# These records authorize no network collection until that review is recorded in code review.
-SOURCES = {
-    "seongnam-handbook": CollectionSource(
-        "seongnam-handbook",
-        "https://www.seongnam.go.kr/bbs020405",
-        r"/bbs020405(?:/[0-9]+)?",
-        "contents",
-    ),
-    "seongnam-services": CollectionSource(
-        "seongnam-services",
-        "https://www.seongnam.go.kr/pm02020101?curPage=1",
-        r"/pm02020101(?:/[0-9]+)?",
-        "contents",
-    ),
-}
-
-
-class CollectionError(ValueError):
-    pass
 
 
 class PageFetcher(Protocol):
@@ -161,6 +122,18 @@ def extract_document(
     synthetic: bool = False,
     fetched_at: datetime | None = None,
 ) -> tuple[SourceDocument, list[str]]:
+    if source.profile != "legacy":
+        page = extract_structured_page(
+            source,
+            url,
+            data,
+            synthetic=synthetic,
+            input_kind="http" if fetched_at else "saved_html",
+            fetched_at=fetched_at,
+        )
+        if page.document is None:
+            raise CollectionError("listing_is_not_a_service_document")
+        return page.document, page.discovered_links
     if not source.allows(url) or len(data) > MAX_BYTES:
         raise CollectionError("source_url_or_size_not_allowed")
     try:
@@ -195,6 +168,43 @@ def extract_document(
     return document, links
 
 
+def extract_page(
+    source: CollectionSource,
+    url: str,
+    data: bytes,
+    *,
+    synthetic: bool = False,
+    input_kind: InputKind = "saved_html",
+    fetched_at: datetime | None = None,
+) -> ExtractedPage:
+    if source.profile != "legacy":
+        return extract_structured_page(
+            source,
+            url,
+            data,
+            synthetic=synthetic,
+            input_kind=input_kind,
+            fetched_at=fetched_at,
+        )
+    if input_kind != "http" and fetched_at is not None:
+        raise CollectionError("local_input_has_no_fetch_time")
+    doc, links = extract_document(source, url, data, synthetic=synthetic, fetched_at=fetched_at)
+    return ExtractedPage(
+        source_id=source.id,
+        source_url=source.canonical_url(url) or url,
+        page_kind="legacy",
+        input_kind=input_kind,
+        input_sha256=hashlib.sha256(data).hexdigest(),
+        processed_at=doc.ingested_at,
+        synthetic=synthetic,
+        document=doc,
+        discovered_links=links,
+        records_seen=1,
+        records_extracted=1,
+        review_issues=["usage_review_required"],
+    )
+
+
 def collect(
     source: CollectionSource,
     fetcher: PageFetcher,
@@ -202,13 +212,16 @@ def collect(
     max_pages: int = 3,
     time_limit: float = 45,
     delay: float = 2,
-) -> dict[str, object]:
+) -> dict:
     if not source.collection_reviewed:
         raise CollectionError("collection_terms_and_selector_review_required")
     if not 1 <= max_pages <= 10 or not 1 <= time_limit <= 60 or not 1 <= delay <= 10:
         raise CollectionError("collection_limits_invalid")
+    seed = source.canonical_url(source.seed_url)
+    if seed is None:
+        raise CollectionError("source_seed_not_allowed")
     start = time.monotonic()
-    origin = urlsplit(source.seed_url)
+    origin = urlsplit(seed)
     robot_url = f"{origin.scheme}://{origin.netloc}/robots.txt"
     robots_bytes, robots_type = fetcher.get(
         robot_url, max_bytes=64_000, timeout=min(10, time_limit)
@@ -227,9 +240,9 @@ def collect(
     rate = robots.request_rate(USER_AGENT)
     if rate and rate.requests > 0:
         delay = max(delay, rate.seconds / rate.requests)
-    pending = [source.seed_url]
+    pending = [seed]
     visited: set[str] = set()
-    documents: list[dict[str, object]] = []
+    pages: list[ExtractedPage] = []
     errors: list[dict[str, str]] = []
     while pending and len(visited) < max_pages:
         remaining = time_limit - (time.monotonic() - start)
@@ -250,19 +263,14 @@ def collect(
             )
             if content_type != "text/html":
                 raise CollectionError("unsupported_content_type")
-            document, links = extract_document(source, url, data, fetched_at=datetime.now(UTC))
-            documents.append(document.model_dump(mode="json"))
-            pending.extend(link for link in links if link not in visited and link not in pending)
+            page = extract_page(source, url, data, input_kind="http", fetched_at=datetime.now(UTC))
+            pages.append(page)
+            for link in page.discovered_links:
+                canonical = source.canonical_url(link)
+                if canonical and canonical not in visited and canonical not in pending:
+                    pending.append(canonical)
         except CollectionError as exc:
             errors.append({"code": str(exc), "url": url})
-    return {
-        "schema_version": "1",
-        "source_id": source.id,
-        "review_status": "pending",
-        "documents": documents,
-        "errors": errors,
-        "visited": len(visited),
-        "remaining_links": len(pending),
-        "completed": not pending and not errors,
-        "note": "Document extraction only; service/department mappings require review.",
-    }
+    return build_report(
+        source, pages, errors, mode="network", visited=len(visited), remaining_links=len(pending)
+    )

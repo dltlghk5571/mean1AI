@@ -1,6 +1,6 @@
 # 공식 자료 수집·검수 계약 v1
 
-2026-09-07 · 구현 기준
+2026-09-09 · 구현 기준 (ServiceBundle v1 / 추출 보고서 v2)
 
 공개 문서 추출 → 업무·분류·조직 대응표 작성 → 검수 대기 등록 → 담당자 승인 → 시민 검색 순서다.
 수집 성공은 공개 승인이 아니다. 저장소에는 합성 업무 3개, [공개 목록 조사 후보 12개](SEONGNAM_REVIEW_CANDIDATES.md),
@@ -10,18 +10,22 @@
 
 ## 현재 수집 범위
 
-`app/services/service_collection.py`의 출처 레지스트리에 다음 두 시작점을 준비했다.
+`app/services/collection_sources.py`의 출처 레지스트리에 다음 네 시작점을 준비했다.
 
 | 출처 ID | 시작점 | 현재 상태 |
 | --- | --- | --- |
 | `seongnam-handbook` | [성남시 민원편람](https://www.seongnam.go.kr/bbs020405) | 수집 조건·본문 선택자 검수 대기 |
 | `seongnam-services` | [성남시 민원/제안/신고](https://www.seongnam.go.kr/pm02020101?curPage=1) | 수집 조건·본문 선택자 검수 대기 |
+| `seongnam-welfare` | [복지사업 목록·상세](https://www.seongnam.go.kr/wf-pm020101) | 브라우저 DOM 구조 확인, 합성 HTML 추출 검증; HTTP·robots·이용 조건 대기 |
+| `seongnam-organization` | [조직도 업무분장](https://www.seongnam.go.kr/pm04041101?deptCode=38100720000&orgSelect=orgSelect02) | 등록한 부서 코드 7개 범위; 합성 HTML 추출 검증, 실제 HTTP 검증 대기 |
 
-2026-09-06 직접 HTTPS 수집 시험은 TLS handshake 오류로 실패했다. 2026-09-07에는 브라우저로
-공식 조직도와 복지 목록·상세 화면을 읽었다. 복지 경로 `/wf-pm020101`의 본문은 `#contentLoad`로
-확인되어 기존 민원 수집기의 `contents`와 다르다. 이 경로는 수집기에 아직 등록하지 않았다.
-출처별 이용 조건·robots·실제 추출 검증이 남아 있으므로 `collection_reviewed=false`를 유지한다.
-기존 `contents` 선택자는 합성 HTML에서만 검증했다. 인증·TLS 우회는 하지 않는다.
+2026-09-09 브라우저에서 복지 목록·상세 2개와 분당구 건설과 업무분장 구조를 확인했다.
+복지의 `#contentLoad` 아래 목록은 `form` 안에 있으며 상세 이동은 `fn_move_form(숫자)` 버튼이다.
+이를 읽는 전용 추출기와 여러 로컬 HTML의 누락·중복·부서 표기 대조를 구현했다.
+직접 HTTPS robots 요청은 TLS handshake 오류, 브라우저 robots 요청은 클라이언트 차단으로
+실패했다. 실제 HTTP 원문 추출·robots·개별 이용 조건 확인은 남아 있어 **모든 출처의
+`collection_reviewed=false`를 유지**한다. 기존 `contents` 선택자는 합성 HTML에서만 검증했다.
+브라우저 DOM 확인을 HTTP 수집 성공으로 기록하지 않는다. [관찰 근거와 실행 안내](SEONGNAM_COLLECTOR.md).
 
 데이터 담당자가 실제 공개 응답과 이용 조건을 확인하고 선택자·상세 경로·페이지 이동 규칙을
 맞춘 뒤, 근거를 남긴 PR로 해당 출처를 활성화한다. 활성화 후에도 매 실행에서 robots.txt를
@@ -31,8 +35,9 @@
 - 기본 최대 3페이지, 설정 상한 10페이지, 실행 예산 45초, 요청 timeout 최대 10초다.
   예산은 각 요청 사이에서 확인하며 진행 중인 소켓 읽기는 해당 timeout의 영향을 받는다.
 - 요청 사이 최소 2초를 두고 robots의 crawl-delay와 request-rate가 더 길면 이를 따른다.
-- HTML은 1MB·UTF-8·검증할 본문 영역으로 제한한다. 메뉴·스크립트·폼·푸터를 제외하고
-  표의 셀을 구분해 텍스트로 추출한다. 표 구조·첨부 각주 대조는 사람이 수행해야 한다.
+- HTML은 1MB·UTF-8·검증할 본문 영역으로 제한한다. 메뉴·스크립트·폼 입력값·푸터를 제외한다.
+  복지 목록의 폼 내부 카드는 읽고, 본문 문의처와 하단 부서 표시는 분리한다. 조직도는 표의
+  `담당업무` 열과 팀명만 추출한다. 이름·전화·직위 열은 제외하며 열 위치를 추정하지 않는다.
 - 한 번 실행하고 종료한다. 스케줄러·백그라운드 크롤러는 만들지 않는다.
 
 네트워크 없이 합성 HTML 추출을 확인하려면 저장소 루트에서 실행한다.
@@ -41,13 +46,18 @@
 python -m app.collect_services --source seongnam-handbook --input-html tests/fixtures/service_source_synthetic.html --synthetic --output .local/service-imports/demo.json
 ```
 
-출력은 `review_status=pending`인 문서 목록이다. `.local/`은 Git에서 제외되며 기존 파일을
+출력은 `schema_version=2`, `review_status=pending`인 추출 보고서다. 목록 페이지는 서비스
+본문으로 저장하지 않고 `pages[].listing_items`에 기록한다. `.local/`은 Git에서 제외되며 기존 파일을
 덮어쓰지 않는다. 실제로 적법하게 확보한 HTML에는 `--synthetic`을 쓰지 말고 원본의 등록된
 URL을 `--source-url`로 지정한다. 로컬 파일의 원격 수집일은 알 수 없으므로 `fetched_at=null`,
 로컬 처리 시각은 `ingested_at`에 기록한다. 게시일·수정일·시행일을 수집일로 추정하지 않는다.
 
-네트워크 결과에는 페이지별 오류·방문 수·남은 링크와 `completed`가 있다. 이 값은 발견한
-허용 링크를 오류 없이 소진했는지만 뜻하며, 사이트 전체 또는 업무 대응표 완성을 뜻하지 않는다.
+로컬·네트워크 결과 모두 페이지별 오류·방문 수·남은 링크와 `completed`가 있다. 복지는
+표시 총건수·목록 ID·상세 ID를 대조하고, 조직도는 등록한 7개 코드의 누락을 표시한다.
+추출 완결성은 정책 정확성·실제 담당 조직 확정·공개 승인을 뜻하지 않는다.
+묶음 입력 `--input-manifest`, 원본/DOM 구분 `--input-kind`와 전체 보고서 필드는
+[수집기 실행 안내](SEONGNAM_COLLECTOR.md)에 정리했다. v2 추출 보고서는 `ServiceBundle`이
+아니므로 검수 API에 그대로 등록할 수 없다. 업무·분류·관할을 사람이 구조화해야 한다.
 
 ## 팀이 전달할 JSON
 
@@ -76,8 +86,9 @@ URL을 `--source-url`로 지정한다. 로컬 파일의 원격 수집일은 알 
 }
 ```
 
-스키마는 추가 질문 항목을 보관할 수 있지만 현재 채팅에서 실제로 묻고 저장하는 항목은
-`content`, `location_text`뿐이다. 사진·시점·업무별 추가 항목은 UI와 상태 계약 확장이 필요하다.
+공식 후보의 질문은 검수 자료다. 현재 채팅은 앱에서 작성한 12개 상황·24개 추가 질문을
+별도로 묻고 저장하며 사진 3장을 지원한다. [실제 질문과 상태 계약](CITIZEN_QUESTIONS.md)을
+기준으로 연결한다. 공식 후보 질문의 자동 실행과 LLM 항목 추출은 후속 작업이다.
 기존 `departments.json`을 변경하지 않으므로 이 자료를 승인해도 민원 분류·배정이 바뀌지 않는다.
 원본 분류와 내부 라벨의 다대다 대응표, 조직개편별 유효기간은 후속 확장이다.
 
@@ -140,6 +151,6 @@ Invoke-RestMethod -Method Post -Uri "$catalogBase/api/v1/service-catalogs/$($cat
 ## 다음 전달물
 
 - A 기획·데이터: 대표 업무 12개 범위 검토, 복지 2개 부서 표기 불일치·구별 세부 관할·질문·적용일 검수.
-- C 서버·수집: 출처별 이용 조건과 실제 선택자 확인, 첨부 추출·표 대조, API 활용 신청.
+- C 서버·수집: robots·개별 이용 조건·실제 HTTP 원문 대조, 로컬 묶음의 누락 보완, API 활용 신청.
 - D 모델·평가: 검수된 서비스 ID로 검색하는 예시와 범위 밖·누락 정보·혼합 요청 평가셋.
 - B UI·접근성: 필요한 추가 질문 형식, 사진 흐름, 출처 안내에 대한 사용성 검증.
