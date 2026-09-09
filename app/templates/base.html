@@ -66,6 +66,10 @@
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H9l-5 4zM8 8h8M8 12h5"/></svg><span>추가 문의 대기</span>
         </a>
         <p class="nav-label nav-label-secondary">시스템</p>
+        <a href="/staff/source-reports" class="{{ 'is-active' if active_filter|default('') == 'source_reports' else '' }}" {% if active_filter|default('') == 'source_reports' %}aria-current="page"{% endif %}>
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8M8 16h5"/></svg>
+          <span>수집 결과 확인</span>
+        </a>
         <a href="/staff/service-catalogs" class="{{ 'is-active' if active_filter|default('') == 'service_catalogs' else '' }}" {% if active_filter|default('') == 'service_catalogs' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>
           <span>안내 자료 검수</span>

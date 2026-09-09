@@ -12,6 +12,7 @@ from app.api import (
     catalog_pages,
     citizen,
     citizen_photos,
+    collection_reports,
     complaints,
     departments,
     followups,
@@ -130,6 +131,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(departments.router)
     app.include_router(service_catalogs.router)
     app.include_router(catalog_pages.router)
+    app.include_router(collection_reports.router)
     app.include_router(followups.router)
 
     @app.get("/health", tags=["system"])

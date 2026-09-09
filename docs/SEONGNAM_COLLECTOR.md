@@ -129,8 +129,9 @@ python -X utf8 -m app.collect_services --source seongnam-welfare --input-manifes
 
 1. **C 서버·수집**: 접근 가능한 환경에서 robots·이용 조건을 확인하고 실제 응답 원문을 적법하게
    확보한다. 원본/DOM 구분과 URL을 manifest에 남기고, 합성 테스트와 실제 추출 차이를 검토한다.
-2. **A 기획·데이터**: 보고서의 누락·중복·부서 표기·정책 연도·관할을 검수한다. 본문 문의처와
-   하단 표시를 같은 역할로 가정하지 않는다. 사람 검토 전 `work_assignment_ids=[]`를 유지한다.
+2. **A 기획·데이터**: [수집 결과 확인 화면](SOURCE_REPORT_REVIEW.md)에 보고서 JSON을 열어
+   누락·중복·부서 표기·정책 연도·관할을 검수하고, 확인할 일 JSON과 원본 보고서를 팀에 전달한다.
+   본문 문의처와 하단 표시를 같은 역할로 가정하지 않는다. 사람 검토 전 `work_assignment_ids=[]`를 유지한다.
 3. **A·C**: 검수한 항목만 새 `ServiceBundle.version`의 분류·조직·업무·서비스로 작성한다.
    이 추출 JSON은 검수 API에 바로 올리는 파일이 아니다. [등록·승인 계약](SERVICE_DATA_PIPELINE.md)을 따른다.
 4. **D 모델·평가**: 공식 본문 이용 조건 확인 전에는 [합성 100건](PILOT_MODEL_EVALS.md)으로

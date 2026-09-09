@@ -15,6 +15,7 @@
 - 비식별 대화 이어보기, 초안 버전 검사, 동시 접수·재시도 중복 저장 방지
 - 출처·분류·조직·업무·필요 질문 JSON, 본문 추출 CLI와 검수 대기 등록·공개·철회 API
 - 복지 목록·상세·조직도 HTML 추출, 로컬 묶음의 누락·중복·부서 표기 차이 대조 보고서
+- 수집 보고서 확인 화면(`/staff/source-reports`), 집계 재계산·업무 검색·페이지 근거·확인할 일 JSON
 - 검수 자료 검색과 필요 정보 조회 도구, 최대 3회 실행 제한, 출처 카드와 변경 시 결과 폐기
 - 담당자 자료 검수 화면(`/staff/service-catalogs`), 공개 목록 조사 후보 12개와 조직 표시 검토
 - 생활불편·복지 대표 업무 12개, 실제 구별 업무분장 후보 32개와 추가 질문안 44개 검수
@@ -58,6 +59,7 @@
 - [에이전트 도구 JSON v2와 모델 팀 연결 작업](docs/AGENT_API.md)
 - [수집·검수 JSON과 합성 자료 등록·승인 실행 방법](docs/SERVICE_DATA_PIPELINE.md)
 - [복지·조직도 수집기 실행·JSON 보고서·팀 전달 순서](docs/SEONGNAM_COLLECTOR.md)
+- [수집 보고서를 화면에서 확인하고 팀에 전달하는 방법](docs/SOURCE_REPORT_REVIEW.md)
 - [담당자 화면에서 검수할 성남시 공개 목록 후보](docs/SEONGNAM_REVIEW_CANDIDATES.md)
 - [생활불편·복지 대표 업무와 실제 부서·관할·질문 설계](docs/SEONGNAM_PILOT_SERVICES.md)
 - [동아리 대화 모델 서버 연결 설정과 전용 JSON 계약](docs/CLUB_MODEL_SERVER.md)
@@ -290,6 +292,8 @@ POST /api/v1/complaints/{complaint_id}/duplicate-candidates/{candidate_id}/decis
 GET  /api/v1/departments
 GET  /api/v1/departments/catalog
 GET  /api/v1/session
+GET  /api/v1/source-reports/example
+POST /api/v1/source-reports/preview
 GET  /api/v1/service-catalogs
 POST /api/v1/service-catalogs
 GET  /api/v1/service-catalogs/{version}
