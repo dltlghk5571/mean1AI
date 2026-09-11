@@ -53,7 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: source-report-browser-failure
+          name: civic-browser-failure
           path: .local/browser-artifacts/
           if-no-files-found: ignore
           retention-days: 7

@@ -15,6 +15,34 @@
   let displayedMessages = "";
   let photos = [];
   let pendingPhotos = null;
+  let leaveDestination = null;
+  let leaveTrigger = null;
+  let navigationConfirmed = false;
+  let watchingUnload = false;
+
+  function unsavedReasons() {
+    const reasons = [];
+    if (input.value.trim()) reasons.push("아직 보내지 않은 글은 사라져요.");
+    if (!editForm.hidden && state && ["title", "content", "location_text"].some(
+      (key) => editForm.elements[key].value !== state.draft[key]
+    )) reasons.push("저장하지 않은 수정 내용은 사라져요.");
+    if (photos.length) reasons.push(`선택한 사진 ${photos.length}장은 다시 골라야 해요.`);
+    if (pending) reasons.push("전송 결과를 아직 확인하지 못했어요. 다시 오면 최신 대화를 먼저 확인해 주세요.");
+    return reasons;
+  }
+
+  function beforeUnload(event) {
+    if (navigationConfirmed || !unsavedReasons().length) return;
+    event.preventDefault();
+    event.returnValue = "";
+  }
+
+  function protectUnsavedInput() {
+    const needed = unsavedReasons().length > 0;
+    if (needed && !watchingUnload) window.addEventListener("beforeunload", beforeUnload);
+    if (!needed && watchingUnload) window.removeEventListener("beforeunload", beforeUnload);
+    watchingUnload = needed;
+  }
 
   function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -71,6 +99,7 @@
     q("busy").hidden = !busy;
     history.setAttribute("aria-busy", String(busy));
     q("latest").disabled = !state || !history.lastElementChild;
+    protectUnsavedInput();
   }
 
   function photoFeedback(text, error = false) {
@@ -359,7 +388,10 @@
       if (["say", "reset", "answer_question", "skip_question", "already_described", "finish_questions"].includes(sent.action)) input.value = "";
       if (sent.action === "revise_question") input.value = next.intake?.answers[sent.field_id]?.value || "";
       render(next, true);
-      if (sent.action === "confirm" && next.redirect) window.location.assign(next.redirect);
+      if (sent.action === "confirm" && next.redirect) {
+        navigationConfirmed = true;
+        window.location.assign(next.redirect);
+      }
     } catch (error) {
       showError(error);
     } finally {
@@ -400,6 +432,7 @@
     else send("say", { message: input.value });
   });
   input.addEventListener("input", updateCount);
+  editForm.addEventListener("input", protectUnsavedInput);
   input.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && !event.isComposing && event.keyCode !== 229) {
       event.preventDefault();
@@ -452,5 +485,37 @@
   q("reset-dialog").addEventListener("close", () => {
     if (!busy) q("reset").focus();
   });
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest("a[href]");
+    if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+    const destination = new URL(link.href, window.location.href);
+    if (!["http:", "https:"].includes(destination.protocol)) return;
+    if (link.getAttribute("href").startsWith("#") || (
+      destination.origin === window.location.origin && destination.pathname === window.location.pathname
+      && destination.search === window.location.search && destination.hash
+    )) return;
+    const reasons = unsavedReasons();
+    if (!reasons.length) return;
+    event.preventDefault();
+    leaveDestination = destination.href;
+    leaveTrigger = link;
+    q("leave-reasons").replaceChildren(...reasons.map((reason) => element("li", reason)));
+    q("leave-dialog").showModal();
+  });
+  q("leave-cancel").addEventListener("click", () => q("leave-dialog").close());
+  q("leave-confirm").addEventListener("click", () => {
+    if (!leaveDestination) return;
+    const destination = leaveDestination;
+    navigationConfirmed = true;
+    q("leave-dialog").close();
+    window.location.assign(destination);
+  });
+  q("leave-dialog").addEventListener("close", () => {
+    if (!navigationConfirmed) leaveTrigger?.focus();
+    leaveDestination = null;
+    leaveTrigger = null;
+  });
+  window.addEventListener("pageshow", () => { navigationConfirmed = false; });
   load();
 })();

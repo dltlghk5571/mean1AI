@@ -255,7 +255,8 @@ python -m evals.rag_run --format markdown
 python -m evals.pilot_run validate
 ```
 
-수집 보고서의 실제 파일 입력·업로드·JSON 다운로드는 선택적인 브라우저 검사로 실행합니다.
+시민 챗봇의 작성 중 이동 보호·사진 접수와 수집 보고서의 파일 입력·업로드·JSON 다운로드는
+선택적인 브라우저 검사로 실행합니다.
 기존 `pytest`와 별도이며 AI 서버가 필요 없습니다. 새 Chromium 프로필과 임시 앱·DB를 사용합니다.
 
 ```bash

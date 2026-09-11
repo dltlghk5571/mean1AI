@@ -15,7 +15,7 @@ import httpx
 import pytest
 import uvicorn
 from fastapi import FastAPI
-from playwright.sync_api import Browser, Page, Route, sync_playwright
+from playwright.sync_api import Browser, Page, Route, expect, sync_playwright
 
 from app.config import Settings
 from app.main import create_app
@@ -32,8 +32,8 @@ class ReportApp:
 @pytest.fixture(scope="session")
 def report_app(tmp_path_factory: pytest.TempPathFactory) -> Generator[ReportApp, None, None]:
     if sys.platform == "win32":
-        ctypes.windll.kernel32.SetConsoleTitleW("Seongnam - source report browser tests")
-    database = tmp_path_factory.mktemp("source-report-browser") / "test.db"
+        ctypes.windll.kernel32.SetConsoleTitleW("Seongnam - civic browser tests")
+    database = tmp_path_factory.mktemp("civic-browser") / "test.db"
     app = create_app(
         Settings(
             _env_file=None,
@@ -60,7 +60,7 @@ def report_app(tmp_path_factory: pytest.TempPathFactory) -> Generator[ReportApp,
         worker = threading.Thread(
             target=server.run,
             kwargs={"sockets": [listener]},
-            name="Seongnam source report test server",
+            name="Seongnam civic browser test server",
             daemon=True,
         )
         worker.start()
@@ -68,7 +68,7 @@ def report_app(tmp_path_factory: pytest.TempPathFactory) -> Generator[ReportApp,
             deadline = time.monotonic() + 15
             while not server.started:
                 if not worker.is_alive() or time.monotonic() >= deadline:
-                    pytest.fail("The isolated report test server did not start within 15 seconds")
+                    pytest.fail("The isolated browser test server did not start within 15 seconds")
                 time.sleep(0.05)
             yield ReportApp(f"http://127.0.0.1:{port}", app)
         finally:
@@ -77,7 +77,7 @@ def report_app(tmp_path_factory: pytest.TempPathFactory) -> Generator[ReportApp,
             if worker.is_alive():
                 server.force_exit = True
                 worker.join(timeout=3)
-            assert not worker.is_alive(), "The isolated report test server did not stop"
+            assert not worker.is_alive(), "The isolated browser test server did not stop"
 
 
 @pytest.fixture(scope="session")
@@ -93,14 +93,14 @@ def browser() -> Generator[Browser, None, None]:
 @pytest.fixture(autouse=True)
 def block_app_external_requests(monkeypatch: pytest.MonkeyPatch) -> None:
     def blocked(*args, **kwargs):
-        raise AssertionError("The report browser test must not make external app HTTP calls")
+        raise AssertionError("The browser test must not make external app HTTP calls")
 
     monkeypatch.setattr(httpx.HTTPTransport, "handle_request", blocked)
     monkeypatch.setattr(httpx.AsyncHTTPTransport, "handle_async_request", blocked)
 
 
 @pytest.fixture
-def page(
+def isolated_page(
     browser: Browser, report_app: ReportApp, request: pytest.FixtureRequest
 ) -> Generator[Page, None, None]:
     # No channel, user_data_dir, persistent context, saved credentials, or CDP connection.
@@ -126,14 +126,9 @@ def page(
     page = context.new_page()
     page.on("pageerror", lambda error: errors.append(str(error)))
     try:
-        page.goto(report_app.url + "/staff/source-reports")
-        page.get_by_role("textbox", name="아이디", exact=True).fill("review.demo")
-        page.get_by_role("textbox", name="비밀번호", exact=True).fill("review-demo-2026")
-        page.get_by_role("button", name="로그인", exact=True).click()
-        page.wait_for_url(report_app.url + "/staff/source-reports")
         yield page
         assert not errors, f"Unexpected browser script error: {errors}"
-        assert not external_requests, "The report page attempted an external request"
+        assert not external_requests, "The page attempted an external request"
     finally:
         # Synthetic input only. Keep a screenshot of failures; never export cookies or storage.
         report = getattr(request.node, "report_call", None)
@@ -144,6 +139,23 @@ def page(
             with suppress(Exception):
                 page.screenshot(path=str(artifact), full_page=True, timeout=3_000)
         context.close()
+
+
+@pytest.fixture
+def page(isolated_page: Page, report_app: ReportApp) -> Page:
+    isolated_page.goto(report_app.url + "/staff/source-reports")
+    isolated_page.get_by_role("textbox", name="아이디", exact=True).fill("review.demo")
+    isolated_page.get_by_role("textbox", name="비밀번호", exact=True).fill("review-demo-2026")
+    isolated_page.get_by_role("button", name="로그인", exact=True).click()
+    isolated_page.wait_for_url(report_app.url + "/staff/source-reports")
+    return isolated_page
+
+
+@pytest.fixture
+def citizen_page(isolated_page: Page, report_app: ReportApp) -> Page:
+    isolated_page.goto(report_app.url + "/minwon/new")
+    expect(isolated_page.locator("#chat-message")).to_be_enabled()
+    return isolated_page
 
 
 @pytest.hookimpl(wrapper=True)
