@@ -40,7 +40,7 @@ def upload(page: Page, path: Path, *, status: int = 200, keyboard: bool = False)
     expect(page.locator("#sr-file")).to_have_value("")
     expect(page.locator("#sr-file")).to_be_enabled()
     # no-store responses need not remain in Chromium's inspector cache after the page consumes them.
-    # Verify outcomes through the visible page and the actual exported file instead of response.json.
+    # Verify the visible page and exported file instead of calling response.json().
 
 
 def test_file_upload_and_download_preserve_all_pending_evidence(
