@@ -255,6 +255,18 @@ python -m evals.rag_run --format markdown
 python -m evals.pilot_run validate
 ```
 
+수집 보고서의 실제 파일 입력·업로드·JSON 다운로드는 선택적인 브라우저 검사로 실행합니다.
+기존 `pytest`와 별도이며 AI 서버가 필요 없습니다. 새 Chromium 프로필과 임시 앱·DB를 사용합니다.
+
+```bash
+python -m pip install -e ".[dev,browser]"
+python -m playwright install chromium
+python -m pytest browser_tests
+```
+
+CI의 `browser` 작업은 브라우저 설치부터 검사·정리까지 실행합니다.
+[검사 범위와 팀원 확인 과제](docs/SOURCE_REPORT_REVIEW.md)를 참고하세요.
+
 `python -m evals.run`은 네트워크나 API 키 없이 `rules` 제공자만 사용합니다. 버전이 고정된
 합성 JSONL 평가셋에서 라우팅 Top-1/Top-3, 긴급 탐지, 개인정보 마스킹, 사람검토 회피 여부를
 측정하며 안전 게이트가 하나라도 실패하면 종료 코드 1을 반환합니다. 카테고리별 최소 표본 수와

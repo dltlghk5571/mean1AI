@@ -4,6 +4,7 @@
     "contexts": [],
     "checks": [
       {"context": "test"},
+      {"context": "browser"},
       {"context": "gitflow"}
     ]
   },

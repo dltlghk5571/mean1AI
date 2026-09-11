@@ -19,7 +19,7 @@
 `feature/agent-api`, `feature/llm-classifier`처럼 독립적으로 검토·병합할 작업마다 만든다.
 `release/*`에는 다음 버전의 새 기능을 추가하지 않는다. 일반 버그 수정과 문서 변경도 `feature/*`를 사용한다.
 
-PR은 다른 팀원 한 명의 검토와 `test`, `gitflow` 통과 후 **Create a merge commit**으로 병합한다.
+PR은 다른 팀원 한 명의 검토와 `test`, `browser`, `gitflow` 통과 후 **Create a merge commit**으로 병합한다.
 공유 브랜치 강제 푸시는 하지 않는다. 릴리스와 핫픽스는 모든 대상 브랜치에 반영했는지 확인한 뒤
 작업 브랜치를 삭제한다. `main`과 `develop`은 유지한다.
 
@@ -66,6 +66,7 @@ JSON 계약 변경은 관련 UI·서버·모델 담당자가 함께 검토하며
 `ci` 워크플로는 푸시와 PR에서 실행한다. PR 대상 변경(`edited`)도 재검사한다.
 
 - `test`: Ruff, mypy, pytest, 분류 평가, 검색 평가.
+- `browser`: 별도 Chromium·임시 DB로 수집 보고서 파일 선택·업로드·다운로드·오류 복구 검사.
 - `gitflow`: PR의 브랜치 이름과 대상 조합 검사. 잘못된 `feature/* → main` 등은 실패한다.
 
 경로 검사 코드는 PR **대상 브랜치의 커밋**에서 읽는다. PR이 검사 스크립트를 함께 수정해도 그 변경으로
@@ -81,12 +82,12 @@ JSON 계약 변경은 관련 UI·서버·모델 담당자가 함께 검토하며
 저장소 소유자/관리자는 `main`, `develop`에 다음 보호 설정을 적용한다.
 
 - PR과 다른 팀원 1명의 승인 필요. 새 커밋은 기존 승인을 해제.
-- 최신 대상 브랜치 기준 `test`, `gitflow` 검사 통과 필요.
+- 최신 대상 브랜치 기준 `test`, `browser`, `gitflow` 검사 통과 필요.
 - 대화 해결 필요, 관리자도 보호 규칙 적용, 강제 푸시·브랜치 삭제 금지.
 - Merge commit 허용. 선형 이력 강제는 끄기.
 
 적용할 값은 [.github/branch-protection.json](../.github/branch-protection.json)에 준비했다.
-두 검사 이름이 GitHub에서 한 번 실행된 뒤, 저장소 루트에서 관리 권한이 있는 계정으로 실행한다.
+세 검사 이름이 GitHub에서 한 번 실행된 뒤, 저장소 루트에서 관리 권한이 있는 계정으로 실행한다.
 이미 다른 보호 정책이 추가됐다면 먼저 비교해 보존할 정책을 함께 반영한다.
 
 ```bash
