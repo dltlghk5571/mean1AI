@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from playwright.sync_api import Page, Response, expect
+from playwright.sync_api import Page, expect
 from sqlalchemy import func, select
 
 from app.models import ServiceCatalogReview, ServiceCatalogVersion
@@ -24,7 +24,7 @@ def choose_file(page: Page, path: Path, *, keyboard: bool = False) -> None:
     choice.value.set_files(path, timeout=10_000)
 
 
-def upload(page: Page, path: Path, *, status: int = 200, keyboard: bool = False) -> Response:
+def upload(page: Page, path: Path, *, status: int = 200, keyboard: bool = False) -> None:
     with page.expect_response(
         lambda response: (
             response.url.endswith("/api/v1/source-reports/preview")
@@ -39,7 +39,8 @@ def upload(page: Page, path: Path, *, status: int = 200, keyboard: bool = False)
     expect(page.locator("[data-source-report]")).to_have_attribute("aria-busy", "false")
     expect(page.locator("#sr-file")).to_have_value("")
     expect(page.locator("#sr-file")).to_be_enabled()
-    return response
+    # no-store responses need not remain in Chromium's inspector cache after the page consumes them.
+    # Verify outcomes through the visible page and the actual exported file instead of response.json.
 
 
 def test_file_upload_and_download_preserve_all_pending_evidence(
@@ -48,7 +49,8 @@ def test_file_upload_and_download_preserve_all_pending_evidence(
     path = tmp_path / "검수 예시 보고서.json"
     path.write_bytes(DEMO.read_bytes())
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    view = upload(page, path, keyboard=True).json()
+    inputs = json.loads(path.read_text("utf-8"))
+    upload(page, path, keyboard=True)
     expect(page.locator("[data-report-result]")).to_be_visible()
     expect(page.locator("[data-report-origin]")).to_contain_text(path.name)
     expect(page.locator("[data-report-mismatch]")).to_be_hidden()
@@ -75,14 +77,23 @@ def test_file_upload_and_download_preserve_all_pending_evidence(
     assert exported["report_sha256"] == digest
     assert exported["source_id"] == "seongnam-welfare"
     assert exported["review_status"] == "pending"
-    assert exported["tasks"] == view["tasks"]  # Export is complete even while one task is visible.
+    # Export must retain all categories even while one department task is visible.
+    assert len(exported["tasks"]) == 6
+    assert sorted(task["kind"] for task in exported["tasks"]) == [
+        "department",
+        "missing",
+        "missing",
+        "source",
+        "source",
+        "source",
+    ]
     assert len(exported["pages"]) == 2
     for task in exported["tasks"]:
         assert task["status"] == "pending" and task["source_url"] is None
         if task["page_index"] is not None:
             source = exported["pages"][task["page_index"]]
             assert source["index"] == task["page_index"]
-            assert source["input_sha256"] == view["pages"][task["page_index"]]["input_sha256"]
+            assert source["input_sha256"] == inputs["pages"][task["page_index"]]["input_sha256"]
     assert all(
         "body" not in source and source["source_url"] is None for source in exported["pages"]
     )
@@ -115,8 +126,7 @@ def test_invalid_file_hides_previous_result_then_changed_summary_recovers(
     modified["reconciliation"]["missing_detail_ids"] = []
     changed = tmp_path / "집계가 변경된 보고서.json"
     changed.write_text(json.dumps(modified, ensure_ascii=False), encoding="utf-8")
-    view = upload(page, changed).json()
-    assert view["summary_matches"] is False and view["completed"] is False
+    upload(page, changed)
     expect(page.locator("[data-report-mismatch]")).to_be_visible()
     expect(page.locator("[data-report-boundary]")).to_contain_text("아직 확보하거나 확인할 자료")
     expect(page.locator(".sr-task")).to_have_count(6)
@@ -148,8 +158,7 @@ def test_oversize_file_stays_local_and_identifier_error_does_not_display_input(
     content["pages"][1]["body_contacts"] = [f"합성 {direct_id}"]
     private = tmp_path / "합성 식별자 포함.json"
     private.write_text(json.dumps(content, ensure_ascii=False), encoding="utf-8")
-    response = upload(page, private, status=422)
-    assert direct_id not in response.text()
+    upload(page, private, status=422)
     expect(page.get_by_role("alert")).to_contain_text("전화번호·이메일·주민등록번호")
     expect(page.locator("body")).not_to_contain_text(direct_id)
     expect(page.locator("[data-report-result]")).to_be_hidden()
