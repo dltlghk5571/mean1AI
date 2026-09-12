@@ -554,6 +554,30 @@ class IncidentEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class IncidentComparison(Base):
+    """Immutable advisory comparison. Never a duplicate decision or incident membership."""
+
+    __tablename__ = "incident_comparisons"
+    __table_args__ = (
+        CheckConstraint("status IN ('ready', 'failed', 'stale')"),
+        CheckConstraint("provider IN ('demo', 'club')"),
+        CheckConstraint("complaint_id != candidate_complaint_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    complaint_id: Mapped[str] = mapped_column(
+        ForeignKey("complaints.id"), nullable=False, index=True
+    )
+    candidate_complaint_id: Mapped[str] = mapped_column(ForeignKey("complaints.id"), nullable=False)
+    input_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    provider: Mapped[str] = mapped_column(String(16), nullable=False)
+    model_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class GroundedDraftRecord(Base):
     """Additive citation snapshot for one complaint draft.
 

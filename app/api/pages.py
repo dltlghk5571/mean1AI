@@ -106,6 +106,10 @@ AUDIT_LABELS = {
     "incident_status_changed": "현장 진행 상태 변경",
     "incident_published": "공통 진행 안내 공개",
     "incident_withdrawn": "공통 진행 안내 공개 철회",
+    "incident_comparison_requested": "같은 사건 모델 비교 요청",
+    "incident_comparison_ready": "같은 사건 비교 제안 · 담당자 검토 필요",
+    "incident_comparison_failed": "사건 비교 실패 · 담당자 검토",
+    "incident_comparison_stale": "비교 중 자료 변경 · 결과 보류",
 }
 
 AI_STATE_LABELS = {

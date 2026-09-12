@@ -28,7 +28,8 @@
 - [x] Add text + normalized-location + time duplicate-candidate scoring
 - [x] Add human-confirmed shared field incidents, reversible membership and per-complaint audit
 - [x] Add shared progress, explicit private citizen publication/withdrawal and revision checks
-- [ ] Add LLM same-incident comparison and issue-level links for mixed complaints
+- [x] Add opt-in incident comparison HTTP/JSON contract, source validation and staff advisory UI
+- [ ] Connect/evaluate the actual comparison LLM and add issue-level links for mixed complaints
 - [ ] Add coordinate-distance scoring after privacy and source review
 - [x] Introduce a local durable queue for optional expensive AI calls, with bounded retries and human fallback
 

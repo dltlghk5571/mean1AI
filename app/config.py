@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     chat_request_timeout_seconds: float = Field(default=15, ge=1, le=30)
     chat_turn_timeout_seconds: float = Field(default=30, ge=1, le=60)
     chat_max_concurrent: int = Field(default=4, ge=1, le=16)
+    incident_compare_provider: Literal["off", "demo", "club"] = "off"
+    incident_compare_endpoint_url: str | None = None
+    incident_compare_model_id: str | None = Field(default=None, max_length=120)
+    incident_compare_api_key: SecretStr | None = None
+    incident_compare_timeout_seconds: float = Field(default=10, ge=1, le=15)
+    incident_compare_max_concurrent: int = Field(default=2, ge=1, le=4)
     ai_deferred_enabled: bool = False
     ai_queue_max_attempts: int = Field(default=3, ge=1, le=10)
     ai_queue_retry_seconds: int = Field(default=30, ge=1, le=3600)
@@ -69,6 +75,23 @@ class Settings(BaseSettings):
             or not self.chat_api_key.get_secret_value().strip()
         ):
             raise ValueError("club_endpoint_model_and_key_required")
+        return self
+
+    @field_validator("incident_compare_endpoint_url")
+    @classmethod
+    def validate_incident_compare_endpoint(cls, value: str | None) -> str | None:
+        return cls.validate_chat_endpoint(value)
+
+    @model_validator(mode="after")
+    def require_incident_compare_configuration(self) -> "Settings":
+        if self.incident_compare_provider == "club" and (
+            not self.incident_compare_endpoint_url
+            or not self.incident_compare_model_id
+            or not self.incident_compare_model_id.strip()
+            or not self.incident_compare_api_key
+            or not self.incident_compare_api_key.get_secret_value().strip()
+        ):
+            raise ValueError("incident_compare_endpoint_model_and_key_required")
         return self
 
     @property

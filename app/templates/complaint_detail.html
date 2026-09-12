@@ -258,6 +258,9 @@
                 <div><dt>문구</dt><dd>{{ '%.0f'|format(candidate.score_breakdown.text * 100) }}%</dd></div>
               </dl>
 
+              {% if candidate.review_status != 'rejected' %}
+                <a class="button button-secondary" href="/staff/incident-comparisons/{{ complaint.id }}/{{ candidate.candidate_complaint_id }}">같은 사건 비교</a>
+              {% endif %}
               {% if candidate.review_status == 'suggested' and current_user.can_triage %}
                 <form class="duplicate-decision-form" action="/complaints/{{ complaint.id }}/duplicate-candidates/{{ candidate.candidate_complaint_id }}/decision" method="post">
                   <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">

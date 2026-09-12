@@ -39,6 +39,7 @@ def install_append_only_guards(engine: Engine) -> None:
     for table_name in (
         "audit_events",
         "incident_events",
+        "incident_comparisons",
         "citizen_chat_audit_events",
         "mcp_tool_audit_events",
         "service_catalog_versions",

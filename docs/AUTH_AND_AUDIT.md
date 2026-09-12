@@ -145,3 +145,22 @@ appears to authorized citizen sessions. Internal approval alone never publishes;
 reprocessing cannot change a previous public snapshot. A new approval and explicit publication are
 needed for a replacement. This publishes within the local demo only; no message or government
 request is sent, no administrative action is decided, and no complaint is closed.
+
+## Optional incident comparison
+
+`/staff/incident-comparisons/{complaint_id}/{candidate_id}` is staff-only. Triage officers and reviewers
+may submit a CSRF-protected comparison; auditors can read stored results. The default provider is off.
+Club mode sends only the selected records' re-masked text, category, submission time, urgency and field
+status. It exposes no complaint/citizen IDs, photos, incident title or members to the model or MCP.
+This prototype's pattern redaction is not complete anonymization; use synthetic fixtures only.
+
+Before model access, `incident_comparison_requested` audits commit for both complaints. HTTP runs
+outside the SQLite write transaction. A new transaction checks freshness and atomically inserts an
+append-only `IncidentComparison` and both final audits (`ready`, `failed` or `stale`). Invalid/stale
+responses retain no model prose. If final storage fails, the result is withheld; the initial request
+audit may remain. Audits contain request ID, fingerprint, provider/model version, status and
+`automatic_link=false`, never input text, evidence, keys or endpoint URLs.
+
+Comparison cannot confirm/reject candidates, change incident membership or publish citizen guidance.
+Latest stored suggestions are hidden after input/review/incident revision or provider/model-ID changes.
+See [the comparison contract](INCIDENT_COMPARISON.md) for limits, transport and team handoff.

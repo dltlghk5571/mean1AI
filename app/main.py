@@ -16,6 +16,7 @@ from app.api import (
     complaints,
     departments,
     followups,
+    incident_comparisons,
     incidents,
     pages,
     service_catalogs,
@@ -28,6 +29,7 @@ from app.services.citizen import CitizenRateLimiter
 from app.services.citizen_agent import CitizenAgentExecutor, DemoToolPlanner
 from app.services.club_planner import ClubPlanner
 from app.services.department_catalog import import_department_catalog
+from app.services.incident_comparison import IncidentComparisonRunner
 from app.services.runtime import build_pipeline
 
 
@@ -74,6 +76,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.session_factory = session_factory
     app.state.pipeline = pipeline
     app.state.auth_manager = auth_manager
+    app.state.incident_comparator = IncidentComparisonRunner(effective_settings, session_factory)
     app.state.citizen_limiter = CitizenRateLimiter()
     app.state.chat_provider = build_chat_provider(effective_settings.chat_provider)
     app.state.agent_executor = (
@@ -135,6 +138,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(collection_reports.router)
     app.include_router(followups.router)
     app.include_router(incidents.router)
+    app.include_router(incident_comparisons.router)
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:
