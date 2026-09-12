@@ -33,9 +33,9 @@ def _precondition_error(
     if complaint.reviewed_at is not None:
         return "human_review_superseded"
     if (
-        pipeline.settings.ai_provider != job.provider
-        or pipeline.settings.openai_model != job.model
-        or getattr(pipeline.classifier, "provider_name", None) != job.provider
+        pipeline.settings.classification_provider_label != job.provider
+        or pipeline.settings.classification_model_id != job.model
+        or getattr(pipeline.classifier, "provider_name", None) != pipeline.settings.ai_provider
     ):
         return "configuration_changed"
     if (
@@ -148,7 +148,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         settings = Settings()
         ai_queue.validate_local_queue(settings)
         if not settings.ai_deferred_enabled or settings.ai_provider == "rules":
-            parser.error("Set AI_DEFERRED_ENABLED=true and AI_PROVIDER=openai for this worker")
+            parser.error("Set AI_DEFERRED_ENABLED=true and AI_PROVIDER=openai|club for this worker")
         pipeline = build_pipeline(settings)
     except ValueError:
         print(json.dumps({"error": "invalid_local_worker_configuration"}))

@@ -11,7 +11,13 @@ class Settings(BaseSettings):
     app_name: str = "성남 민원 AI 코파일럿 — 데모"
     app_env: Literal["development", "test", "production"] = "development"
     database_url: str = "sqlite:///./civic_ai.db"
-    ai_provider: Literal["rules", "openai"] = "rules"
+    ai_provider: Literal["rules", "openai", "club"] = "rules"
+    classifier_endpoint_url: str | None = None
+    classifier_model_id: str | None = Field(default=None, max_length=120)
+    classifier_api_key: SecretStr | None = None
+    classifier_request_timeout_seconds: float = Field(default=10, ge=1, le=30)
+    classifier_max_concurrent: int = Field(default=2, ge=1, le=4)
+    classifier_response_mode: Literal["model", "synthetic"] = "model"
     chat_provider: Literal["demo", "agent_demo", "club", "unavailable"] = "agent_demo"
     chat_endpoint_url: str | None = None
     chat_model_id: str | None = Field(default=None, max_length=120)
@@ -77,7 +83,7 @@ class Settings(BaseSettings):
             raise ValueError("club_endpoint_model_and_key_required")
         return self
 
-    @field_validator("incident_compare_endpoint_url")
+    @field_validator("incident_compare_endpoint_url", "classifier_endpoint_url")
     @classmethod
     def validate_incident_compare_endpoint(cls, value: str | None) -> str | None:
         return cls.validate_chat_endpoint(value)
@@ -93,6 +99,29 @@ class Settings(BaseSettings):
         ):
             raise ValueError("incident_compare_endpoint_model_and_key_required")
         return self
+
+    @model_validator(mode="after")
+    def require_club_classifier_configuration(self) -> "Settings":
+        if self.ai_provider == "club" and (
+            not self.classifier_endpoint_url
+            or not self.classifier_model_id
+            or not self.classifier_model_id.strip()
+            or not self.classifier_api_key
+            or not self.classifier_api_key.get_secret_value().strip()
+            or not self.ai_deferred_enabled
+        ):
+            raise ValueError("club_classifier_requires_endpoint_model_key_and_deferred_queue")
+        return self
+
+    @property
+    def classification_model_id(self) -> str:
+        return (self.classifier_model_id or "") if self.ai_provider == "club" else self.openai_model
+
+    @property
+    def classification_provider_label(self) -> str:
+        if self.ai_provider == "club" and self.classifier_response_mode == "synthetic":
+            return "club_synthetic"
+        return self.ai_provider
 
     @property
     def package_dir(self) -> Path:

@@ -66,6 +66,7 @@ class ClubPlanner:
                         or response.headers.get("content-type", "").split(";", 1)[0].strip()
                         != "application/json"
                         or response.headers.get("content-encoding", "identity") != "identity"
+                        or response.headers.get("x-model-execution", "model") != "model"
                     ):
                         raise ValueError("club_response_rejected")
                     content_length = response.headers.get("content-length")

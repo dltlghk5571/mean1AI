@@ -105,7 +105,17 @@ def test_transport_redacts_context_authenticates_and_returns_only_step() -> None
 
 @pytest.mark.parametrize(
     "problem",
-    ["redirect", "status", "html", "compressed", "oversize", "invalid", "model", "tool"],
+    [
+        "redirect",
+        "status",
+        "html",
+        "compressed",
+        "synthetic",
+        "oversize",
+        "invalid",
+        "model",
+        "tool",
+    ],
 )
 def test_transport_rejects_untrusted_responses_without_retry(problem: str) -> None:
     count = 0
@@ -119,6 +129,9 @@ def test_transport_rejects_untrusted_responses_without_retry(problem: str) -> No
             "html": {"headers": {"content-type": "text/html"}},
             "compressed": {
                 "headers": {"content-type": "application/json", "content-encoding": "gzip"}
+            },
+            "synthetic": {
+                "headers": {"content-type": "application/json", "x-model-execution": "synthetic"}
             },
             "oversize": {"body": b"x" * 16_001},
             "invalid": {"body": b"not-json synthetic-secret"},

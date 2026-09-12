@@ -164,3 +164,18 @@ audit may remain. Audits contain request ID, fingerprint, provider/model version
 Comparison cannot confirm/reject candidates, change incident membership or publish citizen guidance.
 Latest stored suggestions are hidden after input/review/incident revision or provider/model-ID changes.
 See [the comparison contract](INCIDENT_COMPARISON.md) for limits, transport and team handoff.
+
+## Club classification and model API scaffold
+
+Club classification requires the existing local deferred queue. Intake/preflight and enqueue audits
+commit before the worker claims a job; claim audit commits before HTTP. The job pins provider/model,
+catalog and input hash, then completion rechecks them and human-review state. Verified classification,
+audit and terminal queue state commit together. No model confidence can bypass required review.
+`club_synthetic` distinguishes explicit synthetic responses from `club`; changing that mode or the
+model version invalidates pending work. Queue retries preserve the original attempt budget.
+
+The model gateway has no complaint database, session or write tools. It checks Bearer authentication
+before reading a bounded JSON body and returns fixed errors without echoing input. The calling app
+owns decision audits; model inputs/replies, keys, URLs and exception strings are never audit details.
+The gateway is disabled by default, has no real inference backend and starts no listener at import
+or factory creation. See [MODEL_GATEWAY.md](MODEL_GATEWAY.md) for the exact synthetic/real boundary.

@@ -50,6 +50,11 @@ INCIDENT_COMPARE_MAX_CONCURRENT=2
 원격 HTTPS, 로컬 개발의 `http://localhost`, `127.0.0.1`, `::1`만 허용한다. URL의 사용자정보·
 쿼리·fragment는 거부한다. 모델 버전/프롬프트/가중치를 바꾸면 새 `MODEL_ID`를 사용한다.
 
+[모델 API 골격](MODEL_GATEWAY.md)에 `/v1/incident/compare` 경로를 준비했다. 실제 추론은
+아직 없으며, `club` 어댑터는 `X-Model-Execution: synthetic` 응답을 거부한다. UI 합성 시연은
+기존 `demo`를 사용한다. 기존 계약 호환을 위해 헤더가 없으면 `model`로 취급하며,
+실제 모델·프롬프트 검증은 서버 담당자의 별도 인수 항목이다.
+
 ## 모델 HTTP 계약 v1
 
 앱이 설정한 주소에 한 번 `POST`한다. 인증은 `Authorization: Bearer …`, 요청·응답은

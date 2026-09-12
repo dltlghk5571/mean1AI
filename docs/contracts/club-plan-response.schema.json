@@ -1,0 +1,235 @@
+{
+  "$defs": {
+    "AnswerStep": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "answer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "service_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Service Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "service_ids"
+      ],
+      "title": "AnswerStep",
+      "type": "object"
+    },
+    "AskStep": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ask",
+          "title": "Kind",
+          "type": "string"
+        },
+        "field_id": {
+          "enum": [
+            "content",
+            "location_text"
+          ],
+          "title": "Field Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "field_id"
+      ],
+      "title": "AskStep",
+      "type": "object"
+    },
+    "ClarifyStep": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "clarify",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ClarifyStep",
+      "type": "object"
+    },
+    "GetRequiredInformation": {
+      "additionalProperties": false,
+      "properties": {
+        "call_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+          "title": "Call Id",
+          "type": "string"
+        },
+        "name": {
+          "const": "get_required_information",
+          "title": "Name",
+          "type": "string"
+        },
+        "service_id": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Service Id"
+        }
+      },
+      "required": [
+        "call_id",
+        "name"
+      ],
+      "title": "GetRequiredInformation",
+      "type": "object"
+    },
+    "ReviewStep": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "review",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ReviewStep",
+      "type": "object"
+    },
+    "SearchServices": {
+      "additionalProperties": false,
+      "properties": {
+        "call_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+          "title": "Call Id",
+          "type": "string"
+        },
+        "name": {
+          "const": "search_services",
+          "title": "Name",
+          "type": "string"
+        },
+        "query": {
+          "maxLength": 2000,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 3,
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "call_id",
+        "name",
+        "query"
+      ],
+      "title": "SearchServices",
+      "type": "object"
+    },
+    "ToolStep": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "tool",
+          "title": "Kind",
+          "type": "string"
+        },
+        "call": {
+          "discriminator": {
+            "mapping": {
+              "get_required_information": "#/$defs/GetRequiredInformation",
+              "search_services": "#/$defs/SearchServices"
+            },
+            "propertyName": "name"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SearchServices"
+            },
+            {
+              "$ref": "#/$defs/GetRequiredInformation"
+            }
+          ],
+          "title": "Call"
+        }
+      },
+      "required": [
+        "kind",
+        "call"
+      ],
+      "title": "ToolStep",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "step": {
+      "discriminator": {
+        "mapping": {
+          "answer": "#/$defs/AnswerStep",
+          "ask": "#/$defs/AskStep",
+          "clarify": "#/$defs/ClarifyStep",
+          "review": "#/$defs/ReviewStep",
+          "tool": "#/$defs/ToolStep"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ToolStep"
+        },
+        {
+          "$ref": "#/$defs/AskStep"
+        },
+        {
+          "$ref": "#/$defs/AnswerStep"
+        },
+        {
+          "$ref": "#/$defs/ReviewStep"
+        },
+        {
+          "$ref": "#/$defs/ClarifyStep"
+        }
+      ],
+      "title": "Step"
+    }
+  },
+  "required": [
+    "model_id",
+    "step"
+  ],
+  "title": "ClubPlanResponse",
+  "type": "object"
+}

@@ -1,14 +1,15 @@
 # 동아리 대화 모델 HTTP 연결
 
-2026-09-06 · 전용 JSON 계약 v1 · 내부 행동 계약 v2
+2026-09-12 갱신 · 전용 JSON 계약 v1 · 내부 행동 계약 v2
 
 `CHAT_PROVIDER=club`을 선택하면 시민 대화의 다음 행동을 동아리 서버에 요청한다. 서버는 도구
 호출 또는 종료 행동을 제안하고 앱이 출처·단계·예산을 검증한다. 현재 실제 서버 주소·인증 정보는
 제공되지 않아 합성 HTTP 응답으로 연결 코드를 검증했다. 기본값은 계속 `agent_demo`다.
 
 이 전용 계약은 OpenAI 호환 API와 같지 않다. 모델 서빙 앞에 아래 JSON을 처리하는 엔드포인트가
-필요하다. 이번 어댑터는 **대화 계획 모델**용이며 접수 후 분류기의 `AI_PROVIDER=rules|openai`는
-독립적이다. 별도 동아리 분류 모델 어댑터는 후속 작업이다.
+필요하다. 이 어댑터는 **대화 계획 모델**용이며 접수 후 분류기의 `AI_PROVIDER=rules|openai|club`은
+독립적이다. [분류 모델 어댑터](CLUB_CLASSIFIER.md)와 [세 경로의 서버 골격](MODEL_GATEWAY.md)도
+구현했다. 실제 추론 백엔드와 서버 배포는 아직 없다.
 
 ## 설정
 
@@ -68,6 +69,13 @@ club 모드에는 주소·모델 ID·키가 모두 필요하다. 원격 주소�
 
 `app/agent_schemas.py`의 `ClubPlanRequest.model_json_schema()`와
 `ClubPlanResponse.model_json_schema()`로 정확한 JSON Schema를 얻을 수 있다.
+[요청 파일](contracts/club-plan-request.schema.json)과
+[응답 파일](contracts/club-plan-response.schema.json)도 함께 관리하며 원본과의 일치를 검사한다.
+
+`X-Model-Execution: synthetic`인 응답은 `club`에서 거부한다. 서버 골격의 합성 모드는 HTTP
+규격 시험용이며, 시민 UI의 합성 시연은 기존 `CHAT_PROVIDER=agent_demo`를 사용한다.
+기존 서버 호환을 위해 이 헤더가 없는 응답은 `model`로 취급하지만 실제 추론 여부를 증명하는
+기능은 아니다. 모델 팀이 검증한 백엔드와 버전만 연결해야 한다.
 
 ## 자원·실패 처리
 

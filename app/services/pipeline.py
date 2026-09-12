@@ -205,7 +205,7 @@ class ComplaintPipeline:
                 "review_reasons": (
                     ["provider_requires_review"] if classification.review_reasons else []
                 ),
-                "provider": self.settings.ai_provider,
+                "provider": self.settings.classification_provider_label,
             }
         )
         classification = self.catalog.bind_classification(classification)

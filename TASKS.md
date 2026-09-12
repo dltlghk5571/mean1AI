@@ -32,6 +32,10 @@
 - [ ] Connect/evaluate the actual comparison LLM and add issue-level links for mixed complaints
 - [ ] Add coordinate-distance scoring after privacy and source review
 - [x] Introduce a local durable queue for optional expensive AI calls, with bounded retries and human fallback
+- [x] Add club classification HTTP adapter with catalog/model checks, explicit synthetic mode and mandatory review
+- [x] Scaffold disabled-by-default model API for planning/classification/comparison and export JSON schemas
+- [ ] Implement/evaluate actual inference backends once club GPU/server specifications are available
+- [ ] Add free-text intent/answer extraction proposals with server validation and citizen confirmation
 
 ## M3 — RAG and officer console
 

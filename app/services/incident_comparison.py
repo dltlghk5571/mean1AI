@@ -197,6 +197,7 @@ class ClubIncidentComparator:
                         or reply.headers.get("content-type", "").split(";", 1)[0].strip()
                         != "application/json"
                         or reply.headers.get("content-encoding", "identity") != "identity"
+                        or reply.headers.get("x-model-execution", "model") != "model"
                         or int(reply.headers.get("content-length", "0")) > MAX_RESPONSE_BYTES
                     ):
                         raise ValueError("incident_comparison_response_rejected")

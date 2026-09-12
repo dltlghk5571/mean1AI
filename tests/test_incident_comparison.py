@@ -243,6 +243,7 @@ def _request(test_app: FastAPI, ids: list[str]) -> ComparisonRequest:
         "status",
         "size",
         "compressed",
+        "synthetic",
     ],
 )
 def test_untrusted_responses_are_rejected(
@@ -281,6 +282,9 @@ def test_untrusted_responses_are_rejected(
             "size": {"body": b"x" * 12001},
             "compressed": {
                 "headers": {"content-type": "application/json", "content-encoding": "gzip"}
+            },
+            "synthetic": {
+                "headers": {"content-type": "application/json", "x-model-execution": "synthetic"}
             },
         }
         return reply_for(request, mutate=mutate, **options.get(problem, {}))
