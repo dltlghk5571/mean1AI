@@ -1,4 +1,19 @@
 .chat-page { background: #f6f8f4; }
+.chat-extraction { margin: 12px clamp(12px, 3vw, 26px) 24px; padding: clamp(16px, 3vw, 24px); border: 1px solid #adc9b6; border-radius: 18px; background: #f2f7f2; overflow-wrap: anywhere; }
+.chat-extraction h3 { margin: 8px 0; font-size: 1.25rem; line-height: 1.6; }
+.chat-extraction > p { line-height: 1.8; font-size: .875rem; }
+.chat-extraction dl { margin: 20px 0; }
+.chat-extraction-row { padding: 14px 0; border-top: 1px solid #d2e1d5; }
+.chat-extraction-row dt { font-weight: 700; font-size: .8125rem; color: #365443; }
+.chat-extraction-row dd { margin: 6px 0 0; line-height: 1.8; }
+.chat-extraction-row dd > p { margin: 0; white-space: pre-wrap; }
+.chat-extraction-row summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: .8125rem; color: #315c43; text-decoration: underline; text-underline-offset: 3px; }
+.chat-extraction-row blockquote { margin: 4px 0; padding: 8px 12px; border-left: 3px solid #7b9f86; background: #fff; white-space: pre-wrap; }
+.chat-extraction .chat-extraction-footnote { color: #4c6153; font-size: .8125rem; }
+.chat-extraction-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.chat-extraction-actions button { flex: 1 1 200px; min-height: 48px; white-space: normal; overflow-wrap: anywhere; line-height: 1.6; }
+.chat-extraction-example, .chat-extraction-feedback { margin: 12px 26px 20px; font-size: .875rem; line-height: 1.8; color: #365443; }
+.chat-extraction-example p { margin-bottom: 4px; }
 .chat-shell { padding-top: 36px; padding-bottom: 64px; }
 .chat-intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 28px; }
 .chat-intro .eyebrow { margin: 0 0 10px; }

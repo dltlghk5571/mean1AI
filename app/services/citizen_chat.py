@@ -9,11 +9,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.chat_schemas import AgentContext, AgentReply, ChatDraft, ChatMessage, ChatState, ChatTurn
+from app.extraction_schemas import PendingExtraction
 from app.models import CitizenChat, CitizenChatAuditEvent, CitizenSession
-from app.services import citizen
+from app.services import citizen, extraction_preview
 from app.services import citizen_questions as questions
 from app.services.audit import record_audit
 from app.services.catalog_tools import service_card
+from app.services.chat_extraction import ExtractionError, ExtractionRunner
 from app.services.chat_provider import ChatAgentProvider
 from app.services.citizen_agent import (
     AgentExecution,
@@ -66,7 +68,9 @@ def find_chat(db: Session, owner_hash: str) -> CitizenChat | None:
     )
 
 
-def open_chat(db: Session, session: CitizenSession) -> dict[str, object]:
+def open_chat(
+    db: Session, session: CitizenSession, extractor: ExtractionRunner | None = None
+) -> dict[str, object]:
     chat = find_chat(db, session.token_hash)
     if chat is None:
         chat = CitizenChat(
@@ -84,10 +88,12 @@ def open_chat(db: Session, session: CitizenSession) -> dict[str, object]:
             chat = find_chat(db, session.token_hash)
             if chat is None:
                 raise
-    return public_state(chat, db)
+    return public_state(chat, db, extractor)
 
 
-def public_state(chat: CitizenChat, db: Session) -> dict[str, object]:
+def public_state(
+    chat: CitizenChat, db: Session, extractor: ExtractionRunner | None = None
+) -> dict[str, object]:
     state = ChatState.model_validate(chat.state)
     if state.service_cards:
         catalog = active_catalog(db)
@@ -103,7 +109,9 @@ def public_state(chat: CitizenChat, db: Session) -> dict[str, object]:
         ]
     return {
         "revision": chat.revision,
-        **state.model_dump(mode="json", exclude={"source_ids"}),
+        **state.model_dump(mode="json", exclude={"source_ids", "extraction"}),
+        "extraction_preview": extraction_preview.public_preview(state, extractor),
+        "extraction_support": extraction_preview.support(extractor),
         "sources": [SOURCES[source_id] for source_id in state.source_ids],
         "topic_options": questions.topic_options(),
         "current_question": question.model_dump(mode="json")
@@ -126,6 +134,8 @@ def clean_turn(turn: ChatTurn) -> ChatTurn:
         "skip_question": {"field_id"},
         "already_described": {"field_id"},
         "revise_question": {"field_id"},
+        "accept_extraction": {"extraction_id"},
+        "dismiss_extraction": {"extraction_id"},
     }.get(turn.action, set())
     for field in (
         "message",
@@ -135,6 +145,7 @@ def clean_turn(turn: ChatTurn) -> ChatTurn:
         "consent",
         "template_id",
         "field_id",
+        "extraction_id",
     ):
         if getattr(turn, field) and field not in expected_fields:
             raise ChatError("현재 단계에 맞는 입력인지 확인해 주세요.")
@@ -151,6 +162,7 @@ def clean_turn(turn: ChatTurn) -> ChatTurn:
 def prepare_state(state: ChatState, turn: ChatTurn) -> ChatState:
     if turn.action == "reset":
         return fresh_state()
+    state.extraction_notice = None
     user_text = turn.message
     if turn.action == "say" and not user_text:
         raise ChatError("이야기를 한 글자 이상 적어 주세요.")
@@ -193,6 +205,16 @@ def prepare_state(state: ChatState, turn: ChatTurn) -> ChatState:
             submitting=False,
         )
         state.draft = ChatDraft(**citizen.preview_submission(payload))
+        if state.intake:
+            state.intake.answers = {
+                key: answer
+                for key, answer in state.intake.answers.items()
+                if not (
+                    answer.status == "in_description"
+                    and answer.value
+                    and answer.value not in state.draft.content
+                )
+            }
         user_text = "접수할 내용을 수정했어요."
     else:
         raise ChatError("현재 화면의 안내에 따라 진행해 주세요.")
@@ -216,11 +238,15 @@ def advance_chat(
     pipeline: ComplaintPipeline,
     executor: CitizenAgentExecutor | None = None,
     photos: tuple[PreparedPhoto, ...] = (),
+    extractor: ExtractionRunner | None = None,
 ) -> dict[str, object]:
     turn = clean_turn(turn)
     if photos and turn.action != "confirm":
         raise ChatError("사진은 최종 접수 확인과 함께 저장할 수 있어요.")
     fingerprint_data = turn.model_dump()
+    # Keep pre-extraction request retries compatible after adding an optional envelope field.
+    if not turn.extraction_id:
+        fingerprint_data.pop("extraction_id")
     if photos:
         fingerprint_data["photo_hashes"] = [photo.source_hash for photo in photos]
     fingerprint = citizen.digest(json.dumps(fingerprint_data, sort_keys=True, ensure_ascii=False))
@@ -230,16 +256,21 @@ def advance_chat(
     if chat.last_request_id == turn.request_id:
         if chat.last_request_hash != fingerprint:
             raise ChatError("이미 처리한 요청과 내용이 달라요. 최신 대화를 불러와 주세요.", 409)
-        return public_state(chat, db)
+        return public_state(chat, db, extractor)
     if chat.revision != int(turn.revision):
         raise ChatError("다른 탭에서 대화가 바뀌었어요. 최신 대화를 불러와 주세요.", 409)
     state = ChatState.model_validate(chat.state)
     execution: AgentExecution | None = None
+    extraction_events: list[dict[str, object]] = []
+    accepted_extraction: ChatState | None = None
+    previous_stage = state.stage
+    if state.extraction and turn.action not in {"accept_extraction", "dismiss_extraction", "reset"}:
+        raise ChatError("정리한 내용을 확인하거나 직접 선택해서 계속해 주세요.", 409)
     if turn.action == "confirm":
         if turn.consent != "yes":
             raise ChatError("데모 접수 안내를 확인하고 동의해 주세요.")
         if chat.submitted_complaint_id:
-            return public_state(chat, db)
+            return public_state(chat, db, extractor)
         if state.stage != "review":
             raise ChatError("접수 내용을 먼저 확인해 주세요.")
         citizen.validate_submission(questions.submission_data(state), submitting=False)
@@ -247,12 +278,94 @@ def advance_chat(
         state.messages.append(ChatMessage(role="assistant", text="데모 민원 접수가 완료됐어요."))
     else:
         try:
-            state = prepare_state(state, turn)
+            if turn.action in {"accept_extraction", "dismiss_extraction"}:
+                pending = state.extraction
+                if pending is None or str(pending.request_id) != turn.extraction_id:
+                    raise ChatError("확인할 내용이 바뀌었어요. 최신 대화를 불러와 주세요.", 409)
+                if len(state.messages) >= 38:
+                    raise ChatError("대화가 길어졌어요. 새 대화를 시작하거나 직접 작성해 주세요.")
+                if turn.action == "accept_extraction":
+                    if not extraction_preview.current(state, extractor):
+                        raise ChatError("정리 기준이 바뀌었어요. 직접 선택해서 계속해 주세요.", 409)
+                    accepted_extraction = state.model_copy(deep=True)
+                    extraction_preview.accept(state, extractor)
+                else:
+                    state.extraction = None
+                    state.extraction_notice = None
+                state.messages.append(
+                    ChatMessage(
+                        role="user",
+                        text="정리한 내용이 맞아요. 이 내용으로 계속할게요."
+                        if turn.action == "accept_extraction"
+                        else "직접 선택해서 계속할게요.",
+                    )
+                )
+                extraction_events.append(
+                    {
+                        "status": "accepted" if turn.action == "accept_extraction" else "dismissed",
+                        "request_id": str(pending.request_id),
+                        "provider": pending.provider,
+                        "model_id": pending.model_id,
+                        "actor_type": "citizen",
+                    }
+                )
+            else:
+                state = prepare_state(state, turn)
         except questions.QuestionError as exc:
             raise ChatError(str(exc)) from None
+        extraction_attempted = False
+        if (
+            extractor
+            and extractor.enabled
+            and turn.action == "say"
+            and previous_stage in {"welcome", "intent", "information"}
+            and len(turn.message) >= 5
+        ):
+            extraction_attempted = True
+            if state.urgent:
+                state.extraction_notice = "urgent"
+                extraction_events.append({"status": "skipped", "reason": "urgent"})
+            else:
+                request = extractor.make_request(state.draft.content)
+                metadata = {
+                    "request_id": str(request.request_id),
+                    "input_hash": request.input_hash,
+                    "model_id": request.model_id,
+                    "provider": extractor.settings.chat_extraction_provider,
+                }
+                audit(db, chat, "extraction_requested", **metadata)
+                # Authorize/audit first, then release the transaction before bounded model I/O.
+                db.commit()
+                try:
+                    extracted = extractor.run(request)
+                    if extracted.proposal.abstained:
+                        state.extraction_notice = "abstained"
+                    else:
+                        state.extraction = PendingExtraction(
+                            **extracted.model_dump(), provider=metadata["provider"]
+                        )
+                        if not extraction_preview.current(state, extractor):
+                            raise ExtractionError("extraction_context_changed")
+                    extraction_events.append(
+                        {
+                            **metadata,
+                            "status": "abstained" if extracted.proposal.abstained else "proposed",
+                        }
+                    )
+                except ExtractionError:
+                    state.extraction = None
+                    state.extraction_notice = "failed"
+                    extraction_events.append({**metadata, "status": "failed"})
         if turn.action != "reset":
             try:
                 local_reply = questions.local_reply(state)
+                if state.extraction or extraction_attempted or turn.action == "dismiss_extraction":
+                    local_reply = AgentReply(
+                        next_stage=state.stage,
+                        message="이렇게 이해했어요. 맞는지 확인해 주세요. 아직 접수되지는 않았어요."
+                        if state.extraction
+                        else "어떤 도움을 원하시나요? 아래에서 직접 선택해 주세요.",
+                    )
                 provider_state = state.model_copy(deep=True)
                 # Approved-source lookup can use answers, but cannot mutate the stored draft.
                 provider_state.draft = ChatDraft(**questions.submission_data(state))
@@ -285,6 +398,8 @@ def advance_chat(
                 if isinstance(exc, AgentRunError):
                     for event in exc.events:
                         audit(db, chat, "agent_step_attempted", **event)
+                for event in extraction_events:
+                    audit(db, chat, "extraction_aborted", **event)
                 audit(
                     db,
                     chat,
@@ -312,6 +427,9 @@ def advance_chat(
         if execution:
             for event in execution.events:
                 audit(db, chat, "agent_step_aborted", **event)
+        for event in extraction_events:
+            audit(db, chat, "extraction_aborted", **event)
+        if execution or extraction_events:
             db.commit()
         latest = find_chat(db, session.token_hash)
         if (
@@ -319,10 +437,14 @@ def advance_chat(
             and latest.last_request_id == turn.request_id
             and latest.last_request_hash == fingerprint
         ):
-            return public_state(latest, db)
+            return public_state(latest, db, extractor)
         raise ChatError("다른 요청이 먼저 반영됐어요. 최신 대화를 불러와 주세요.", 409)
 
     try:
+        if (state.extraction and not extraction_preview.current(state, extractor)) or (
+            accepted_extraction and not extraction_preview.current(accepted_extraction, extractor)
+        ):
+            raise ChatError("정리 기준이 바뀌었어요. 최신 대화를 불러와 주세요.", 409)
         if execution:
             # The chat CAS holds the SQLite writer lock while the catalog pin is checked.
             execution.verify_catalog(db)
@@ -367,7 +489,9 @@ def advance_chat(
             db,
             chat,
             "citizen_confirmed" if turn.action == "confirm" else "conversation_advanced",
-            actor_type="citizen" if turn.action in {"reset", "confirm"} else "rules",
+            actor_type="citizen"
+            if turn.action in {"reset", "confirm", "accept_extraction", "dismiss_extraction"}
+            else "rules",
             provider="intake_questions" if questions.local_reply(state) else provider.provider_name,
             input_action=turn.action,
             stage=state.stage,
@@ -379,12 +503,17 @@ def advance_chat(
         if execution:
             for event in execution.events:
                 audit(db, chat, "agent_step_completed", **event)
+        for event in extraction_events:
+            audit(db, chat, "extraction_resolved", **event)
         db.commit()
     except Exception:
         db.rollback()
         if execution:
             for event in execution.events:
                 audit(db, chat, "agent_step_aborted", **event)
+        for event in extraction_events:
+            audit(db, chat, "extraction_aborted", **event)
+        if execution or extraction_events:
             db.commit()
         raise
-    return public_state(chat, db)
+    return public_state(chat, db, extractor)

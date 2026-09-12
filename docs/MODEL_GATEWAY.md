@@ -2,7 +2,7 @@
 
 2026-09-12 · 구현: `app/model_gateway.py` · 실제 모델·GPU·서버 주소는 미정
 
-대화 모델과 분류 모델 앞에서 앱의 JSON을 받는 FastAPI 팩터리다. 세 개의 경로를 제공하지만
+대화 모델과 분류 모델 앞에서 앱의 JSON을 받는 FastAPI 팩터리다. 네 개의 POST 경로를 제공하지만
 모델은 대화용·분류용 두 역할이며, 사건 비교는 분류 모델의 별도 작업이다. 현재 구현에는
 가중치 로딩·추론 엔진·학습 코드가 없다. 기본값은 `disabled`이고, 연결 시험용 `synthetic`은
 고정된 합성 응답만 반환한다. 이번 구현 검증에서는 서버를 시작하지 않았다.
@@ -12,6 +12,7 @@
 | 경로 | 입력 → 출력 | 앱 쪽 연결부 |
 | --- | --- | --- |
 | `POST /v1/agent/plan` | 비식별 초안·대화·도구 결과 → 다음 행동 하나 | `ClubPlanner`, `CHAT_PROVIDER=club` |
+| `POST /v1/agent/extract` | 비식별 원문·질문 목록 → 목적·장소·답변과 정확한 인용 | `ExtractionRunner`, `CHAT_EXTRACTION_PROVIDER=club` |
 | `POST /v1/classify` | 비식별 민원·버전 고정 부서 목록 → 분류 후보 또는 보류 | `ClubClassifier`, `AI_PROVIDER=club`, 지연 처리 필수 |
 | `POST /v1/incident/compare` | 선택된 두 기록 → 관계·입력 인용·차이·확인 질문 | `ClubIncidentComparator`, `INCIDENT_COMPARE_PROVIDER=club` |
 | `GET /health` | `mode`, `backend_configured` | 모델 호출 없는 설정 상태 확인 |
@@ -29,8 +30,10 @@ MCP를 추론 엔진과 직접 연결하는 작업은 별도다.
 - 대화: [요청](contracts/club-plan-request.schema.json), [응답](contracts/club-plan-response.schema.json), [행동 계약](AGENT_API.md)
 - 분류: [요청](contracts/club-classification-request.schema.json), [응답](contracts/club-classification-response.schema.json), [설정·처리 흐름](CLUB_CLASSIFIER.md)
 - 비교: [요청](contracts/incident-comparison-request.schema.json), [응답](contracts/incident-comparison-response.schema.json), [인용·검토 계약](INCIDENT_COMPARISON.md)
+- 입력 정리: [요청](contracts/intake-extraction-request.schema.json), [응답](contracts/intake-extraction-response.schema.json), [시민 확인 흐름](CHAT_EXTRACTION.md)
 
-원본은 `app/agent_schemas.py`, `app/classifier_schemas.py`, `app/incident_compare_schemas.py`다.
+원본은 `app/agent_schemas.py`, `app/classifier_schemas.py`, `app/incident_compare_schemas.py`,
+`app/extraction_schemas.py`다.
 내보낸 Schema와 원본의 일치는 테스트로 검사한다. 모든 응답은 JSON 객체 하나이며 Markdown,
 토큰 스트리밍, 모델의 내부 추론 문장은 받지 않는다. Schema 검증 외에도 요청 일치·허용 ID·
 세부 유형·정확한 인용 검사를 통과해야 한다.
@@ -40,6 +43,7 @@ MCP를 추론 엔진과 직접 연결하는 작업은 별도다.
 - 대화는 기존 `DemoToolPlanner`의 제한된 시연 행동을 반환한다.
 - 분류는 항상 `abstained=true`, 빈 후보, `category/subcategory=null`을 반환한다.
 - 사건 비교는 항상 `uncertain`과 확인 질문을 반환한다.
+- 입력 정리는 지정한 합성 예시 한 문장만 고정 결과를 반환하고 다른 문장은 보류한다.
 - 성공 응답은 모두 `X-Model-Execution: synthetic`이다. 분류 JSON에는
   `execution_mode: synthetic`도 필수로 들어간다. 모델 ID는 `synthetic-`로 시작해야 한다.
 - 분류 앱에서 시험하려면 `CLASSIFIER_RESPONSE_MODE=synthetic`을 명시해야 한다.
@@ -47,6 +51,7 @@ MCP를 추론 엔진과 직접 연결하는 작업은 별도다.
 - 기존 대화·비교 `club` 어댑터는 합성 헤더를 거부한다. UI 시연에는 각각 로컬
   `CHAT_PROVIDER=agent_demo`, `INCIDENT_COMPARE_PROVIDER=demo`를 사용한다. 합성 게이트웨이의
   대화·비교 경로는 ASGI 내부 시험으로 계약을 확인하며, 실제 모델처럼 연결했다고 표시하지 않는다.
+- 입력 정리 `club`도 합성 응답을 거부한다. UI의 예시 버튼은 `CHAT_EXTRACTION_PROVIDER=demo`에서 제공한다.
 
 이 모드는 키워드 분류기나 가짜 정확도 평가가 아니다. 분류·비교 판단을 수행하지 않는다.
 
@@ -81,12 +86,13 @@ Windows 콘솔 제목도 지정하며, import 또는 `create_gateway()` 호출 �
 
 ## 실제 추론을 넣을 위치
 
-`ModelBackend`의 아래 세 비동기 메서드에 실제 모델 호출을 구현하고,
+`ModelBackend`의 아래 네 비동기 메서드에 실제 모델 호출을 구현하고,
 `create_gateway(settings, backend=구현한_백엔드)`로 주입한다. `settings.mode`는 `backend`,
 백엔드의 `execution_mode`는 `model`이어야 한다. 환경변수만 `backend`로 바꾸면 시작을 거부한다.
 
 ```python
 async def plan(request: ClubPlanRequest) -> AgentStep: ...
+async def extract(request: ExtractionRequest) -> ExtractionProposal: ...
 async def classify(request: ClubClassifyRequest) -> ClassificationProposal: ...
 async def compare(request: ComparisonRequest) -> ComparisonProposal: ...
 ```
@@ -115,7 +121,8 @@ async def compare(request: ComparisonRequest) -> ComparisonProposal: ...
 | 전체 기한 초과 / 잘못된 백엔드 결과 | 504 `gateway_timeout` / 502 `invalid_backend_result` |
 
 대화·분류 요청 최대 200,000바이트, 응답 16,000바이트다. 비교는 요청 32,000바이트,
-응답 12,000바이트다. 선언 길이와 실제 스트림을 모두 검사한다. 응답과 오류는 `no-store`이고
+응답 12,000바이트, 입력 정리는 요청 80,000바이트·응답 12,000바이트다. 선언 길이와 실제
+스트림을 모두 검사한다. 응답과 오류는 `no-store`이고
 민원 본문·키·예외 문자열을 로깅하거나 오류 JSON에 싣지 않는다. 게이트웨이에 감사 DB를
 복제하지 않으며, 앱의 요청 전 감사와 결과 검증·저장 계약을 유지한다.
 
@@ -128,6 +135,6 @@ async def compare(request: ComparisonRequest) -> ComparisonProposal: ...
 | C 서버 | 이 JSON 계약·인증·오류·큐 설정 검토 | 전체 URL, HTTPS, 비밀값 전달 방식, 타임아웃·취소 검증 |
 | D 모델 | 두 역할의 프롬프트·Schema 출력·고정 평가셋 준비 | 모델 ID, `ModelBackend` 구현, 사양·지연·평가 결과 |
 
-다음 개발은 자유 문장에서 목적·장소·질문 답변을 **제안**하는 추출 계약과 사용자 확인이다.
-현재 `ask`는 내용·장소 필드만 제안하며, 이 게이트웨이가 자유 문장을 자동 접수 데이터로
-변환하는 기능까지 구현한 것은 아니다.
+[원문에서 항목을 제안하고 시민이 확인하는 추출 계약](CHAT_EXTRACTION.md)과 UI를 구현했다.
+기본값은 꺼짐이고 실제 모델은 미연결이다. 기존 `plan`의 `ask`는 계속 내용·장소 필드만
+제안한다. 추출은 별도 `extract` 작업이며 접수·초안 변경을 직접 실행하지 않는다.

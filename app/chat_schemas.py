@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.extraction_schemas import PendingExtraction
 from app.intake_schemas import IntakeState
 from app.service_data_schemas import ServiceCard
 
@@ -32,6 +33,8 @@ Action = Literal[
     "already_described",
     "finish_questions",
     "revise_question",
+    "accept_extraction",
+    "dismiss_extraction",
 ]
 
 
@@ -59,6 +62,8 @@ class ChatState(ChatModel):
     service_cards: list[ServiceCard] = Field(default_factory=list, max_length=3)
     intake: IntakeState | None = None
     location_checked: bool = False
+    extraction: PendingExtraction | None = None
+    extraction_notice: Literal["abstained", "failed", "urgent"] | None = None
 
 
 class ChatTurn(ChatModel):
@@ -73,6 +78,12 @@ class ChatTurn(ChatModel):
     consent: Literal["", "yes"] = ""
     template_id: str = Field(default="", pattern=r"^[a-z-]{0,40}$")
     field_id: str = Field(default="", pattern=r"^[a-z_]{0,40}$")
+    extraction_id: str = Field(default="", max_length=36)
+
+    @field_validator("extraction_id")
+    @classmethod
+    def valid_extraction_id(cls, value: str) -> str:
+        return str(UUID(value)) if value else ""
 
     @field_validator("request_id")
     @classmethod

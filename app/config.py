@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     classifier_max_concurrent: int = Field(default=2, ge=1, le=4)
     classifier_response_mode: Literal["model", "synthetic"] = "model"
     chat_provider: Literal["demo", "agent_demo", "club", "unavailable"] = "agent_demo"
+    chat_extraction_provider: Literal["off", "demo", "club"] = "off"
+    chat_extraction_endpoint_url: str | None = None
     chat_endpoint_url: str | None = None
     chat_model_id: str | None = Field(default=None, max_length=120)
     chat_api_key: SecretStr | None = None
@@ -83,7 +85,9 @@ class Settings(BaseSettings):
             raise ValueError("club_endpoint_model_and_key_required")
         return self
 
-    @field_validator("incident_compare_endpoint_url", "classifier_endpoint_url")
+    @field_validator(
+        "incident_compare_endpoint_url", "classifier_endpoint_url", "chat_extraction_endpoint_url"
+    )
     @classmethod
     def validate_incident_compare_endpoint(cls, value: str | None) -> str | None:
         return cls.validate_chat_endpoint(value)
@@ -98,6 +102,18 @@ class Settings(BaseSettings):
             or not self.incident_compare_api_key.get_secret_value().strip()
         ):
             raise ValueError("incident_compare_endpoint_model_and_key_required")
+        return self
+
+    @model_validator(mode="after")
+    def require_chat_extraction_configuration(self) -> "Settings":
+        if self.chat_extraction_provider == "club" and (
+            not self.chat_extraction_endpoint_url
+            or not self.chat_model_id
+            or not self.chat_model_id.strip()
+            or not self.chat_api_key
+            or not self.chat_api_key.get_secret_value().strip()
+        ):
+            raise ValueError("extraction_endpoint_chat_model_and_key_required")
         return self
 
     @model_validator(mode="after")

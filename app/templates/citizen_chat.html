@@ -2,8 +2,8 @@
 {% block title %}대화로 민원 신청 · 성남 생활민원{% endblock %}
 {% block body_class %}chat-page{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', path='/citizen-chat.css') }}?v=3">
-<script defer src="{{ url_for('static', path='/citizen-chat.js') }}?v=3"></script>
+<link rel="stylesheet" href="{{ url_for('static', path='/citizen-chat.css') }}?v=4">
+<script defer src="{{ url_for('static', path='/citizen-chat.js') }}?v=4"></script>
 {% endblock %}
 {% block content %}
 <div class="container chat-shell" data-chat>
@@ -16,11 +16,27 @@
   <div class="chat-workspace">
     <section class="chat-card" aria-labelledby="chat-title">
       <header class="chat-card-header"><span class="chat-avatar" aria-hidden="true">{{ icon('chat') }}</span><div><h2 id="chat-title">성남 생활민원 도우미</h2><p><span class="chat-status-dot" aria-hidden="true"></span>함께 이야기를 정리해요</p></div><span class="chat-demo-badge">시연 모드</span></header>
-      <p class="chat-mode-note">{% if club_mode %}모델 서버를 통해 검수된 안내를 준비해요. 접수 전 내용을 직접 확인할 수 있으며 실제 행정기관에는 전달되지 않습니다.{% elif agent_demo %}시연 에이전트가 검수된 로컬 자료를 확인해요. 실제 AI 모델과 행정기관 접수는 연결 준비 중입니다.{% else %}정해진 대화 흐름을 체험하는 화면이에요. AI 모델과 실시간 정보 검색은 연결 준비 중입니다.{% endif %}</p>
+      <p class="chat-mode-note">{% if club_mode %}모델 서버를 통해 검수된 안내를 준비해요. 접수 전 내용을 직접 확인할 수 있으며 실제 행정기관에는 전달되지 않습니다.{% elif extraction_club %}적은 글의 정리는 모델 서버에 요청해요. 이어지는 대화 안내는 시연이며 실제 행정기관에는 전달되지 않습니다.{% elif agent_demo %}시연 에이전트가 검수된 로컬 자료를 확인해요. 실제 AI 모델과 행정기관 접수는 연결 준비 중입니다.{% else %}정해진 대화 흐름을 체험하는 화면이에요. AI 모델과 실시간 정보 검색은 연결 준비 중입니다.{% endif %}</p>
       <div class="chat-history-tools"><button class="chat-latest" type="button" data-chat-latest disabled>최근 대화 보기 ↓</button></div>
       <div class="chat-history" data-chat-history role="log" aria-label="대화 내용" tabindex="0" aria-live="off"></div>
       <div class="chat-busy" data-chat-busy role="status">대화를 불러오는 중이에요…</div>
       <div class="chat-urgent" data-chat-urgent role="alert" hidden>{{ icon('info') }}<p>위험한 상황이라면 이 서비스의 처리를 기다리지 말고 긴급 신고 창구에 바로 도움을 요청해 주세요. 이 데모는 긴급 신고를 전달하지 않습니다.</p></div>
+      <div class="chat-extraction-example" data-chat-extraction-example hidden>
+        <p>예시 문장으로 자동 정리와 확인 과정을 체험할 수 있어요. 정해진 합성 결과를 보여주는 시연이에요.</p>
+        <button class="chat-text-button" type="button" data-chat-extraction-sample>합성 예시 넣어 보기</button>
+      </div>
+      <p class="chat-extraction-feedback" data-chat-extraction-feedback role="status" hidden></p>
+      <section class="chat-extraction" data-chat-extraction hidden aria-labelledby="chat-extraction-title" aria-describedby="chat-extraction-help">
+        <p class="eyebrow" data-chat-extraction-label></p>
+        <h3 id="chat-extraction-title" tabindex="-1">이렇게 이해했어요</h3>
+        <p id="chat-extraction-help" data-chat-extraction-help></p>
+        <dl data-chat-extraction-rows></dl>
+        <p class="chat-extraction-footnote">여기서 확인해도 바로 접수되지 않아요. 마지막에 본문과 사진을 확인한 뒤 접수 여부를 결정해요.</p>
+        <div class="chat-extraction-actions">
+          <button type="button" class="button primary" data-chat-extraction-accept>맞아요, 이 내용으로 계속</button>
+          <button type="button" class="button secondary" data-chat-extraction-dismiss>직접 선택할게요</button>
+        </div>
+      </section>
       <details class="chat-topics" data-chat-topics hidden>
         <summary>어떻게 말할지 막막하다면, 상황부터 골라 보세요</summary>
         <p>선택하면 필요한 내용을 하나씩 여쭤볼게요. 바로 이야기만 적어도 괜찮아요.<br>상황을 바꾸면 추가 답변은 새로 시작해요. 처음 적은 내용과 장소는 남아요.</p>

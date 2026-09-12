@@ -24,6 +24,9 @@ from app.classifier_schemas import (
 from app.classifier_schemas import (
     validate_proposal as validate_classification,
 )
+from app.extraction_schemas import ExtractionProposal, ExtractionRequest, ExtractionResponse
+from app.extraction_schemas import input_fingerprint as extraction_fingerprint
+from app.extraction_schemas import validate_proposal as validate_extraction
 from app.incident_compare_schemas import (
     ComparisonProposal,
     ComparisonRequest,
@@ -31,6 +34,7 @@ from app.incident_compare_schemas import (
     Relation,
 )
 from app.schemas import Urgency
+from app.services.chat_extraction import synthetic_proposal
 from app.services.citizen_agent import DemoToolPlanner
 from app.services.incident_comparison import validate_proposal as validate_comparison
 from app.services.pii import contains_direct_identifiers, redact_pii
@@ -75,12 +79,17 @@ class ModelBackend(Protocol):
 
     async def compare(self, request: ComparisonRequest) -> ComparisonProposal: ...
 
+    async def extract(self, request: ExtractionRequest) -> ExtractionProposal: ...
+
 
 class SyntheticBackend:
     execution_mode: Literal["synthetic"] = "synthetic"
 
     async def plan(self, request: ClubPlanRequest) -> AgentStep:
         return STEP_ADAPTER.validate_python(DemoToolPlanner().plan(request.context))
+
+    async def extract(self, request: ExtractionRequest) -> ExtractionProposal:
+        return synthetic_proposal(request)
 
     async def classify(self, request: ClubClassifyRequest) -> ClassificationProposal:
         return ClassificationProposal(
@@ -116,7 +125,15 @@ def _data(value: object) -> object:
     return value.model_dump() if isinstance(value, BaseModel) else value
 
 
-def _prose(payload: ClubPlanRequest | ClubClassifyRequest | ComparisonRequest) -> object:
+def _prose(
+    payload: ClubPlanRequest | ClubClassifyRequest | ComparisonRequest | ExtractionRequest,
+) -> object:
+    if isinstance(payload, ExtractionRequest):
+        return [
+            payload.source_text,
+            payload.model_id,
+            [item.model_dump() for item in payload.templates],
+        ]
     if isinstance(payload, ClubPlanRequest):
         return [payload.context.model_dump(), payload.model_id]
     if isinstance(payload, ClubClassifyRequest):
@@ -197,18 +214,28 @@ def create_gateway(
         try:
             async with asyncio.timeout(settings.request_timeout_seconds):
                 path = request.url.path
-                limit = 32_000 if path.endswith("/compare") else MAX_REQUEST_BYTES
+                limit = (
+                    32_000
+                    if path.endswith("/compare")
+                    else 80_000
+                    if path.endswith("/extract")
+                    else MAX_REQUEST_BYTES
+                )
                 body = await _read_payload(request, limit)
-                payload: ClubPlanRequest | ClubClassifyRequest | ComparisonRequest
+                payload: (
+                    ClubPlanRequest | ClubClassifyRequest | ComparisonRequest | ExtractionRequest
+                )
                 if path.endswith("/plan"):
                     payload = ClubPlanRequest.model_validate_json(body)
                 elif path.endswith("/classify"):
                     payload = ClubClassifyRequest.model_validate_json(body)
+                elif path.endswith("/extract"):
+                    payload = ExtractionRequest.model_validate_json(body)
                 else:
                     payload = ComparisonRequest.model_validate_json(body)
                 model_id = (
                     settings.agent_model_id
-                    if isinstance(payload, ClubPlanRequest)
+                    if isinstance(payload, (ClubPlanRequest, ExtractionRequest))
                     else settings.classifier_model_id
                 )
                 if payload.model_id != model_id:
@@ -224,9 +251,27 @@ def create_gateway(
                     payload.candidate.ref,
                 ) != ("current", "candidate"):
                     raise GatewayError("invalid_comparison_refs", 422)
+                if isinstance(
+                    payload, ExtractionRequest
+                ) and payload.input_hash != extraction_fingerprint(
+                    payload.source_text, payload.templates
+                ):
+                    raise GatewayError("input_hash_mismatch", 422)
                 # Providers get copies; they cannot change IDs/hash/catalog echoed by the gateway.
                 try:
-                    if isinstance(payload, ClubPlanRequest):
+                    if isinstance(payload, ExtractionRequest):
+                        extracted = ExtractionProposal.model_validate(
+                            _data(await backend.extract(payload.model_copy(deep=True)))
+                        )
+                        validate_extraction(payload, extracted)
+                        response = ExtractionResponse(
+                            request_id=payload.request_id,
+                            input_hash=payload.input_hash,
+                            model_id=model_id,
+                            execution_mode=backend.execution_mode,
+                            proposal=extracted,
+                        ).model_dump(mode="json")
+                    elif isinstance(payload, ClubPlanRequest):
                         step = STEP_ADAPTER.validate_python(
                             _data(await backend.plan(payload.model_copy(deep=True)))
                         )
@@ -270,7 +315,11 @@ def create_gateway(
                 result = JSONResponse(
                     response, headers={**headers, "X-Model-Execution": backend.execution_mode}
                 )
-                maximum = 12_000 if isinstance(payload, ComparisonRequest) else MAX_RESPONSE_BYTES
+                maximum = (
+                    12_000
+                    if isinstance(payload, (ComparisonRequest, ExtractionRequest))
+                    else MAX_RESPONSE_BYTES
+                )
                 if len(result.body) > maximum:
                     raise GatewayError("backend_result_too_large", 502)
                 return result
@@ -285,7 +334,7 @@ def create_gateway(
         finally:
             capacity.release()
 
-    for route in ("/v1/agent/plan", "/v1/classify", "/v1/incident/compare"):
+    for route in ("/v1/agent/plan", "/v1/agent/extract", "/v1/classify", "/v1/incident/compare"):
         app.add_api_route(route, dispatch, methods=["POST"], response_class=JSONResponse)
     return app
 

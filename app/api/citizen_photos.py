@@ -53,6 +53,7 @@ async def confirm_with_photos(request: Request, db: DbSession) -> Response:
             request.app.state.pipeline,
             request.app.state.agent_executor,
             photos,
+            extractor=request.app.state.extraction_runner,
         )
         return JSONResponse(result)
     except TimeoutError:

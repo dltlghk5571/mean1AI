@@ -24,6 +24,7 @@ from app.api import (
 from app.config import Settings, get_settings
 from app.database import Base, install_append_only_guards, make_engine, make_session_factory
 from app.services.auth import SESSION_COOKIE_NAME, AuthManager
+from app.services.chat_extraction import ExtractionRunner
 from app.services.chat_provider import build_chat_provider
 from app.services.citizen import CitizenRateLimiter
 from app.services.citizen_agent import CitizenAgentExecutor, DemoToolPlanner
@@ -79,6 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.incident_comparator = IncidentComparisonRunner(effective_settings, session_factory)
     app.state.citizen_limiter = CitizenRateLimiter()
     app.state.chat_provider = build_chat_provider(effective_settings.chat_provider)
+    app.state.extraction_runner = ExtractionRunner(effective_settings)
     app.state.agent_executor = (
         CitizenAgentExecutor(
             ClubPlanner(effective_settings)

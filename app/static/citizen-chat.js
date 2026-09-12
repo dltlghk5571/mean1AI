@@ -78,7 +78,7 @@
 
   function controls() {
     const blocked = busy || !state || !!pending || sessionExpired;
-    const canType = state && (["welcome", "intent", "description", "location", "information"].includes(state.stage)
+    const canType = state && !state.extraction_preview && (["welcome", "intent", "description", "location", "information"].includes(state.stage)
       || (state.stage === "questions" && !state.current_question?.choices_only));
     input.disabled = blocked || !canType;
     composer.querySelector("button").disabled = blocked || !canType || !input.value.trim();
@@ -86,6 +86,9 @@
     q("confirm").disabled = blocked || !q("consent").checked;
     q("consent").disabled = blocked;
     q("edit").disabled = blocked;
+    q("extraction-accept").disabled = blocked || !!state?.extraction_preview?.stale;
+    q("extraction-dismiss").disabled = blocked;
+    q("extraction-sample").disabled = blocked || !canType || !!input.value.trim();
     q("choices").querySelectorAll("button").forEach((button) => { button.disabled = blocked; });
     const unsentText = (canType && !!input.value.trim()) || !editForm.hidden;
     q("topic-hint").hidden = !unsentText;
@@ -200,7 +203,9 @@
       const text = element("div");
       const statuses = { skipped: "건너뜀", in_description: "처음 내용에 설명함", not_asked: "위험 안내를 우선해 생략함" };
       text.append(element("strong", item.label));
-      text.append(element("p", answer?.status === "answered" ? answer.value : statuses[answer?.status] || "미입력"));
+      text.append(element("p", answer?.status === "answered" ? answer.value
+        : answer?.status === "in_description" && answer.value ? `처음 내용에서 확인: ${answer.value}`
+        : statuses[answer?.status] || "미입력"));
       const button = element("button", "수정", "chat-text-button");
       button.type = "button";
       button.setAttribute("aria-label", `${item.label} 답변 수정`);
@@ -208,6 +213,40 @@
       row.append(text, button);
       q("answer-list").append(row);
     });
+  }
+
+  function renderExtraction() {
+    const preview = state.extraction_preview;
+    q("extraction").hidden = !preview;
+    q("extraction-example").hidden = state.extraction_support?.mode !== "demo" || state.stage !== "welcome";
+    q("extraction-rows").replaceChildren();
+    if (preview) {
+      q("extraction-label").textContent = preview.synthetic ? "합성 예시 · 확인 전" : "글에서 찾은 내용 · 확인 전";
+      q("extraction-help").textContent = preview.stale
+        ? "정리 기준이 바뀌었어요. 적은 내용은 남아 있으니 직접 선택해서 계속해 주세요."
+        : "원하는 도움과 장소가 맞나요? 잘못 이해했다면 직접 선택해서 이어갈 수 있어요.";
+      preview.rows.forEach((row) => {
+        const group = element("div", null, "chat-extraction-row");
+        const detail = element("dd");
+        detail.append(element("p", row.value));
+        const evidence = element("details");
+        evidence.append(element("summary", "내가 쓴 표현 보기"), element("blockquote", row.quote));
+        detail.append(evidence);
+        group.append(element("dt", row.label), detail);
+        q("extraction-rows").append(group);
+      });
+    }
+    const notice = state.extraction_notice === "failed"
+      ? "자동 정리를 완료하지 못했어요. 적은 내용은 남아 있으니 직접 선택해서 계속해 주세요."
+      : state.extraction_notice === "abstained"
+        ? state.extraction_support?.mode === "demo"
+          ? "이 시연은 예시 문장만 정리해요. 지금 글은 아래에서 직접 선택해 주세요."
+          : "분명하게 정리하기 어려워요. 아래에서 원하는 도움을 직접 선택해 주세요."
+        : "";
+    q("extraction-feedback").textContent = notice;
+    q("extraction-feedback").hidden = !notice;
+    q("choices").hidden = !!preview;
+    if (preview) q("topics").hidden = true;
   }
 
   function render(next, announce = false) {
@@ -241,6 +280,7 @@
       choice("접수 결과 확인하기", null, state.redirect);
     }
     renderQuestions();
+    renderExtraction();
     q("sources").replaceChildren();
     q("sources").hidden = !state.sources.length;
     if (state.sources.length) {
@@ -297,7 +337,7 @@
     composer.querySelector(".chat-photo-note").textContent = state.intake?.purpose === "information"
       ? "정보 안내만으로는 민원이 접수되지 않아요"
       : "사진은 마지막 확인 단계에서 추가해요";
-    composer.hidden = ["review", "submitted"].includes(state.stage) || !!state.current_question?.choices_only;
+    composer.hidden = !!state.extraction_preview || ["review", "submitted"].includes(state.stage) || !!state.current_question?.choices_only;
     root.querySelector("#chat-input-help").hidden = composer.hidden;
     if (changed) {
       q("consent").checked = false;
@@ -308,7 +348,10 @@
     const lastReply = state.messages.filter((message) => message.role === "assistant").at(-1);
     if (lastReply) q("status").textContent = `생활민원 도우미: ${lastReply.text}`;
     if (moveFocus) {
-      if (state.stage === "review") {
+      if (state.extraction_preview) {
+        root.querySelector("#chat-extraction-title").focus({ preventScroll: true });
+        q("extraction").scrollIntoView({ block: "nearest" });
+      } else if (state.stage === "review") {
         root.querySelector("#chat-review-title").focus({ preventScroll: true });
         q("review").scrollIntoView({ block: "nearest" });
       } else if (state.stage === "questions") {
@@ -430,6 +473,20 @@
     if (input.disabled || !input.value.trim()) return;
     if (state.current_question) send("answer_question", { field_id: state.current_question.field_id, message: input.value });
     else send("say", { message: input.value });
+  });
+  q("extraction-sample").addEventListener("click", () => {
+    if (input.disabled || input.value.trim() || !state.extraction_support?.example) return;
+    input.value = state.extraction_support.example;
+    updateCount();
+    input.focus();
+  });
+  q("extraction-accept").addEventListener("click", () => {
+    if (state.extraction_preview && !state.extraction_preview.stale) {
+      send("accept_extraction", { extraction_id: state.extraction_preview.id });
+    }
+  });
+  q("extraction-dismiss").addEventListener("click", () => {
+    if (state.extraction_preview) send("dismiss_extraction", { extraction_id: state.extraction_preview.id });
   });
   input.addEventListener("input", updateCount);
   editForm.addEventListener("input", protectUnsavedInput);

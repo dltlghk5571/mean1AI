@@ -179,3 +179,24 @@ before reading a bounded JSON body and returns fixed errors without echoing inpu
 owns decision audits; model inputs/replies, keys, URLs and exception strings are never audit details.
 The gateway is disabled by default, has no real inference backend and starts no listener at import
 or factory creation. See [MODEL_GATEWAY.md](MODEL_GATEWAY.md) for the exact synthetic/real boundary.
+
+## Citizen-confirmed extraction
+
+Optional extraction receives only redacted source text and the application's question templates.
+No citizen/chat/complaint ID, assistant history, credential, photo or other citizen's data enters
+that context. Proposals must use known topic/field IDs and exact source quotes. Values cannot add
+facts, safety-choice answers cannot be inferred, and urgent input bypasses extraction.
+
+`extraction_requested` commits before model access and the transaction closes for HTTP. The pending
+proposal and `extraction_resolved` audit commit together using the existing chat revision CAS.
+Applying or dismissing requires the owning citizen session, CSRF, current revision and stored
+proposal ID. The client cannot replace proposed fields; final complaint consent is still separate.
+Source/template/provider/model changes invalidate approval. Contending or failed commits withhold
+the result and record `extraction_aborted`. Audit details contain status/IDs/hash/provider/model,
+never text, values, quotes, URL, credentials or exception bodies. Failed extraction retains the
+manual choice path and user's text, with an explicit failure notice and no synthetic substitution.
+
+Quoted answers are stored as `in_description` so intake does not duplicate the source. Removing
+that quote in a later source edit clears the extracted answer. Current storage uses private
+`CitizenChat.state` JSON; existing conversations use defaults for the new optional fields.
+See [CHAT_EXTRACTION.md](CHAT_EXTRACTION.md) for transport, confirmation and version boundaries.

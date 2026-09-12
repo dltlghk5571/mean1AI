@@ -35,7 +35,8 @@
 - [x] Add club classification HTTP adapter with catalog/model checks, explicit synthetic mode and mandatory review
 - [x] Scaffold disabled-by-default model API for planning/classification/comparison and export JSON schemas
 - [ ] Implement/evaluate actual inference backends once club GPU/server specifications are available
-- [ ] Add free-text intent/answer extraction proposals with server validation and citizen confirmation
+- [x] Add free-text intent/answer extraction contract, source validation, confirmation UI and opt-in transport
+- [ ] Evaluate actual extraction LLM, mixed/ambiguous input, and selected-topic extraction
 
 ## M3 — RAG and officer console
 

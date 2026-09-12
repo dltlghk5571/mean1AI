@@ -8,8 +8,12 @@
 
 이 전용 계약은 OpenAI 호환 API와 같지 않다. 모델 서빙 앞에 아래 JSON을 처리하는 엔드포인트가
 필요하다. 이 어댑터는 **대화 계획 모델**용이며 접수 후 분류기의 `AI_PROVIDER=rules|openai|club`은
-독립적이다. [분류 모델 어댑터](CLUB_CLASSIFIER.md)와 [세 경로의 서버 골격](MODEL_GATEWAY.md)도
+독립적이다. [분류 모델 어댑터](CLUB_CLASSIFIER.md)와 [모델 서버 골격](MODEL_GATEWAY.md)도
 구현했다. 실제 추론 백엔드와 서버 배포는 아직 없다.
+
+자유 입력의 목적·장소·답변은 별도 [추출·사용자 확인 계약](CHAT_EXTRACTION.md)을 사용한다.
+`CHAT_EXTRACTION_PROVIDER`와 `/v1/agent/extract`로 켜며 같은 대화 모델 ID·키를 재사용한다.
+`plan`의 기존 행동 JSON은 바꾸지 않았다.
 
 ## 설정
 

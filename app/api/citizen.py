@@ -78,6 +78,8 @@ def new_complaint(request: Request, db: DbSession) -> HTMLResponse:
         active_page="new",
         agent_demo=request.app.state.agent_executor is not None,
         club_mode=request.app.state.settings.chat_provider == "club",
+        extraction_club=request.app.state.extraction_runner.settings.chat_extraction_provider
+        == "club",
     )
 
 
@@ -193,7 +195,11 @@ async def open_chat(request: Request, db: DbSession) -> Response:
     session = _action_session(request, db, "chat_open", 30)
     if isinstance(session, JSONResponse):
         return session
-    return JSONResponse(await run_in_threadpool(citizen_chat.open_chat, db, session))
+    return JSONResponse(
+        await run_in_threadpool(
+            citizen_chat.open_chat, db, session, request.app.state.extraction_runner
+        )
+    )
 
 
 @router.post("/minwon/{complaint_id}/follow-ups")
@@ -246,6 +252,7 @@ async def chat_turn(request: Request, db: DbSession) -> Response:
             request.app.state.chat_provider,
             request.app.state.pipeline,
             request.app.state.agent_executor,
+            extractor=request.app.state.extraction_runner,
         )
     except citizen_chat.ChatError as exc:
         return JSONResponse(
