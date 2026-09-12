@@ -109,6 +109,23 @@ class CitizenChatAuditEvent(Base):
     details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
 
 
+class MCPToolAuditEvent(Base):
+    """Append-only public-tool access; never fabricate a citizen chat for MCP callers."""
+
+    __tablename__ = "mcp_tool_audit_events"
+    __table_args__ = (
+        CheckConstraint("tool IN ('search_services', 'get_required_information', 'unknown')"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    tool: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(30), nullable=False)
+    catalog_version: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    catalog_review_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    service_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+
+
 class ServiceCatalogVersion(Base):
     """Immutable, staged snapshot; importing never grants publication."""
 

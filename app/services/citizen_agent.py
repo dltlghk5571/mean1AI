@@ -1,9 +1,7 @@
 """A bounded planner/tool loop. No submission, network or arbitrary SQL tool exists."""
 
-import re
 import time
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from threading import BoundedSemaphore
 from typing import Protocol
 
@@ -23,20 +21,9 @@ from app.agent_schemas import (
     ToolStep,
 )
 from app.chat_schemas import AgentContext, AgentReply
-from app.service_data_schemas import PublicService, RequiredInformation
+from app.services.catalog_tools import COMMON_REQUIREMENTS, get_service, search_services
 from app.services.pii import redact_pii
 from app.services.service_catalog import ActiveCatalog, active_catalog
-
-COMMON_REQUIREMENTS = [
-    RequiredInformation(
-        field_id="content", question="어떤 불편을 겪으셨나요? 상황을 편하게 알려 주세요."
-    ),
-    RequiredInformation(
-        field_id="location_text",
-        question="어디에서 있었던 일인가요? 주변 시설 이름을 알려 주세요.",
-        required=False,
-    ),
-]
 
 
 class AgentPlanner(Protocol):
@@ -92,21 +79,6 @@ class AgentExecution:
         current = active_catalog(db)
         if (current.review_id if current else None) != self.catalog_review_id:
             raise ValueError("catalog_changed_during_agent_turn")
-
-
-def service_card(service: PublicService, catalog: ActiveCatalog) -> ServiceCard:
-    source = catalog.document(service.source_document_id)
-    return ServiceCard(
-        service_id=service.id,
-        title=service.title,
-        summary=service.summary,
-        source_url=source.source_url,
-        source_title=source.title,
-        catalog_version=catalog.version,
-        review_due_at=catalog.review_due_at.isoformat(),
-        synthetic=source.synthetic,
-        requires_human_review=service.requires_human_review,
-    )
 
 
 class CitizenAgentExecutor:
@@ -233,33 +205,14 @@ class CitizenAgentExecutor:
             call_id=call.call_id, name=call.name, catalog_available=catalog is not None
         )
         if isinstance(call, SearchServices):
-            if catalog:
-                query = redact_pii(call.query).text.casefold()
-                tokens = {word for word in re.findall(r"[가-힣a-z0-9]+", query) if len(word) >= 2}
-                candidates = catalog.services(datetime.now(UTC).date())
-                # A lexical retrieval baseline only; no intent/category/department assignment.
-                scored = [
-                    (
-                        sum(token in f"{item.title} {item.summary}".casefold() for token in tokens),
-                        item,
-                    )
-                    for item in candidates
-                ]
-                scored.sort(key=lambda pair: (-pair[0], pair[1].id))
-                observation.services = [
-                    service_card(item, catalog)
-                    for score, item in scored
-                    if not query.strip() or score > 0
-                ][: call.limit]
+            observation.services = search_services(catalog, call.query, call.limit)
         elif call.service_id is None:
             observation.required_information = COMMON_REQUIREMENTS
         else:
             if not catalog or call.service_id not in selected:
                 raise ValueError("service_not_in_retrieved_candidates")
-            service = next(
-                item
-                for item in catalog.services(datetime.now(UTC).date())
-                if item.id == call.service_id
-            )
+            service = get_service(catalog, call.service_id)
+            if service is None:
+                raise ValueError("service_no_longer_available")
             observation.required_information = service.required_information
         return observation

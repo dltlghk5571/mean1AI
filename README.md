@@ -17,6 +17,7 @@
 - 복지 목록·상세·조직도 HTML 추출, 로컬 묶음의 누락·중복·부서 표기 차이 대조 보고서
 - 수집 보고서 확인 화면(`/staff/source-reports`), 집계 재계산·업무 검색·페이지 근거·확인할 일 JSON
 - 검수 자료 검색과 필요 정보 조회 도구, 최대 3회 실행 제한, 출처 카드와 변경 시 결과 폐기
+- 선택적 stdio MCP 서버: 검수 자료 검색·필요 항목 조회, 자료 버전 검증과 내용 없는 호출 감사
 - 담당자 자료 검수 화면(`/staff/service-catalogs`), 공개 목록 조사 후보 12개와 조직 표시 검토
 - 생활불편·복지 대표 업무 12개, 실제 구별 업무분장 후보 32개와 추가 질문안 44개 검수
 - 선택적 동아리 대화 모델 HTTP 연결, 응답·실행 시간·동시 실행·크기 제한
@@ -57,6 +58,7 @@
 - [시민 챗봇 HTTP 계약](docs/CHAT_API.md)
 - [상황별 추가 질문과 모델 연결 경계](docs/CITIZEN_QUESTIONS.md)
 - [에이전트 도구 JSON v2와 모델 팀 연결 작업](docs/AGENT_API.md)
+- [MCP 서버 설치·연결 검사·호스트 설정과 도구 계약](docs/MCP_SERVER.md)
 - [수집·검수 JSON과 합성 자료 등록·승인 실행 방법](docs/SERVICE_DATA_PIPELINE.md)
 - [복지·조직도 수집기 실행·JSON 보고서·팀 전달 순서](docs/SEONGNAM_COLLECTOR.md)
 - [수집 보고서를 화면에서 확인하고 팀에 전달하는 방법](docs/SOURCE_REPORT_REVIEW.md)

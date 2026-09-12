@@ -13,12 +13,12 @@ from app.models import CitizenChat, CitizenChatAuditEvent, CitizenSession
 from app.services import citizen
 from app.services import citizen_questions as questions
 from app.services.audit import record_audit
+from app.services.catalog_tools import service_card
 from app.services.chat_provider import ChatAgentProvider
 from app.services.citizen_agent import (
     AgentExecution,
     AgentRunError,
     CitizenAgentExecutor,
-    service_card,
 )
 from app.services.citizen_photos import PreparedPhoto, attach_photos
 from app.services.emergency import detect_emergency
