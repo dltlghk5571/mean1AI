@@ -1,0 +1,7 @@
+{% if incident_progress %}
+<section class="followup-panel" aria-labelledby="shared-progress-heading" data-citizen-incident>
+  <header class="followup-heading"><div><p class="followup-eyebrow">내가 제보한 현장의 소식</p><h2 id="shared-progress-heading">현장 진행 안내</h2><p>담당자가 확인해 공개한 공통 안내입니다.</p></div></header>
+  <div class="followup-answer"><strong>{{ incident_progress.status }}</strong><p class="followup-text">{{ incident_progress.message }}</p><p class="followup-note">{{ incident_progress.published_at }} 공개</p></div>
+  <p class="followup-note">현장 진행과 내 민원의 답변은 각각 확인할 수 있어요. 추가로 알릴 내용은 아래 ‘추가 문의’에 적어 주세요.</p>
+</section>
+{% endif %}

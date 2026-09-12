@@ -496,6 +496,64 @@ class DuplicateCandidate(Base):
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class Incident(Base):
+    """A human-confirmed shared field task, independent of individual complaint decisions."""
+
+    __tablename__ = "incidents"
+    __table_args__ = (
+        CheckConstraint("status IN ('checking', 'in_progress', 'resolved')"),
+        CheckConstraint("revision >= 1"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    category: Mapped[str] = mapped_column(String(80), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="checking", index=True)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class ComplaintIncidentLink(Base):
+    """Current membership. Phase one permits one shared issue per complaint."""
+
+    __tablename__ = "complaint_incident_links"
+
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("complaints.id"), primary_key=True)
+    incident_id: Mapped[str] = mapped_column(ForeignKey("incidents.id"), nullable=False, index=True)
+    linked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class IncidentEvent(Base):
+    """Append-only membership, progress, and explicit publication snapshots."""
+
+    __tablename__ = "incident_events"
+    __table_args__ = (
+        UniqueConstraint("incident_id", "revision", name="uq_incident_event_revision"),
+        CheckConstraint(
+            "action IN ('created', 'linked', 'unlinked', "
+            "'status_changed', 'published', 'withdrawn')"
+        ),
+        CheckConstraint("status IN ('checking', 'in_progress', 'resolved')"),
+        CheckConstraint("revision >= 1"),
+        CheckConstraint(
+            "(action = 'published' AND public_message IS NOT NULL) OR "
+            "(action != 'published' AND public_message IS NULL)"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    incident_id: Mapped[str] = mapped_column(ForeignKey("incidents.id"), nullable=False, index=True)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    action: Mapped[str] = mapped_column(String(24), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    actor_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    complaint_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    public_message: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class GroundedDraftRecord(Base):
     """Additive citation snapshot for one complaint draft.
 

@@ -16,6 +16,7 @@ from app.api import (
     complaints,
     departments,
     followups,
+    incidents,
     pages,
     service_catalogs,
 )
@@ -133,6 +134,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(catalog_pages.router)
     app.include_router(collection_reports.router)
     app.include_router(followups.router)
+    app.include_router(incidents.router)
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:

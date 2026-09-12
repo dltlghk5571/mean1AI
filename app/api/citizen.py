@@ -108,6 +108,11 @@ def _private_page(
     if submission is None:
         return _page(request, "citizen_unavailable.html", status=404)
     owner = session is not None and session.token_hash == submission.owner_session_hash
+    from app.services.incidents import citizen_progress
+
+    progress = citizen_progress(db, complaint_id) if not receipt else None
+    if progress:
+        progress["published_at"] = citizen.korean_time(progress["published_at"])
     return _page(
         request,
         "citizen_receipt.html" if receipt else "citizen_detail.html",
@@ -117,6 +122,7 @@ def _private_page(
         if receipt and owner and token
         else None,
         is_owner=owner,
+        incident_progress=progress,
         csrf_token=session.csrf_token if session else None,
         followup_key=str(uuid4()),
         followups=citizen_followups.history(db, complaint_id, followup_page)

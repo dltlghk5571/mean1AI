@@ -1,0 +1,14 @@
+{% extends 'incident_layout.html' %}
+{% block title %}공통 현장 사건 · 민원 업무지원{% endblock %}
+{% block incident_content %}
+<header class="incident-heading"><div><p class="section-label">여러 제보, 하나의 현장 업무</p><h1>공통 현장 사건 <span>{{ queue.total }}건</span></h1><p>담당자가 같은 문제로 확인한 민원을 연결하고 현장 진행을 관리합니다.</p></div></header>
+<nav class="incident-tabs" aria-label="사건 목록 필터"><a href="/staff/incidents" {% if state == 'active' %}aria-current="page"{% endif %}>진행 중</a><a href="/staff/incidents?state=all" {% if state == 'all' %}aria-current="page"{% endif %}>전체</a></nav>
+<div class="incident-list">
+  {% for row in queue['items'] %}
+    <article class="incident-card"><div class="incident-meta"><span class="incident-badge">{{ incident_status_labels[row.incident.status] }}</span><span>{{ category_labels.get(row.incident.category, row.incident.category) }}</span></div><h2><a href="/staff/incidents/{{ row.incident.id }}">{{ row.incident.title }}</a></h2><p><strong>연결 민원 {{ row.count }}건</strong> · 최근 변경 {{ korean_time(row.incident.updated_at) }}</p></article>
+  {% else %}
+    <section class="incident-card incident-empty"><h2>표시할 사건이 없습니다.</h2><p>민원 상세에서 중복 후보를 확인하고 <strong>사건 연결 검토</strong>를 누르면 시작할 수 있습니다.</p><a class="button button-secondary" href="/staff#complaint-queue">민원 대기열로 이동</a></section>
+  {% endfor %}
+</div>
+<nav class="incident-pagination" aria-label="사건 목록 페이지">{% if queue.page > 1 %}<a href="?state={{ state }}&amp;page={{ queue.page - 1 }}">이전 페이지</a>{% endif %}<span>{{ queue.page }}페이지</span>{% if queue.has_next %}<a href="?state={{ state }}&amp;page={{ queue.page + 1 }}">다음 페이지</a>{% endif %}</nav>
+{% endblock %}

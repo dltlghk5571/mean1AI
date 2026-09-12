@@ -36,6 +36,8 @@ from app.services.duplicates import (
     decide_duplicate_candidate,
     list_duplicate_candidates,
 )
+from app.services.incidents import STATUS_LABELS as INCIDENT_STATUS_LABELS
+from app.services.incidents import membership
 from app.services.pipeline import ComplaintPipeline
 
 router = APIRouter(include_in_schema=False)
@@ -98,6 +100,12 @@ AUDIT_LABELS = {
     "citizen_reply_published": "시민 화면에 답변 공개",
     "citizen_followup_added": "시민 추가 문의 · 안전 확인",
     "citizen_followup_reply_published": "추가 문의 답변 공개",
+    "incident_created": "공통 현장 사건 생성",
+    "incident_linked": "현장 사건에 민원 연결",
+    "incident_unlinked": "현장 사건에서 민원 분리",
+    "incident_status_changed": "현장 진행 상태 변경",
+    "incident_published": "공통 진행 안내 공개",
+    "incident_withdrawn": "공통 진행 안내 공개 철회",
 }
 
 AI_STATE_LABELS = {
@@ -265,6 +273,8 @@ def complaint_detail(
             "location_review": location_review,
             "grounding": grounding,
             "duplicate_candidates": duplicate_candidates,
+            "linked_incident": membership(db, complaint_id),
+            "incident_status_labels": INCIDENT_STATUS_LABELS,
             "review_decisions": review_decisions,
             "citizen_submission": db.get(CitizenSubmission, complaint_id),
             "published_reply": latest_reply(db, complaint_id),

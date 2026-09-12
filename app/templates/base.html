@@ -65,6 +65,9 @@
         <a href="/staff/follow-ups" class="{{ 'is-active' if active_filter|default('') == 'followups' else '' }}" {% if active_filter|default('') == 'followups' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H9l-5 4zM8 8h8M8 12h5"/></svg><span>추가 문의 대기</span>
         </a>
+        <a href="/staff/incidents" class="{{ 'is-active' if active_filter|default('') == 'incidents' else '' }}" {% if active_filter|default('') == 'incidents' %}aria-current="page"{% endif %}>
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7v6H3zM14 14h7v6h-7zM10 7h7v7M7 10v7h7"/></svg><span>공통 현장 사건</span>
+        </a>
         <p class="nav-label nav-label-secondary">시스템</p>
         <a href="/staff/source-reports" class="{{ 'is-active' if active_filter|default('') == 'source_reports' else '' }}" {% if active_filter|default('') == 'source_reports' %}aria-current="page"{% endif %}>
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8M8 16h5"/></svg>

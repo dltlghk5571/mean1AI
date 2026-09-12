@@ -16,6 +16,13 @@ The UI hides actions the current role cannot perform, but server-side checks are
 clients cannot choose an actor ID: the server copies `username` and `role` from the verified session.
 Unknown JSON fields such as a spoofed `actor_id` are rejected by Pydantic.
 
+Shared field incidents use the same staff session and CSRF boundary: all roles can read
+`/staff/incidents`, triage/reviewer roles can create, link, unlink and change field progress,
+and only reviewers can publish or withdraw shared citizen guidance. Each command appends an
+immutable `IncidentEvent` and per-complaint audits in one SQLite transaction. Citizen visibility
+is restricted to their accessible complaint and the current explicitly published snapshot;
+membership or progress changes invalidate that snapshot. See [shared incidents](SHARED_INCIDENTS.md).
+
 Deferred AI enqueueing uses the same create/reprocess permissions and CSRF checks. Queue audit
 actor IDs come from the authenticated session; request keys do not supply identity. All roles can
 read the current AI state and `GET /api/v1/complaints/{id}/ai-processing` history. Claim/complete/fail

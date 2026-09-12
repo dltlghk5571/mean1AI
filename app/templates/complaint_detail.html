@@ -226,6 +226,12 @@
         <span>{{ duplicate_candidates|length }}건</span>
       </div>
 
+      {% if linked_incident %}
+        <div class="duplicate-safety-note" data-linked-incident>
+          <p><strong>연결된 현장 사건</strong> <a href="/staff/incidents/{{ linked_incident.id }}">{{ linked_incident.title }}</a> · {{ incident_status_labels[linked_incident.status] }}</p>
+        </div>
+      {% endif %}
+
       {% if duplicate_candidates %}
         <div class="duplicate-list">
           {% for candidate in duplicate_candidates %}
@@ -270,6 +276,9 @@
                   </span>
                   <small>{{ candidate.reviewed_by }} · {{ candidate.reviewed_at.strftime('%Y.%m.%d %H:%M') if candidate.reviewed_at else '' }}</small>
                 </div>
+                {% if candidate.review_status == 'confirmed' and current_user.can_triage %}
+                  <a class="button button-secondary" href="/staff/incidents/prepare?complaint_id={{ complaint.id }}&amp;candidate_id={{ candidate.candidate_complaint_id }}">사건 연결 검토</a>
+                {% endif %}
               {% endif %}
             </article>
           {% endfor %}
