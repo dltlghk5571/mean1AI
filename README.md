@@ -83,6 +83,7 @@
 - [담당자 화면에서 검수할 성남시 공개 목록 후보](docs/SEONGNAM_REVIEW_CANDIDATES.md)
 - [생활불편·복지 대표 업무와 실제 부서·관할·질문 설계](docs/SEONGNAM_PILOT_SERVICES.md)
 - [가로등 한 건의 공식 근거 검수·확인된 담당·미해결 항목](docs/LIGHTING_SOURCE_REVIEW.md)
+- [도로·보도 한 건의 구별 담당·공식 신고 경로·관할 검수](docs/ROAD_SOURCE_REVIEW.md)
 - [동아리 대화 모델 서버 연결 설정과 전용 JSON 계약](docs/CLUB_MODEL_SERVER.md)
 - [모델 API 서버 골격·백엔드 주입·4명 전달물](docs/MODEL_GATEWAY.md)
 - [자유 입력 정리·원문 확인·직접 선택·대화 모델 연결](docs/CHAT_EXTRACTION.md)
