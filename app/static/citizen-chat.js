@@ -195,7 +195,8 @@
       choice("추가 질문은 여기까지 할게요", "finish_questions");
       input.setAttribute("aria-labelledby", "chat-question-title");
     } else input.removeAttribute("aria-labelledby");
-    q("answers").hidden = !intake || !["review", "information"].includes(state.stage);
+    q("answers").hidden = !intake || !["review", "information"].includes(state.stage)
+      || (intake.purpose === "information" && intake.template.purpose === "complaint");
     q("answer-list").replaceChildren();
     if (intake) intake.template.questions.forEach((item) => {
       const answer = intake.answers[item.field_id];

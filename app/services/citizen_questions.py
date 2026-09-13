@@ -85,6 +85,17 @@ def finish(state: ChatState, *, urgent: bool = False) -> None:
 
 
 def continue_questions(state: ChatState) -> None:
+    if (
+        state.intake
+        and state.intake.purpose == "information"
+        and state.intake.template.purpose == "complaint"
+        and state.stage in {"location", "review", "questions"}
+        and not state.intake.editing_field
+    ):
+        # Keep complaint questions pending until the citizen chooses intake. Welfare
+        # templates still collect their information-specific questions as before.
+        state.stage = "information"
+        return
     if state.intake and state.urgent and state.stage == "location":
         state.location_checked = True
         state.stage = "review"

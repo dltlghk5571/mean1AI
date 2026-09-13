@@ -16,6 +16,8 @@ from app.extraction_schemas import ExtractionRequest, ExtractionResponse
 from app.models import AuditEvent, CitizenChat, CitizenChatAuditEvent, Complaint
 from app.services import citizen_chat, citizen_questions
 from app.services.chat_extraction import DEMO_TEXT, ExtractionRunner, synthetic_proposal
+from app.services.citizen_agent import CitizenAgentExecutor, DemoToolPlanner
+from tests.test_citizen_agent import publish
 from tests.test_citizen_chat import payload, start, turn
 from tests.test_club_planner import Stream
 
@@ -276,6 +278,104 @@ def test_audit_precedes_http_and_competing_turn_discards_proposal(
         )
 
 
+@pytest.mark.parametrize(
+    ("source", "purpose_quote", "has_catalog"),
+    [
+        (
+            "가로등에 적힌 번호를 몰라도 고장 신고할 수 있나요? 신고 방법이 궁금해요.",
+            "신고 방법이 궁금해요.",
+            False,
+        ),
+        (
+            "가로등 고장 신고 절차를 알려 주세요. 표지 번호를 못 읽으면 어떻게 하나요?",
+            "신고 절차를 알려 주세요.",
+            True,
+        ),
+    ],
+)
+def test_lighting_information_looks_up_sources_before_any_complaint_questions(
+    anonymous_client: TestClient,
+    client: TestClient,
+    test_app: FastAPI,
+    service_bundle: dict,
+    source: str,
+    purpose_quote: str,
+    has_catalog: bool,
+) -> None:
+    # Draft dev cases pc043/pc081 exercise app transitions, not model predictions.
+    def handler(request):
+        def mutate(reply):
+            reply["proposal"] = {
+                "abstained": False,
+                "reason": "supported",
+                "purpose": {"value": "information", "quote": purpose_quote},
+                "topic": {"template_id": "lighting", "quote": "가로등"},
+                "location": None,
+                "answers": [],
+            }
+
+        return reply_for(request, mutate)
+
+    if has_catalog:
+        publish(client, service_bundle)
+    test_app.state.agent_executor = CitizenAgentExecutor(DemoToolPlanner())
+    install(test_app, "club", handler)
+    state = turn(anonymous_client, start(anonymous_client), "say", message=source)
+    state = turn(
+        anonymous_client,
+        state,
+        "accept_extraction",
+        extraction_id=state["extraction_preview"]["id"],
+    )
+    assert state["stage"] == "information" and state["current_question"] is None
+    assert state["intake"]["template"]["id"] == "lighting"
+    assert state["intake"]["purpose"] == "information" and state["intake"]["answers"] == {}
+    assert state["draft"]["content"] == source and state["submission_content"] == source
+    if has_catalog:
+        assert [card["service_id"] for card in state["service_cards"]] == ["DEMO-LIGHT"]
+        assert "합성 자료" in state["messages"][-1]["text"]
+    else:
+        assert state["service_cards"] == []
+        assert "검수 자료를 찾지 못했어요" in state["messages"][-1]["text"]
+    assert start(anonymous_client) == state
+    # Re-selecting the retained topic must not turn guidance into an intake form.
+    state = turn(anonymous_client, state, "choose_topic", template_id="lighting")
+    assert state["stage"] == "information" and state["current_question"] is None
+    assert (
+        anonymous_client.post(
+            "/minwon/chat/turn", json=payload(state, "confirm", consent="yes")
+        ).status_code
+        == 422
+    )
+    with test_app.state.session_factory() as db:
+        assert db.scalar(select(func.count(Complaint.id))) == 0
+        assert any(
+            event.details.get("tool") == "search_services"
+            for event in db.scalars(
+                select(CitizenChatAuditEvent).where(
+                    CitizenChatAuditEvent.action == "agent_step_completed"
+                )
+            )
+        )
+    state = turn(anonymous_client, state, "complaint")
+    assert state["stage"] == "location" and state["intake"]["purpose"] == "complaint"
+    state = turn(anonymous_client, state, "skip_location")
+    assert state["current_question"]["field_id"] == "observed_time"
+    state = turn(anonymous_client, state, "skip_question", field_id="observed_time")
+    assert state["current_question"]["field_id"] == "facility_label"
+    state = turn(anonymous_client, state, "finish_questions")
+    assert state["stage"] == "review"
+    assert (
+        anonymous_client.post("/minwon/chat/turn", json=payload(state, "confirm")).status_code
+        == 422
+    )
+    assert turn(anonymous_client, state, "confirm", consent="yes")["stage"] == "submitted"
+    with test_app.state.session_factory() as db:
+        complaint = db.scalar(select(Complaint))
+        assert complaint and complaint.content == source
+        assert db.scalar(select(func.count(Complaint.id))) == 1
+
+
 def test_welfare_information_never_creates_intake_without_later_explicit_complaint(
     anonymous_client: TestClient, test_app: FastAPI
 ) -> None:
@@ -302,7 +402,9 @@ def test_welfare_information_never_creates_intake_without_later_explicit_complai
         "accept_extraction",
         extraction_id=state["extraction_preview"]["id"],
     )
+    assert state["stage"] == "location"
     state = turn(anonymous_client, state, "skip_location")
+    assert state["stage"] == "questions" and state["current_question"] is not None
     state = turn(anonymous_client, state, "finish_questions")
     assert state["stage"] == "information"
     with test_app.state.session_factory() as db:
