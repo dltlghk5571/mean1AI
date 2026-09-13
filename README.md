@@ -322,6 +322,8 @@ CI의 `browser` 작업은 브라우저 설치부터 검사·정리까지 실행�
 내보냅니다. `python -m evals.pilot_run score`는 추후 받은 예측 파일만 채점합니다.
 현재는 데이터·채점기 검증만 완료했으며 LLM 성능은 미측정입니다. 공식 후보의 미해결 항목은
 `python -m evals.pilot_run source-review`와 [검수 작업표](docs/SEONGNAM_DATA_REVIEW.md)로 확인합니다.
+[가로등 합성 대화 14건의 계약 대조](docs/LIGHTING_LABEL_REVIEW.md)에는 안내 요청의 불필요한
+접수 질문과 건너뛴 항목의 입력 차이 등, 모델 연결 전에 검토할 사례와 재현 방법을 남겼습니다.
 
 ## 5. 주요 API
 
