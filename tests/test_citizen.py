@@ -22,7 +22,7 @@ PHONE = "010-1111-2222"  # Synthetic identifiers only.
 
 
 def start(client: TestClient) -> dict[str, str]:
-    page = client.get("/minwon/new")
+    page = client.get("/minwon/form")
     assert page.status_code == 200
     csrf = re.search(r'name="csrf_token" value="([^"]+)"', page.text)
     key = re.search(r'name="request_key" value="([^"]+)"', page.text)

@@ -1,0 +1,276 @@
+{
+  "$defs": {
+    "ChatDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Title",
+          "type": "string"
+        },
+        "content": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Content",
+          "type": "string"
+        },
+        "location_text": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Location Text",
+          "type": "string"
+        }
+      },
+      "title": "ChatDraft",
+      "type": "object"
+    },
+    "ChatMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "user",
+            "assistant"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 5000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "text"
+      ],
+      "title": "ChatMessage",
+      "type": "object"
+    },
+    "PlanningContext": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "2",
+          "default": "2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "welcome",
+            "intent",
+            "description",
+            "location",
+            "questions",
+            "review",
+            "information",
+            "submitted"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "draft": {
+          "$ref": "#/$defs/ChatDraft"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/ChatMessage"
+          },
+          "title": "Messages",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/ToolObservation"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "remaining_tool_calls": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Remaining Tool Calls",
+          "type": "integer"
+        },
+        "time_budget_seconds": {
+          "default": 30,
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Time Budget Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "stage",
+        "draft",
+        "messages",
+        "remaining_tool_calls"
+      ],
+      "title": "PlanningContext",
+      "type": "object"
+    },
+    "RequiredInformation": {
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "pattern": "^[a-z][a-z0-9_]{0,49}$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "question": {
+          "maxLength": 200,
+          "minLength": 5,
+          "title": "Question",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field_id",
+        "question"
+      ],
+      "title": "RequiredInformation",
+      "type": "object"
+    },
+    "ServiceCard": {
+      "additionalProperties": false,
+      "properties": {
+        "service_id": {
+          "maxLength": 100,
+          "title": "Service Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "title": "Title",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 1500,
+          "title": "Summary",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source Url"
+        },
+        "source_title": {
+          "maxLength": 200,
+          "title": "Source Title",
+          "type": "string"
+        },
+        "catalog_version": {
+          "maxLength": 80,
+          "title": "Catalog Version",
+          "type": "string"
+        },
+        "review_due_at": {
+          "title": "Review Due At",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "requires_human_review": {
+          "default": true,
+          "title": "Requires Human Review",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "service_id",
+        "title",
+        "summary",
+        "source_url",
+        "source_title",
+        "catalog_version",
+        "review_due_at",
+        "synthetic"
+      ],
+      "title": "ServiceCard",
+      "type": "object"
+    },
+    "ToolObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "call_id": {
+          "title": "Call Id",
+          "type": "string"
+        },
+        "name": {
+          "enum": [
+            "search_services",
+            "get_required_information"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "services": {
+          "items": {
+            "$ref": "#/$defs/ServiceCard"
+          },
+          "title": "Services",
+          "type": "array"
+        },
+        "required_information": {
+          "items": {
+            "$ref": "#/$defs/RequiredInformation"
+          },
+          "title": "Required Information",
+          "type": "array"
+        },
+        "catalog_available": {
+          "title": "Catalog Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "call_id",
+        "name",
+        "catalog_available"
+      ],
+      "title": "ToolObservation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "context": {
+      "$ref": "#/$defs/PlanningContext"
+    }
+  },
+  "required": [
+    "model_id",
+    "context"
+  ],
+  "title": "ClubPlanRequest",
+  "type": "object"
+}

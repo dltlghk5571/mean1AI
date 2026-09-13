@@ -54,11 +54,15 @@ overwrite a citizen-visible reply. See `AUTH_AND_AUDIT.md` for access, limits an
 
 `Classifier` is a protocol. The deterministic rules provider keeps local development and CI offline.
 The OpenAI provider returns the same Pydantic schema, so routing policy is independent of the model.
+The optional club provider uses a separate bounded HTTP contract, requires the durable queue and
+keeps every result under human review. A stateless, disabled-by-default model API factory exposes
+planning/classification/comparison with explicit synthetic replies; real inference must be injected.
+See [the gateway](MODEL_GATEWAY.md) and [club classifier](CLUB_CLASSIFIER.md).
 
 ### Optional local deferred AI queue (M2)
 
 `AI_DEFERRED_ENABLED=false` preserves synchronous processing. With the flag enabled and
-`AI_PROVIDER=openai`, intake runs redaction, emergency/sensitive policy, deterministic rules, local
+`AI_PROVIDER=openai|club`, intake runs redaction, emergency/sensitive policy, deterministic rules, local
 retrieval and the local citation-enforced draft immediately. Urgent/sensitive cases skip expensive
 work with an `ai_job_skipped` audit event. Eligible records receive an `AIProcessingJob` in the same
 transaction as intake and preflight audits, and remain available for human review. `rules` always
@@ -98,7 +102,8 @@ increments the attempt counter and records `ai_job_claimed` in the same transact
 record a fixed reason code and `ai_job_attempt_failed`; exhausted attempts also record `ai_job_failed`.
 The default maximum is three attempts with 30, then 60 seconds of backoff. Limits and base backoff
 are persisted per job; restarting or changing settings does not reset the budget. SDK retries are
-disabled in deferred mode, and the existing classifier timeout is 30 seconds. A default 120-second
+disabled in deferred mode. The OpenAI classifier timeout is 30 seconds; club HTTP has a configurable
+total budget of 1–30 seconds, default 10. A default 120-second
 lease is recovered on the next worker invocation, with expiry consuming an attempt and respecting
 the same backoff/limit. No sleep-based tests or in-memory queue are required.
 

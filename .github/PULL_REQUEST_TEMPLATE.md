@@ -6,6 +6,10 @@
 
 관련 Issue:
 
+- 목표 경로 (`G0 → 중간목표 → 소목표`, `GOALS.md`·`TASKS.md` 기준):
+- 이번 완료 조건과 증거:
+- 새로 발견했지만 다음으로 미룬 항목(있다면):
+
 ## Git Flow
 
 - [ ] 작업 브랜치와 대상이 맞습니다 (`feature/* → develop`, `release/*·hotfix/* → main/develop`).
@@ -15,5 +19,5 @@
 
 실행한 검사와 결과를 적어 주세요. UI 변경이면 화면 확인 결과를 함께 적어 주세요.
 
-- [ ] `test`, `gitflow` 검사가 통과했습니다.
+- [ ] `test`, `browser`, `gitflow` 검사가 통과했습니다.
 - [ ] 다른 팀원 한 명의 검토 후 Merge commit으로 병합합니다.

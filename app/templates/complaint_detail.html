@@ -5,6 +5,8 @@
 {% block topbar_subtitle %}분류 근거와 답변 초안을 확인합니다{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/followups.css') }}">
+<script defer src="{{ url_for('static', path='/followups.js') }}"></script>
 {% set ai_job = complaint.ai_processing %}
 {% if ai_job %}
   {% set ai_label = 'AI 분석 중단 · 담당자 검토 반영' if ai_job.last_error_code == 'human_review_superseded' else ai_state_labels[ai_job.state] %}
@@ -116,6 +118,7 @@
   <a href="#draft-review">답변 초안</a>
   <a href="#officer-review">담당자 검토</a>
   <a href="#audit-history">처리 이력</a>
+  {% if citizen_submission %}<a href="#followups">추가 문의 {{ followups.total }}</a>{% endif %}
 </nav>
 
 <div class="detail-workspace">
@@ -162,6 +165,9 @@
         </div>
       </dl>
     </section>
+
+    {% include 'citizen_photos.html' %}
+    {% include 'followup_staff_history.html' %}
 
     <section class="content-card duplicate-review-card" id="duplicate-review" tabindex="-1">
       <header class="card-heading">
@@ -220,6 +226,12 @@
         <span>{{ duplicate_candidates|length }}건</span>
       </div>
 
+      {% if linked_incident %}
+        <div class="duplicate-safety-note" data-linked-incident>
+          <p><strong>연결된 현장 사건</strong> <a href="/staff/incidents/{{ linked_incident.id }}">{{ linked_incident.title }}</a> · {{ incident_status_labels[linked_incident.status] }}</p>
+        </div>
+      {% endif %}
+
       {% if duplicate_candidates %}
         <div class="duplicate-list">
           {% for candidate in duplicate_candidates %}
@@ -246,6 +258,9 @@
                 <div><dt>문구</dt><dd>{{ '%.0f'|format(candidate.score_breakdown.text * 100) }}%</dd></div>
               </dl>
 
+              {% if candidate.review_status != 'rejected' %}
+                <a class="button button-secondary" href="/staff/incident-comparisons/{{ complaint.id }}/{{ candidate.candidate_complaint_id }}">같은 사건 비교</a>
+              {% endif %}
               {% if candidate.review_status == 'suggested' and current_user.can_triage %}
                 <form class="duplicate-decision-form" action="/complaints/{{ complaint.id }}/duplicate-candidates/{{ candidate.candidate_complaint_id }}/decision" method="post">
                   <input type="hidden" name="csrf_token" value="{{ current_user.csrf_token }}">
@@ -264,6 +279,9 @@
                   </span>
                   <small>{{ candidate.reviewed_by }} · {{ candidate.reviewed_at.strftime('%Y.%m.%d %H:%M') if candidate.reviewed_at else '' }}</small>
                 </div>
+                {% if candidate.review_status == 'confirmed' and current_user.can_triage %}
+                  <a class="button button-secondary" href="/staff/incidents/prepare?complaint_id={{ complaint.id }}&amp;candidate_id={{ candidate.candidate_complaint_id }}">사건 연결 검토</a>
+                {% endif %}
               {% endif %}
             </article>
           {% endfor %}

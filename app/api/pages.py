@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -29,11 +29,15 @@ from app.services.auth import (
     require_role,
 )
 from app.services.citizen import latest_reply, publish_reply
+from app.services.citizen_followups import history as followup_history
+from app.services.citizen_photos import photo_summaries
 from app.services.duplicates import (
     confirm_location,
     decide_duplicate_candidate,
     list_duplicate_candidates,
 )
+from app.services.incidents import STATUS_LABELS as INCIDENT_STATUS_LABELS
+from app.services.incidents import membership
 from app.services.pipeline import ComplaintPipeline
 
 router = APIRouter(include_in_schema=False)
@@ -94,6 +98,18 @@ AUDIT_LABELS = {
     "human_review_approved": "담당자 검토 완료",
     "citizen_access_created": "시민 비공개 접수 연결",
     "citizen_reply_published": "시민 화면에 답변 공개",
+    "citizen_followup_added": "시민 추가 문의 · 안전 확인",
+    "citizen_followup_reply_published": "추가 문의 답변 공개",
+    "incident_created": "공통 현장 사건 생성",
+    "incident_linked": "현장 사건에 민원 연결",
+    "incident_unlinked": "현장 사건에서 민원 분리",
+    "incident_status_changed": "현장 진행 상태 변경",
+    "incident_published": "공통 진행 안내 공개",
+    "incident_withdrawn": "공통 진행 안내 공개 철회",
+    "incident_comparison_requested": "같은 사건 모델 비교 요청",
+    "incident_comparison_ready": "같은 사건 비교 제안 · 담당자 검토 필요",
+    "incident_comparison_failed": "사건 비교 실패 · 담당자 검토",
+    "incident_comparison_stale": "비교 중 자료 변경 · 결과 보류",
 }
 
 AI_STATE_LABELS = {
@@ -206,7 +222,12 @@ def submit_complaint(
 
 
 @router.get("/complaints/{complaint_id}", response_class=HTMLResponse)
-def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTMLResponse:
+def complaint_detail(
+    complaint_id: str,
+    request: Request,
+    db: DbSession,
+    followup_page: Annotated[int, Query(ge=1, le=100_000)] = 1,
+) -> HTMLResponse:
     current_user = get_authenticated_user(request)
     complaint = _get_complaint(db, complaint_id)
     location_review = db.get(ComplaintLocationReview, complaint_id)
@@ -251,9 +272,13 @@ def complaint_detail(complaint_id: str, request: Request, db: DbSession) -> HTML
         name="complaint_detail.html",
         context={
             "complaint": complaint,
+            "photos": photo_summaries(db, complaint_id, officer=True),
+            "followups": followup_history(db, complaint_id, followup_page),
             "location_review": location_review,
             "grounding": grounding,
             "duplicate_candidates": duplicate_candidates,
+            "linked_incident": membership(db, complaint_id),
+            "incident_status_labels": INCIDENT_STATUS_LABELS,
             "review_decisions": review_decisions,
             "citizen_submission": db.get(CitizenSubmission, complaint_id),
             "published_reply": latest_reply(db, complaint_id),

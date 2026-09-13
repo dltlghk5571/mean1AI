@@ -16,6 +16,13 @@ The UI hides actions the current role cannot perform, but server-side checks are
 clients cannot choose an actor ID: the server copies `username` and `role` from the verified session.
 Unknown JSON fields such as a spoofed `actor_id` are rejected by Pydantic.
 
+Shared field incidents use the same staff session and CSRF boundary: all roles can read
+`/staff/incidents`, triage/reviewer roles can create, link, unlink and change field progress,
+and only reviewers can publish or withdraw shared citizen guidance. Each command appends an
+immutable `IncidentEvent` and per-complaint audits in one SQLite transaction. Citizen visibility
+is restricted to their accessible complaint and the current explicitly published snapshot;
+membership or progress changes invalidate that snapshot. See [shared incidents](SHARED_INCIDENTS.md).
+
 Deferred AI enqueueing uses the same create/reprocess permissions and CSRF checks. Queue audit
 actor IDs come from the authenticated session; request keys do not supply identity. All roles can
 read the current AI state and `GET /api/v1/complaints/{id}/ai-processing` history. Claim/complete/fail
@@ -138,3 +145,58 @@ appears to authorized citizen sessions. Internal approval alone never publishes;
 reprocessing cannot change a previous public snapshot. A new approval and explicit publication are
 needed for a replacement. This publishes within the local demo only; no message or government
 request is sent, no administrative action is decided, and no complaint is closed.
+
+## Optional incident comparison
+
+`/staff/incident-comparisons/{complaint_id}/{candidate_id}` is staff-only. Triage officers and reviewers
+may submit a CSRF-protected comparison; auditors can read stored results. The default provider is off.
+Club mode sends only the selected records' re-masked text, category, submission time, urgency and field
+status. It exposes no complaint/citizen IDs, photos, incident title or members to the model or MCP.
+This prototype's pattern redaction is not complete anonymization; use synthetic fixtures only.
+
+Before model access, `incident_comparison_requested` audits commit for both complaints. HTTP runs
+outside the SQLite write transaction. A new transaction checks freshness and atomically inserts an
+append-only `IncidentComparison` and both final audits (`ready`, `failed` or `stale`). Invalid/stale
+responses retain no model prose. If final storage fails, the result is withheld; the initial request
+audit may remain. Audits contain request ID, fingerprint, provider/model version, status and
+`automatic_link=false`, never input text, evidence, keys or endpoint URLs.
+
+Comparison cannot confirm/reject candidates, change incident membership or publish citizen guidance.
+Latest stored suggestions are hidden after input/review/incident revision or provider/model-ID changes.
+See [the comparison contract](INCIDENT_COMPARISON.md) for limits, transport and team handoff.
+
+## Club classification and model API scaffold
+
+Club classification requires the existing local deferred queue. Intake/preflight and enqueue audits
+commit before the worker claims a job; claim audit commits before HTTP. The job pins provider/model,
+catalog and input hash, then completion rechecks them and human-review state. Verified classification,
+audit and terminal queue state commit together. No model confidence can bypass required review.
+`club_synthetic` distinguishes explicit synthetic responses from `club`; changing that mode or the
+model version invalidates pending work. Queue retries preserve the original attempt budget.
+
+The model gateway has no complaint database, session or write tools. It checks Bearer authentication
+before reading a bounded JSON body and returns fixed errors without echoing input. The calling app
+owns decision audits; model inputs/replies, keys, URLs and exception strings are never audit details.
+The gateway is disabled by default, has no real inference backend and starts no listener at import
+or factory creation. See [MODEL_GATEWAY.md](MODEL_GATEWAY.md) for the exact synthetic/real boundary.
+
+## Citizen-confirmed extraction
+
+Optional extraction receives only redacted source text and the application's question templates.
+No citizen/chat/complaint ID, assistant history, credential, photo or other citizen's data enters
+that context. Proposals must use known topic/field IDs and exact source quotes. Values cannot add
+facts, safety-choice answers cannot be inferred, and urgent input bypasses extraction.
+
+`extraction_requested` commits before model access and the transaction closes for HTTP. The pending
+proposal and `extraction_resolved` audit commit together using the existing chat revision CAS.
+Applying or dismissing requires the owning citizen session, CSRF, current revision and stored
+proposal ID. The client cannot replace proposed fields; final complaint consent is still separate.
+Source/template/provider/model changes invalidate approval. Contending or failed commits withhold
+the result and record `extraction_aborted`. Audit details contain status/IDs/hash/provider/model,
+never text, values, quotes, URL, credentials or exception bodies. Failed extraction retains the
+manual choice path and user's text, with an explicit failure notice and no synthetic substitution.
+
+Quoted answers are stored as `in_description` so intake does not duplicate the source. Removing
+that quote in a later source edit clears the extracted answer. Current storage uses private
+`CitizenChat.state` JSON; existing conversations use defaults for the new optional fields.
+See [CHAT_EXTRACTION.md](CHAT_EXTRACTION.md) for transport, confirmation and version boundaries.

@@ -1,0 +1,175 @@
+{
+  "$defs": {
+    "ClassifierCatalog": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "maxLength": 80,
+          "minLength": 3,
+          "title": "Version",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "synthetic": {
+          "const": true,
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "fallback_department_id": {
+          "maxLength": 64,
+          "title": "Fallback Department Id",
+          "type": "string"
+        },
+        "departments": {
+          "items": {
+            "$ref": "#/$defs/ClassifierDepartment"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Departments",
+          "type": "array"
+        }
+      },
+      "required": [
+        "version",
+        "source_sha256",
+        "synthetic",
+        "fallback_department_id",
+        "departments"
+      ],
+      "title": "ClassifierCatalog",
+      "type": "object"
+    },
+    "ClassifierDepartment": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Z0-9][A-Z0-9_]{2,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "category": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 1000,
+          "title": "Description",
+          "type": "string"
+        },
+        "jurisdiction": {
+          "maxLength": 120,
+          "title": "Jurisdiction",
+          "type": "string"
+        },
+        "subcategories": {
+          "items": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Subcategories",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category",
+        "description",
+        "jurisdiction",
+        "subcategories"
+      ],
+      "title": "ClassifierDepartment",
+      "type": "object"
+    },
+    "ClassifierInput": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Title",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 20000,
+          "minLength": 5,
+          "title": "Content",
+          "type": "string"
+        },
+        "location_text": {
+          "maxLength": 300,
+          "title": "Location Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "content",
+        "location_text"
+      ],
+      "title": "ClassifierInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task": {
+      "const": "classify",
+      "default": "classify",
+      "title": "Task",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "complaint": {
+      "$ref": "#/$defs/ClassifierInput"
+    },
+    "catalog": {
+      "$ref": "#/$defs/ClassifierCatalog"
+    }
+  },
+  "required": [
+    "request_id",
+    "input_hash",
+    "model_id",
+    "complaint",
+    "catalog"
+  ],
+  "title": "ClubClassifyRequest",
+  "type": "object"
+}

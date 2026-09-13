@@ -1,5 +1,8 @@
 # Console usability refinement — 2026-09-05
 
+> Completed historical plan for the initial staff console. Do not resume these slices as current work.
+> Read [GOALS.md](GOALS.md) for the product goal and [TASKS.md](TASKS.md) for the next small goal.
+
 ## Goal
 
 Show the complaint list in the first desktop viewport, make local search actually hide non-matches,

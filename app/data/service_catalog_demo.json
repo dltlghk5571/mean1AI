@@ -1,0 +1,138 @@
+{
+  "schema_version": "1",
+  "version": "demo-services-20260906-v1",
+  "documents": [
+    {
+      "id": "DEMO-SOURCE-001",
+      "source_id": "synthetic-example",
+      "source_url": null,
+      "title": "시연용 생활민원·복지 안내 예시",
+      "text": "이 문서는 에이전트 검색·필요 정보 조회를 검증하기 위한 합성 자료입니다. 실제 성남시의 조직, 지원 제도 또는 업무 지침이 아닙니다.",
+      "content_hash": "2cc11d7a56f039ff119baac4fd060ab183ee079d88355d2ac8dda6325e12758f",
+      "fetched_at": null,
+      "ingested_at": "2026-09-06T00:00:00+09:00",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "Project-authored synthetic fixture, MIT",
+      "retrieval_use": "allowed",
+      "training_use": "unknown",
+      "synthetic": true
+    }
+  ],
+  "taxonomy": [
+    {
+      "id": "DEMO-LIFE",
+      "source_document_id": "DEMO-SOURCE-001",
+      "source_code": null,
+      "label": "생활불편 (합성)",
+      "parent_id": null
+    },
+    {
+      "id": "DEMO-WELFARE",
+      "source_document_id": "DEMO-SOURCE-001",
+      "source_code": null,
+      "label": "복지 안내 (합성)",
+      "parent_id": null
+    }
+  ],
+  "organizations": [
+    {
+      "id": "DEMO-ORG",
+      "source_document_id": "DEMO-SOURCE-001",
+      "source_code": null,
+      "name": "시연용 업무 검토 그룹",
+      "parent_id": null,
+      "jurisdiction": "성남시 데모"
+    }
+  ],
+  "work_assignments": [
+    {
+      "id": "DEMO-WORK",
+      "source_document_id": "DEMO-SOURCE-001",
+      "source_code": null,
+      "organization_id": "DEMO-ORG",
+      "description": "합성 민원의 누락 정보를 확인하는 시연 업무",
+      "jurisdiction": "가상 시설"
+    }
+  ],
+  "services": [
+    {
+      "id": "DEMO-LIGHT",
+      "source_document_id": "DEMO-SOURCE-001",
+      "source_code": null,
+      "title": "가로등 불편 접수 (합성)",
+      "summary": "가상 공원의 가로등 불편을 체험하는 안내입니다. 주변 시설 이름과 언제부터 꺼졌는지 알려주면 접수 내용을 준비합니다.",
+      "taxonomy_ids": [
+        "DEMO-LIFE"
+      ],
+      "work_assignment_ids": [
+        "DEMO-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "가로등이 있는 가상 시설이나 주변 건물 이름을 알려 주세요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "DEMO-PARK",
+      "source_document_id": "DEMO-SOURCE-001",
+      "source_code": null,
+      "title": "공원 시설 불편 접수 (합성)",
+      "summary": "가상 놀이터의 파손된 시설을 알리는 시연 업무입니다. 시설 이름과 불편한 상황을 확인합니다.",
+      "taxonomy_ids": [
+        "DEMO-LIFE"
+      ],
+      "work_assignment_ids": [
+        "DEMO-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "파손된 시설이 있는 가상 공원 이름을 알려 주세요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "DEMO-WELFARE-INFO",
+      "source_document_id": "DEMO-SOURCE-001",
+      "source_code": null,
+      "title": "복지 상담 절차 안내 (합성)",
+      "summary": "복지 문의 내용을 정리하는 시연 예시입니다. 실제 지원 사업이나 금액을 안내하지 않습니다. 개별 수급 자격과 적용 여부는 담당자 확인이 필요합니다.",
+      "taxonomy_ids": [
+        "DEMO-WELFARE"
+      ],
+      "work_assignment_ids": [
+        "DEMO-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "content",
+          "question": "궁금한 복지 지원 분야를 알려 주세요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    }
+  ]
+}

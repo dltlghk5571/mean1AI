@@ -48,3 +48,14 @@ def redact_pii(text: str) -> RedactionResult:
         detected_types=sorted(counts),
         counts=counts,
     )
+
+
+def contains_direct_identifiers(value: object) -> bool:
+    """Inspect decoded text values, including whitespace escaped by JSON serialization."""
+    if isinstance(value, str):
+        return bool(redact_pii(value).detected_types)
+    if isinstance(value, dict):
+        return any(contains_direct_identifiers(item) for item in value.values())
+    if isinstance(value, (list, tuple)):
+        return any(contains_direct_identifiers(item) for item in value)
+    return False

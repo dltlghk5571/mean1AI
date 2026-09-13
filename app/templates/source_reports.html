@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}수집 결과 확인 · 성남 민원 업무지원{% endblock %}
+{% block topbar_title %}수집 결과 확인{% endblock %}
+{% block body_class %}source-report-page{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/source-reports.css') }}?v=20260909-review2">
+<script defer src="{{ url_for('static', path='/source-reports.js') }}?v=20260909-review2"></script>
+<div class="source-report" data-source-report data-csrf="{{ current_user.csrf_token }}">
+  <header class="sr-heading"><div><p class="sr-eyebrow">자료를 공개하기 전, 근거부터</p><h1>수집 결과 확인</h1><p>빠진 페이지와 자료 사이의 차이를 찾고, 원문을 함께 살펴보세요.</p></div><a class="sr-link" href="/staff/service-catalogs">안내 자료 검수 →</a></header>
+  <section class="sr-upload" aria-labelledby="sr-input-title">
+    <div><h2 id="sr-input-title">수집 보고서 열기</h2><p id="sr-file-help">수집기에서 저장한 JSON 파일 · 최대 8MB<br>앱 서버에서 검사한 뒤 화면에만 표시합니다. 파일·검수 결과는 저장되지 않습니다.</p></div>
+    <div class="sr-input-actions"><label for="sr-file" class="sr-file-label">JSON 파일 선택</label><input id="sr-file" type="file" accept=".json,application/json" data-report-file aria-describedby="sr-file-help"><button type="button" class="sr-secondary" data-report-example>합성 예시로 살펴보기</button></div>
+  </section>
+  <p class="sr-message" data-report-message role="status" aria-live="polite" tabindex="-1" hidden></p>
+  <noscript><p class="sr-message">보고서를 확인하려면 JavaScript를 켜 주세요. 수집기 JSON과 실행 안내 문서로도 검수할 수 있습니다.</p></noscript>
+  <section class="sr-empty" data-report-empty><span class="sr-empty-icon" aria-hidden="true">≋</span><h2>검수할 자료를 한눈에</h2><p>목록에만 있는 업무, 반복된 항목, 본문과 하단의 부서 차이를<br>확인할 일과 페이지 근거로 나누어 보여드립니다.</p><p class="sr-muted">처음이라면 합성 예시를 열어보세요.</p></section>
+
+  <div data-report-result hidden>
+    <section class="sr-summary" aria-labelledby="sr-summary-title">
+      <div class="sr-summary-heading"><div><p class="sr-eyebrow" data-report-origin></p><h2 id="sr-summary-title" tabindex="-1" data-report-title></h2></div><div class="sr-summary-actions"><button type="button" class="sr-secondary" data-report-export>확인할 일 내려받기</button><button type="button" class="sr-text-button" data-report-clear>보고서 닫기</button></div></div>
+      <p class="sr-boundary" data-report-boundary></p>
+      <p class="sr-warning" data-report-mismatch hidden>파일에 적힌 집계와 다시 계산한 결과가 다릅니다. 아래에는 다시 계산한 결과를 표시합니다. 원본 파일을 대조해 주세요.</p>
+      <div class="sr-stats" data-report-stats></div>
+      <details class="sr-provenance"><summary>보고서 식별 정보</summary><dl><dt>파일 SHA-256</dt><dd data-report-hash></dd><dt>표시 기준</dt><dd>이 파일 안의 페이지와 문서 근거를 대조했습니다. 원본 사이트의 현재 내용과 일치하는지는 별도로 확인해야 합니다.</dd></dl></details>
+    </section>
+    <div class="sr-layout">
+      <section class="sr-panel sr-worklist" aria-labelledby="sr-work-title">
+        <div class="sr-panel-heading"><h2 id="sr-work-title">확인할 일</h2><span data-task-count></span></div>
+        <label class="sr-search" for="sr-search">업무·부서·번호 찾기<input id="sr-search" type="search" maxlength="200" placeholder="예: 기초연금, 도로관리팀" data-task-search></label>
+        <div class="sr-filters" role="group" aria-label="확인할 일 종류" data-task-filters></div>
+        <p class="sr-muted sr-result-count" data-filter-count role="status" aria-live="polite"></p>
+        <div class="sr-tasks" data-task-list></div>
+        <div class="sr-pagination"><button type="button" class="sr-secondary" data-task-prev>이전</button><span data-task-page></span><button type="button" class="sr-secondary" data-task-next>다음</button></div>
+      </section>
+      <section class="sr-panel sr-evidence" aria-labelledby="sr-evidence-title">
+        <div class="sr-panel-heading"><h2 id="sr-evidence-title" tabindex="-1">페이지 근거</h2></div>
+        <label class="sr-page-select" for="sr-page">확인할 페이지<select id="sr-page" data-evidence-select></select></label>
+        <div id="sr-evidence-body" data-evidence-body></div>
+      </section>
+    </div>
+    <p class="sr-footnote">확인할 일은 모두 검수 대기 상태입니다. 이용 조건·정책·실제 관할을 검수한 뒤, 업무와 분류를 정리한 별도 자료를 안내 자료 검수 화면에 등록해 주세요.</p>
+  </div>
+</div>
+{% endblock %}

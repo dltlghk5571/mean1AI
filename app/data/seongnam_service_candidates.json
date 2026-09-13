@@ -1,0 +1,751 @@
+{
+  "schema_version": "1",
+  "version": "seongnam-candidates-20260906-v1",
+  "documents": [
+    {
+      "id": "SN-LIST-1",
+      "source_id": "seongnam-public-list-manual-review",
+      "source_url": "https://www.seongnam.go.kr/pm02020101?curPage=1",
+      "title": "성남시 공개 목록 조사 요약 1",
+      "text": "공개 목록 조사 요약 (2026-09-06 확인). 원본 HTML 추출물이 아니며 게시일·수정일·시행일은 미확인. 담당 조직은 해당 목록의 표시이며 현행 업무분장 검수 전이다.\n민원상담: 국민신문고로 연결되는 일반 행정 민원 상담 창구. 목록 유형/분야: 문의·상담. 표시 조직: 소통관 > 소통지원팀\n고충민원(시민고충처리위원회): 불합리한 행정 제도 등에 대한 고충을 다루는 창구. 목록 유형/분야: 행정처분 이의신청. 표시 조직: 감사관 > 조사2팀\n제안 신청: 시 행정과 서비스 개선 아이디어를 제안하는 창구. 목록 유형/분야: 의견제안. 표시 조직: 소통관 > 소통혁신팀\n규제개혁신고센터: 행정 규제의 개선을 제안하는 창구. 목록 유형/분야: 의견제안. 표시 조직: 행정기획조정실 > 법무과 > 규제개혁팀\n규제입증요청: 시 자치법규상 규제의 필요성 설명을 요청하는 창구. 목록 유형/분야: 의견제안. 표시 조직: 행정기획조정실 > 법무과 > 규제개혁팀\n주민참여예산: 지역에 필요한 예산에 관한 의견을 제시하는 창구. 목록 유형/분야: 문의·상담. 표시 조직: 행정기획조정실 > 예산과 > 경영투자팀\n유형: 문의·상담, 불편개선 요청, 의견제안, 행정처분 이의신청, 불법·위법 행위신고, 안전·생활 불편신고, 행정서비스 평가\n분야: 행정, 복지, 도시주택, 경제, 교통, 문화체육, 안전, 환경위생\n검색 도구의 캐시 응답을 바탕으로 정리함(민원 목록 약 2주, 편람 약 6일 전 수집 표시). 실시간 원본과 이용 조건 재확인 필요.",
+      "content_hash": "db30ed509c0b5c06992d4ea500abd40c1cd44da3778a27e40122b5ac0ea343c8",
+      "fetched_at": null,
+      "ingested_at": "2026-09-06T05:46:49.408163Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "이용 조건·재배포 범위 검수 대기; 공개 목록 사실관계 조사 요약",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "SN-LIST-2",
+      "source_id": "seongnam-public-list-manual-review",
+      "source_url": "https://www.seongnam.go.kr/pm02020101?curPage=2",
+      "title": "성남시 공개 목록 조사 요약 2",
+      "text": "공개 목록 조사 요약 (2026-09-06 확인). 원본 HTML 추출물이 아니며 게시일·수정일·시행일은 미확인. 담당 조직은 해당 목록의 표시이며 현행 업무분장 검수 전이다.\n공익신고: 건강·안전·환경 등 공익을 침해하는 행위의 신고 창구. 목록 유형/분야: 불법·위법 행위신고. 표시 조직: 감사관 > 청렴정책팀\n공직부조리 신고(헬프라인): 공직 부패와 갑질 등에 관한 외부 익명 신고 창구. 목록 유형/분야: 불법·위법 행위신고. 표시 조직: 감사관 > 조사1팀\n지방세 탈루 제보: 취득세 등 지방세 탈루에 관한 제보 창구. 목록 유형/분야: 불법·위법 행위신고. 표시 조직: 재정경제국 > 세정과 > 세입관리팀\n복지·보조금 부정수급 신고: 복지 제도와 보조금의 부정수급을 신고하는 창구. 목록 유형/분야: 불법·위법 행위신고. 표시 조직: 감사관 > 청렴정책팀\n예산낭비신고: 예산·기금 지출의 부적정 사용에 대한 신고 창구. 목록 유형/분야: 불법·위법 행위신고. 표시 조직: 행정기획조정실 > 예산과 > 재정성과팀\n검색 도구의 캐시 응답을 바탕으로 정리함(민원 목록 약 2주, 편람 약 6일 전 수집 표시). 실시간 원본과 이용 조건 재확인 필요.",
+      "content_hash": "30a91cd47c412c89c66a6dd2482cf74600ad67d2e016d00ca9fa4be81f34a25d",
+      "fetched_at": null,
+      "ingested_at": "2026-09-06T05:46:49.408163Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "이용 조건·재배포 범위 검수 대기; 공개 목록 사실관계 조사 요약",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "SN-LIST-3",
+      "source_id": "seongnam-public-list-manual-review",
+      "source_url": "https://www.seongnam.go.kr/bbs020405",
+      "title": "성남시 공개 목록 조사 요약 3",
+      "text": "공개 목록 조사 요약 (2026-09-06 확인). 원본 HTML 추출물이 아니며 게시일·수정일·시행일은 미확인. 담당 조직은 해당 목록의 표시이며 현행 업무분장 검수 전이다.\n분당구 소음저감 방음시설(방음커튼) 대여신청: 분당구의 소음 저감 시설 대여 신청 항목. 신청 조건과 구비서류는 상세 자료 확인이 필요함. 목록 유형/분야: 보건·위생·환경. 표시 조직: 분당구\n편람 분야: 사회복지, 교육·청소년, 보건·위생·환경, 일자리·기업지원, 문화·체육, 경제·산업, 건설·건축·주택, 도로·교통·차량, 상·하수도·하천, 주민등록·가족관계·여권, 토지·지적·세무, 공원·녹지, 기타\n검색 도구의 캐시 응답을 바탕으로 정리함(민원 목록 약 2주, 편람 약 6일 전 수집 표시). 실시간 원본과 이용 조건 재확인 필요.",
+      "content_hash": "8ef0e405be85cb0b065abdaad74ba21195ca90df28c2c7dfe2ab548229ad5608",
+      "fetched_at": null,
+      "ingested_at": "2026-09-06T05:46:49.408163Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "이용 조건·재배포 범위 검수 대기; 공개 목록 사실관계 조사 요약",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    }
+  ],
+  "taxonomy": [
+    {
+      "id": "SN-TYPE-01",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "문의·상담",
+      "parent_id": "SN-TYPE"
+    },
+    {
+      "id": "SN-TYPE-02",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "불편개선 요청",
+      "parent_id": "SN-TYPE"
+    },
+    {
+      "id": "SN-TYPE-03",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "의견제안",
+      "parent_id": "SN-TYPE"
+    },
+    {
+      "id": "SN-TYPE-04",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "행정처분 이의신청",
+      "parent_id": "SN-TYPE"
+    },
+    {
+      "id": "SN-TYPE-05",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "불법·위법 행위신고",
+      "parent_id": "SN-TYPE"
+    },
+    {
+      "id": "SN-TYPE-06",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "안전·생활 불편신고",
+      "parent_id": "SN-TYPE"
+    },
+    {
+      "id": "SN-TYPE-07",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "행정서비스 평가",
+      "parent_id": "SN-TYPE"
+    },
+    {
+      "id": "SN-FIELD-01",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "행정",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-FIELD-02",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "복지",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-FIELD-03",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "도시주택",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-FIELD-04",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "경제",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-FIELD-05",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "교통",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-FIELD-06",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "문화체육",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-FIELD-07",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "안전",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-FIELD-08",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "환경위생",
+      "parent_id": "SN-FIELD"
+    },
+    {
+      "id": "SN-HB-01",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "사회복지",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-02",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "교육·청소년",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-03",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "보건·위생·환경",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-04",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "일자리·기업지원",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-05",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "문화·체육",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-06",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "경제·산업",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-07",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "건설·건축·주택",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-08",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "도로·교통·차량",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-09",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "상·하수도·하천",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-10",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "주민등록·가족관계·여권",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-11",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "토지·지적·세무",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-12",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "공원·녹지",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-HB-13",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "기타",
+      "parent_id": "SN-HB"
+    },
+    {
+      "id": "SN-TYPE",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "포털 서비스 유형",
+      "parent_id": null
+    },
+    {
+      "id": "SN-FIELD",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "label": "포털 서비스 분야",
+      "parent_id": null
+    },
+    {
+      "id": "SN-HB",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "label": "민원편람 분야",
+      "parent_id": null
+    }
+  ],
+  "organizations": [
+    {
+      "id": "SN-ORG-1d7866b2d0fe",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "소통관",
+      "parent_id": null,
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-dac3ef3407b2",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "소통지원팀",
+      "parent_id": "SN-ORG-1d7866b2d0fe",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-34693591390e",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "감사관",
+      "parent_id": null,
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-5bcbdebf6558",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "조사2팀",
+      "parent_id": "SN-ORG-34693591390e",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-7516348994e1",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "소통혁신팀",
+      "parent_id": "SN-ORG-1d7866b2d0fe",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-7b0150799d30",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "행정기획조정실",
+      "parent_id": null,
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-78876bc39c99",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "법무과",
+      "parent_id": "SN-ORG-7b0150799d30",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-d2df3164f5ac",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "규제개혁팀",
+      "parent_id": "SN-ORG-78876bc39c99",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-103c2f679f48",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "예산과",
+      "parent_id": "SN-ORG-7b0150799d30",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-06a44d718037",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "name": "경영투자팀",
+      "parent_id": "SN-ORG-103c2f679f48",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-27aeb876c550",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "name": "청렴정책팀",
+      "parent_id": "SN-ORG-34693591390e",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-4d68fb4d21d6",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "name": "조사1팀",
+      "parent_id": "SN-ORG-34693591390e",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-55aa38e7b17a",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "name": "재정경제국",
+      "parent_id": null,
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-d896a5f26291",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "name": "세정과",
+      "parent_id": "SN-ORG-55aa38e7b17a",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-9d538f887ac6",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "name": "세입관리팀",
+      "parent_id": "SN-ORG-d896a5f26291",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-4367c7bff8ae",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "name": "재정성과팀",
+      "parent_id": "SN-ORG-103c2f679f48",
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    },
+    {
+      "id": "SN-ORG-bbab0ea82751",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "name": "분당구",
+      "parent_id": null,
+      "jurisdiction": "공개 목록 표시 · 실제 관할 검수 대기"
+    }
+  ],
+  "work_assignments": [
+    {
+      "id": "SN-CONSULT-WORK",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "organization_id": "SN-ORG-dac3ef3407b2",
+      "description": "민원상담 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-GRIEVANCE-WORK",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "organization_id": "SN-ORG-5bcbdebf6558",
+      "description": "고충민원(시민고충처리위원회) — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-PROPOSAL-WORK",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "organization_id": "SN-ORG-7516348994e1",
+      "description": "제안 신청 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-REGULATION-WORK",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "organization_id": "SN-ORG-d2df3164f5ac",
+      "description": "규제개혁신고센터 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-PROOF-WORK",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "organization_id": "SN-ORG-d2df3164f5ac",
+      "description": "규제입증요청 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-BUDGET-WORK",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "organization_id": "SN-ORG-06a44d718037",
+      "description": "주민참여예산 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-PUBLIC-REPORT-WORK",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "organization_id": "SN-ORG-27aeb876c550",
+      "description": "공익신고 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-OFFICER-REPORT-WORK",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "organization_id": "SN-ORG-4d68fb4d21d6",
+      "description": "공직부조리 신고(헬프라인) — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-TAX-REPORT-WORK",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "organization_id": "SN-ORG-9d538f887ac6",
+      "description": "지방세 탈루 제보 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-WELFARE-REPORT-WORK",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "organization_id": "SN-ORG-27aeb876c550",
+      "description": "복지·보조금 부정수급 신고 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-BUDGET-REPORT-WORK",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "organization_id": "SN-ORG-4367c7bff8ae",
+      "description": "예산낭비신고 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    },
+    {
+      "id": "SN-NOISE-RENTAL-WORK",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "organization_id": "SN-ORG-bbab0ea82751",
+      "description": "분당구 소음저감 방음시설(방음커튼) 대여신청 — 목록상 담당 표기; 실제 업무분장 검수 전",
+      "jurisdiction": "미확인"
+    }
+  ],
+  "services": [
+    {
+      "id": "SN-CONSULT",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "title": "민원상담",
+      "summary": "국민신문고로 연결되는 일반 행정 민원 상담 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-01"
+      ],
+      "work_assignment_ids": [
+        "SN-CONSULT-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-GRIEVANCE",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "title": "고충민원(시민고충처리위원회)",
+      "summary": "불합리한 행정 제도 등에 대한 고충을 다루는 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-04"
+      ],
+      "work_assignment_ids": [
+        "SN-GRIEVANCE-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-PROPOSAL",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "title": "제안 신청",
+      "summary": "시 행정과 서비스 개선 아이디어를 제안하는 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-03"
+      ],
+      "work_assignment_ids": [
+        "SN-PROPOSAL-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-REGULATION",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "title": "규제개혁신고센터",
+      "summary": "행정 규제의 개선을 제안하는 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-03"
+      ],
+      "work_assignment_ids": [
+        "SN-REGULATION-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-PROOF",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "title": "규제입증요청",
+      "summary": "시 자치법규상 규제의 필요성 설명을 요청하는 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-03"
+      ],
+      "work_assignment_ids": [
+        "SN-PROOF-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-BUDGET",
+      "source_document_id": "SN-LIST-1",
+      "source_code": null,
+      "title": "주민참여예산",
+      "summary": "지역에 필요한 예산에 관한 의견을 제시하는 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-01"
+      ],
+      "work_assignment_ids": [
+        "SN-BUDGET-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-PUBLIC-REPORT",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "title": "공익신고",
+      "summary": "건강·안전·환경 등 공익을 침해하는 행위의 신고 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-05"
+      ],
+      "work_assignment_ids": [
+        "SN-PUBLIC-REPORT-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-OFFICER-REPORT",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "title": "공직부조리 신고(헬프라인)",
+      "summary": "공직 부패와 갑질 등에 관한 외부 익명 신고 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-05"
+      ],
+      "work_assignment_ids": [
+        "SN-OFFICER-REPORT-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-TAX-REPORT",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "title": "지방세 탈루 제보",
+      "summary": "취득세 등 지방세 탈루에 관한 제보 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-05"
+      ],
+      "work_assignment_ids": [
+        "SN-TAX-REPORT-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-WELFARE-REPORT",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "title": "복지·보조금 부정수급 신고",
+      "summary": "복지 제도와 보조금의 부정수급을 신고하는 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-05"
+      ],
+      "work_assignment_ids": [
+        "SN-WELFARE-REPORT-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-BUDGET-REPORT",
+      "source_document_id": "SN-LIST-2",
+      "source_code": null,
+      "title": "예산낭비신고",
+      "summary": "예산·기금 지출의 부적정 사용에 대한 신고 창구.",
+      "taxonomy_ids": [
+        "SN-TYPE-05"
+      ],
+      "work_assignment_ids": [
+        "SN-BUDGET-REPORT-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "SN-NOISE-RENTAL",
+      "source_document_id": "SN-LIST-3",
+      "source_code": null,
+      "title": "분당구 소음저감 방음시설(방음커튼) 대여신청",
+      "summary": "분당구의 소음 저감 시설 대여 신청 항목. 신청 조건과 구비서류는 상세 자료 확인이 필요함.",
+      "taxonomy_ids": [
+        "SN-HB-03"
+      ],
+      "work_assignment_ids": [
+        "SN-NOISE-RENTAL-WORK"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    }
+  ]
+}

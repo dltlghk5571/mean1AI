@@ -1,0 +1,579 @@
+(() => {
+  "use strict";
+  const root = document.querySelector("[data-chat]");
+  if (!root) return;
+  const q = (name) => root.querySelector(`[data-chat-${name}]`);
+  const csrf = root.querySelector('[name="csrf_token"]').value;
+  const input = root.querySelector("#chat-message");
+  const composer = q("composer");
+  const history = q("history");
+  const editForm = q("edit-form");
+  let state = null;
+  let busy = false;
+  let pending = null;
+  let sessionExpired = false;
+  let displayedMessages = "";
+  let photos = [];
+  let pendingPhotos = null;
+  let leaveDestination = null;
+  let leaveTrigger = null;
+  let navigationConfirmed = false;
+  let watchingUnload = false;
+
+  function unsavedReasons() {
+    const reasons = [];
+    if (input.value.trim()) reasons.push("아직 보내지 않은 글은 사라져요.");
+    if (!editForm.hidden && state && ["title", "content", "location_text"].some(
+      (key) => editForm.elements[key].value !== state.draft[key]
+    )) reasons.push("저장하지 않은 수정 내용은 사라져요.");
+    if (photos.length) reasons.push(`선택한 사진 ${photos.length}장은 다시 골라야 해요.`);
+    if (pending) reasons.push("전송 결과를 아직 확인하지 못했어요. 다시 오면 최신 대화를 먼저 확인해 주세요.");
+    return reasons;
+  }
+
+  function beforeUnload(event) {
+    if (navigationConfirmed || !unsavedReasons().length) return;
+    event.preventDefault();
+    event.returnValue = "";
+  }
+
+  function protectUnsavedInput() {
+    const needed = unsavedReasons().length > 0;
+    if (needed && !watchingUnload) window.addEventListener("beforeunload", beforeUnload);
+    if (!needed && watchingUnload) window.removeEventListener("beforeunload", beforeUnload);
+    watchingUnload = needed;
+  }
+
+  function element(tag, text, className) {
+    const node = document.createElement(tag);
+    if (text) node.textContent = text;
+    if (className) node.className = className;
+    return node;
+  }
+
+  async function api(path, data = {}, timeoutMs = 25000) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(path, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-Citizen-CSRF": csrf },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        const error = new Error(result.message || "요청을 완료하지 못했어요.");
+        error.status = response.status;
+        error.fields = result.errors;
+        error.urgent = result.urgent;
+        throw error;
+      }
+      return result;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function controls() {
+    const blocked = busy || !state || !!pending || sessionExpired;
+    const canType = state && !state.extraction_preview && (["welcome", "intent", "description", "location", "information"].includes(state.stage)
+      || (state.stage === "questions" && !state.current_question?.choices_only));
+    input.disabled = blocked || !canType;
+    composer.querySelector("button").disabled = blocked || !canType || !input.value.trim();
+    q("reset").disabled = blocked;
+    q("confirm").disabled = blocked || !q("consent").checked;
+    q("consent").disabled = blocked;
+    q("edit").disabled = blocked;
+    q("extraction-accept").disabled = blocked || !!state?.extraction_preview?.stale;
+    q("extraction-dismiss").disabled = blocked;
+    q("extraction-sample").disabled = blocked || !canType || !!input.value.trim();
+    q("choices").querySelectorAll("button").forEach((button) => { button.disabled = blocked; });
+    const unsentText = (canType && !!input.value.trim()) || !editForm.hidden;
+    q("topic-hint").hidden = !unsentText;
+    q("topic-options").querySelectorAll("button").forEach((button) => { button.disabled = blocked || unsentText; });
+    q("answer-list").querySelectorAll("button").forEach((button) => { button.disabled = blocked || !editForm.hidden; });
+    editForm.querySelectorAll("input, textarea, button").forEach((field) => { field.disabled = blocked; });
+    q("retry").disabled = busy;
+    q("reload").disabled = busy;
+    q("photo-input").disabled = blocked || state?.stage !== "review" || photos.length >= 3;
+    q("photo-list").querySelectorAll("button").forEach((button) => { button.disabled = blocked; });
+    q("busy").hidden = !busy;
+    history.setAttribute("aria-busy", String(busy));
+    q("latest").disabled = !state || !history.lastElementChild;
+    protectUnsavedInput();
+  }
+
+  function photoFeedback(text, error = false) {
+    q("photo-feedback").textContent = text;
+    q("photo-feedback").hidden = false;
+    q("photo-feedback").classList.toggle("is-error", error);
+  }
+
+  function renderPhotos() {
+    q("photo-count").textContent = `${photos.length} / 3장`;
+    q("photo-list").replaceChildren();
+    photos.forEach((photo, index) => {
+      const figure = element("figure");
+      const img = element("img");
+      img.src = photo.url;
+      img.alt = `선택한 사진 ${index + 1}`;
+      const caption = element("figcaption", `사진 ${index + 1}`);
+      const remove = element("button", "삭제");
+      remove.type = "button";
+      remove.setAttribute("aria-label", `사진 ${index + 1} 삭제`);
+      remove.addEventListener("click", () => {
+        if (busy || pending || sessionExpired) return;
+        URL.revokeObjectURL(photo.url);
+        photos = photos.filter((item) => item !== photo);
+        q("consent").checked = false;
+        renderPhotos();
+        photoFeedback(`사진을 삭제했어요. 현재 ${photos.length}장이 선택되어 있어요.`);
+        q("photo-input").focus();
+      });
+      caption.append(remove);
+      figure.append(img, caption);
+      q("photo-list").append(figure);
+    });
+    controls();
+  }
+
+  function clearPhotos() {
+    photos.forEach((photo) => URL.revokeObjectURL(photo.url));
+    photos = [];
+    pendingPhotos = null;
+    q("photo-input").value = "";
+    q("photo-feedback").hidden = true;
+    renderPhotos();
+  }
+
+  function encodePhoto(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ media_type: file.type, data: String(reader.result).split(",", 2)[1] });
+      reader.onerror = () => reject(Object.assign(new Error("사진을 읽지 못했어요. 삭제한 뒤 다시 선택해 주세요."), {status:422}));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function choice(label, action, href, fields = {}) {
+    const button = element(href ? "a" : "button", label);
+    if (href) button.href = href;
+    else {
+      button.type = "button";
+      button.addEventListener("click", () => send(action, fields));
+    }
+    q("choices").append(button);
+  }
+
+  function renderQuestions() {
+    const intake = state.intake;
+    const question = state.current_question;
+    q("topics").hidden = !["welcome", "intent", "description", "location", "review", "information"].includes(state.stage);
+    q("topic-options").replaceChildren();
+    ["complaint", "information"].forEach((purpose) => {
+      const group = element("div", null, "chat-topic-group");
+      group.append(element("h3", purpose === "complaint" ? "생활 불편" : "복지 알아보기"));
+      (state.topic_options || []).filter((topic) => topic.purpose === purpose).forEach((topic) => {
+        const button = element("button", topic.title);
+        button.type = "button";
+        button.setAttribute("aria-pressed", String(intake?.template.id === topic.id));
+        button.addEventListener("click", () => send("choose_topic", { template_id: topic.id }));
+        group.append(button);
+      });
+      q("topic-options").append(group);
+    });
+    q("question-panel").hidden = !question;
+    if (question) {
+      const index = intake.template.questions.findIndex((item) => item.field_id === question.field_id) + 1;
+      q("question-progress").textContent = `${intake.purpose === "information" ? "정보 안내 · " : ""}${intake.template.title} · 추가 질문 ${index} / ${intake.template.questions.length}`;
+      q("question-title").textContent = question.question;
+      question.choices.forEach((value) => choice(value, "answer_question", null, { field_id: question.field_id, message: value }));
+      choice("잘 모르겠어요 · 건너뛰기", "skip_question", null, { field_id: question.field_id });
+      choice("처음 내용에 이미 적었어요", "already_described", null, { field_id: question.field_id });
+      choice("추가 질문은 여기까지 할게요", "finish_questions");
+      input.setAttribute("aria-labelledby", "chat-question-title");
+    } else input.removeAttribute("aria-labelledby");
+    q("answers").hidden = !intake || !["review", "information"].includes(state.stage)
+      || (intake.purpose === "information" && intake.template.purpose === "complaint");
+    q("answer-list").replaceChildren();
+    if (intake) intake.template.questions.forEach((item) => {
+      const answer = intake.answers[item.field_id];
+      const row = element("div", null, "chat-answer-row");
+      const text = element("div");
+      const statuses = { skipped: "건너뜀", in_description: "처음 내용에 설명함", not_asked: "위험 안내를 우선해 생략함" };
+      text.append(element("strong", item.label));
+      text.append(element("p", answer?.status === "answered" ? answer.value
+        : answer?.status === "in_description" && answer.value ? `처음 내용에서 확인: ${answer.value}`
+        : statuses[answer?.status] || "미입력"));
+      const button = element("button", "수정", "chat-text-button");
+      button.type = "button";
+      button.setAttribute("aria-label", `${item.label} 답변 수정`);
+      button.addEventListener("click", () => send("revise_question", { field_id: item.field_id }));
+      row.append(text, button);
+      q("answer-list").append(row);
+    });
+  }
+
+  function renderExtraction() {
+    const preview = state.extraction_preview;
+    q("extraction").hidden = !preview;
+    q("extraction-example").hidden = state.extraction_support?.mode !== "demo" || state.stage !== "welcome";
+    q("extraction-rows").replaceChildren();
+    if (preview) {
+      q("extraction-label").textContent = preview.synthetic ? "합성 예시 · 확인 전" : "글에서 찾은 내용 · 확인 전";
+      q("extraction-help").textContent = preview.stale
+        ? "정리 기준이 바뀌었어요. 적은 내용은 남아 있으니 직접 선택해서 계속해 주세요."
+        : "원하는 도움과 장소가 맞나요? 잘못 이해했다면 직접 선택해서 이어갈 수 있어요.";
+      preview.rows.forEach((row) => {
+        const group = element("div", null, "chat-extraction-row");
+        const detail = element("dd");
+        detail.append(element("p", row.value));
+        const evidence = element("details");
+        evidence.append(element("summary", "내가 쓴 표현 보기"), element("blockquote", row.quote));
+        detail.append(evidence);
+        group.append(element("dt", row.label), detail);
+        q("extraction-rows").append(group);
+      });
+    }
+    const notice = state.extraction_notice === "failed"
+      ? "자동 정리를 완료하지 못했어요. 적은 내용은 남아 있으니 직접 선택해서 계속해 주세요."
+      : state.extraction_notice === "abstained"
+        ? state.extraction_support?.mode === "demo"
+          ? "이 시연은 예시 문장만 정리해요. 지금 글은 아래에서 직접 선택해 주세요."
+          : "분명하게 정리하기 어려워요. 아래에서 원하는 도움을 직접 선택해 주세요."
+        : "";
+    q("extraction-feedback").textContent = notice;
+    q("extraction-feedback").hidden = !notice;
+    q("choices").hidden = !!preview;
+    if (preview) q("topics").hidden = true;
+  }
+
+  function render(next, announce = false) {
+    const active = document.activeElement;
+    const moveFocus = announce && (active === document.body || (root.contains(active) && active.disabled));
+    const changed = !state || next.revision !== state.revision;
+    state = next;
+    if (["welcome", "submitted"].includes(state.stage)) clearPhotos();
+    const messageKey = JSON.stringify(state.messages);
+    if (displayedMessages !== messageKey) {
+      const wasAtBottom = history.scrollHeight - history.scrollTop - history.clientHeight < 70;
+      history.replaceChildren();
+      state.messages.forEach((message) => {
+        const article = element("div", null, `chat-message chat-message-${message.role}`);
+        article.tabIndex = -1;
+        article.append(element("span", message.role === "user" ? "나" : "생활민원 도우미", "chat-message-label"));
+        article.append(element("p", message.text));
+        history.append(article);
+      });
+      displayedMessages = messageKey;
+      if (wasAtBottom || moveFocus) history.scrollTop = history.scrollHeight;
+    }
+    q("choices").replaceChildren();
+    if (["welcome", "intent", "information"].includes(state.stage)) {
+      choice(state.stage === "welcome" ? "생활 불편 알리기" : "민원으로 접수할게요", "complaint");
+      if (state.stage !== "information") choice("복지·생활정보 알아보기", "information");
+      choice("내 민원 확인", null, "/minwon/lookup");
+    } else if (state.stage === "location") {
+      choice("정확한 장소를 모르겠어요", "skip_location");
+    } else if (state.stage === "submitted") {
+      choice("접수 결과 확인하기", null, state.redirect);
+    }
+    renderQuestions();
+    renderExtraction();
+    q("sources").replaceChildren();
+    q("sources").hidden = !state.sources.length;
+    if (state.sources.length) {
+      q("sources").append(element("p", "공식 사이트에서 확인해 주세요 · 새 탭으로 열립니다"));
+      state.sources.forEach((source) => {
+        const link = element("a", `${source.title} ↗`);
+        link.href = source.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        q("sources").append(link);
+      });
+    }
+    q("urgent").hidden = !state.urgent;
+    const cards = state.service_cards || [];
+    q("service-cards").replaceChildren();
+    q("service-cards").hidden = !cards.length;
+    cards.forEach((card) => {
+      const article = element("article");
+      article.append(element("span", card.synthetic ? "합성 자료 · 시연용" : "검수된 공식 자료", "chat-service-label"));
+      article.append(element("h3", card.title));
+      article.append(element("p", card.summary));
+      article.append(element("small", `출처: ${card.source_title} · 재검수 예정 ${card.review_due_at}`));
+      if (card.source_url) {
+        const link = element("a", "공식 원문 확인 ↗");
+        link.href = card.source_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        article.append(link);
+      }
+      if (card.requires_human_review) article.append(element("small", "개별 자격·처분·적용 여부는 담당자 확인이 필요해요."));
+      q("service-cards").append(article);
+    });
+    q("review").hidden = state.stage !== "review";
+    root.querySelector("[data-draft-title]").textContent = state.draft.title;
+    root.querySelector("[data-draft-content]").textContent = state.submission_content || state.draft.content;
+    root.querySelector("[data-draft-location]").textContent = state.draft.location_text || "장소 미입력 · 담당자 확인이 필요해요";
+    q("collected").hidden = !state.draft.content || state.intake?.purpose === "information" || ["information", "submitted"].includes(state.stage);
+    q("summary-title").textContent = state.draft.title;
+    q("summary-location").textContent = state.draft.location_text || (state.location_checked ? "장소를 건너뛰었어요" : "장소를 여쭤볼게요");
+    root.querySelectorAll("[data-chat-step]").forEach((step) => {
+      const current = state.stage === "submitted" ? "3" : state.stage === "review" ? "2" : "1";
+      if (step.dataset.chatStep === current) step.setAttribute("aria-current", "step");
+      else step.removeAttribute("aria-current");
+    });
+    input.maxLength = state.stage === "questions" ? 500 : state.stage === "location" ? 300 : 4000;
+    input.placeholder = {
+      location: "예: 가상 데모공원 정문 앞 산책로",
+      review: "아래 접수 내용을 확인해 주세요.",
+      submitted: "접수 결과에서 접수번호와 조회 코드를 확인해 주세요.",
+      information: "다른 궁금한 점이나 불편한 일을 적어 주세요.",
+      questions: "알고 계신 만큼 답해 주세요.",
+    }[state.stage] || "예: 데모공원 산책로 가로등이 어제부터 꺼져 있어요";
+    if (state.stage === "location" && state.intake?.purpose === "information") input.placeholder = "안내받고 싶은 구·동을 알려 주세요.";
+    composer.querySelector(".chat-photo-note").textContent = state.intake?.purpose === "information"
+      ? "정보 안내만으로는 민원이 접수되지 않아요"
+      : "사진은 마지막 확인 단계에서 추가해요";
+    composer.hidden = !!state.extraction_preview || ["review", "submitted"].includes(state.stage) || !!state.current_question?.choices_only;
+    root.querySelector("#chat-input-help").hidden = composer.hidden;
+    if (changed) {
+      q("consent").checked = false;
+      toggleEdit(false);
+    }
+    updateCount();
+    controls();
+    const lastReply = state.messages.filter((message) => message.role === "assistant").at(-1);
+    if (lastReply) q("status").textContent = `생활민원 도우미: ${lastReply.text}`;
+    if (moveFocus) {
+      if (state.extraction_preview) {
+        root.querySelector("#chat-extraction-title").focus({ preventScroll: true });
+        q("extraction").scrollIntoView({ block: "nearest" });
+      } else if (state.stage === "review") {
+        root.querySelector("#chat-review-title").focus({ preventScroll: true });
+        q("review").scrollIntoView({ block: "nearest" });
+      } else if (state.stage === "questions") {
+        q("question-title").focus({ preventScroll: true });
+        q("question-panel").scrollIntoView({ block: "nearest" });
+      } else if (!input.disabled) input.focus({ preventScroll: true });
+    }
+  }
+
+  function showError(error) {
+    if (error.urgent) q("urgent").hidden = false;
+    const fieldMessages = Object.values(error.fields || {});
+    q("error-text").textContent = error.message && error.status
+      ? `${error.message} ${fieldMessages.join(" ")}`.trim()
+      : "연결을 확인하지 못했어요. 입력한 내용은 남아 있어요. 다시 시도해 주세요.";
+    q("error").hidden = false;
+    sessionExpired = error.status === 403;
+    q("session-link").hidden = !sessionExpired;
+    if ([400, 409, 413, 415, 422, 403].includes(error.status)) { pending = null; pendingPhotos = null; }
+    q("retry").hidden = !pending || sessionExpired;
+    q("reload").hidden = sessionExpired;
+    if (!editForm.hidden) {
+      Object.entries(error.fields || {}).forEach(([name, message]) => {
+        const field = editForm.elements.namedItem(name);
+        const note = [...editForm.querySelectorAll('[data-chat-field-error]')].find((item) => item.dataset.chatFieldError === name);
+        if (field && note) {
+          field.setAttribute("aria-invalid", "true");
+          note.textContent = message;
+        }
+      });
+    }
+    q("error").focus();
+  }
+
+  async function load(announce = false) {
+    if (busy) return;
+    busy = true;
+    q("error").hidden = true;
+    q("busy").textContent = "대화를 불러오는 중이에요…";
+    controls();
+    try {
+      const next = await api("/minwon/chat/open");
+      pending = null;
+      pendingPhotos = null;
+      sessionExpired = false;
+      busy = false;
+      render(next, announce);
+    } catch (error) {
+      showError(error);
+    } finally {
+      busy = false;
+      controls();
+    }
+  }
+
+  async function deliver() {
+    if (busy || !pending) return;
+    busy = true;
+    const sent = pending;
+    q("error").hidden = true;
+    editForm.querySelectorAll('[aria-invalid]').forEach((field) => field.removeAttribute('aria-invalid'));
+    editForm.querySelectorAll('[data-chat-field-error]').forEach((note) => { note.textContent = ''; });
+    q("busy").textContent = sent.action === "confirm" ? "데모 민원을 접수하고 있어요…" : "이야기를 정리하고 있어요…";
+    controls();
+    try {
+      let next;
+      if (sent.action === "confirm" && photos.length) {
+        if (!pendingPhotos) pendingPhotos = await Promise.all(photos.map((photo) => encodePhoto(photo.file)));
+        next = await api("/minwon/chat/confirm-with-photos", { turn: sent, photos: pendingPhotos }, 60000);
+      } else {
+        next = await api("/minwon/chat/turn", sent);
+      }
+      pending = null;
+      pendingPhotos = null;
+      busy = false;
+      if (sent.action === "choose_topic") q("topics").open = false;
+      if (["say", "reset", "answer_question", "skip_question", "already_described", "finish_questions"].includes(sent.action)) input.value = "";
+      if (sent.action === "revise_question") input.value = next.intake?.answers[sent.field_id]?.value || "";
+      render(next, true);
+      if (sent.action === "confirm" && next.redirect) {
+        navigationConfirmed = true;
+        window.location.assign(next.redirect);
+      }
+    } catch (error) {
+      showError(error);
+    } finally {
+      busy = false;
+      controls();
+    }
+  }
+
+  function send(action, fields = {}) {
+    if (busy || pending || !state || sessionExpired) return;
+    pending = { revision: String(state.revision), request_id: crypto.randomUUID(), action, ...fields };
+    deliver();
+  }
+
+  function updateCount() {
+    q("count").textContent = `${input.value.length.toLocaleString("ko-KR")} / ${input.maxLength.toLocaleString("ko-KR")}`;
+    controls();
+  }
+
+  function toggleEdit(editing) {
+    editForm.hidden = !editing;
+    q("review-details").hidden = editing;
+    q("confirm-panel").hidden = editing;
+    q("photos-panel").hidden = editing;
+    q("edit").hidden = editing;
+    q("consent").checked = false;
+    if (editing && state) {
+      ["title", "content", "location_text"].forEach((key) => { editForm.elements[key].value = state.draft[key]; });
+      editForm.elements.title.focus();
+    }
+    controls();
+  }
+
+  composer.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (input.disabled || !input.value.trim()) return;
+    if (state.current_question) send("answer_question", { field_id: state.current_question.field_id, message: input.value });
+    else send("say", { message: input.value });
+  });
+  q("extraction-sample").addEventListener("click", () => {
+    if (input.disabled || input.value.trim() || !state.extraction_support?.example) return;
+    input.value = state.extraction_support.example;
+    updateCount();
+    input.focus();
+  });
+  q("extraction-accept").addEventListener("click", () => {
+    if (state.extraction_preview && !state.extraction_preview.stale) {
+      send("accept_extraction", { extraction_id: state.extraction_preview.id });
+    }
+  });
+  q("extraction-dismiss").addEventListener("click", () => {
+    if (state.extraction_preview) send("dismiss_extraction", { extraction_id: state.extraction_preview.id });
+  });
+  input.addEventListener("input", updateCount);
+  editForm.addEventListener("input", protectUnsavedInput);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && !event.isComposing && event.keyCode !== 229) {
+      event.preventDefault();
+      composer.requestSubmit();
+    }
+  });
+  q("consent").addEventListener("change", controls);
+  q("photo-input").addEventListener("change", (event) => {
+    if (busy || pending || sessionExpired) return;
+    const selected = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!selected.length) return;
+    if (photos.length + selected.length > 3) { photoFeedback("사진은 최대 3장까지 선택할 수 있어요.", true); return; }
+    if (selected.some((file) => !["image/jpeg", "image/png"].includes(file.type) || file.size > 5000000 || file.size === 0)) {
+      photoFeedback("한 장당 5MB 이하의 JPG·PNG 사진을 골라 주세요.", true); return;
+    }
+    photos.push(...selected.map((file) => ({ file, url: URL.createObjectURL(file) })));
+    q("consent").checked = false;
+    renderPhotos();
+    photoFeedback(`${photos.length}장을 선택했어요. 접수 전까지 사진을 바꿀 수 있어요.`);
+    // The full picker becomes disabled; keep keyboard focus in the photo controls.
+    if (q("photo-input").disabled) q("photo-list").querySelector("button")?.focus();
+  });
+  q("confirm").addEventListener("click", () => {
+    if (q("consent").checked) send("confirm", { consent: "yes" });
+  });
+  q("edit").addEventListener("click", () => toggleEdit(true));
+  q("edit-cancel").addEventListener("click", () => {
+    toggleEdit(false);
+    q("edit").focus();
+  });
+  editForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (editForm.reportValidity()) send("edit", Object.fromEntries(new FormData(editForm)));
+  });
+  q("retry").addEventListener("click", deliver);
+  q("latest").addEventListener("click", () => {
+    const latest = history.lastElementChild;
+    if (!latest) return;
+    latest.focus({ preventScroll: true });
+    latest.scrollIntoView({ block: "nearest" });
+  });
+  q("reload").addEventListener("click", () => load(true));
+  q("reset").addEventListener("click", () => q("reset-dialog").showModal());
+  q("reset-cancel").addEventListener("click", () => q("reset-dialog").close());
+  q("reset-confirm").addEventListener("click", () => {
+    q("reset-dialog").close();
+    send("reset");
+  });
+  q("reset-dialog").addEventListener("close", () => {
+    if (!busy) q("reset").focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest("a[href]");
+    if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+    const destination = new URL(link.href, window.location.href);
+    if (!["http:", "https:"].includes(destination.protocol)) return;
+    if (link.getAttribute("href").startsWith("#") || (
+      destination.origin === window.location.origin && destination.pathname === window.location.pathname
+      && destination.search === window.location.search && destination.hash
+    )) return;
+    const reasons = unsavedReasons();
+    if (!reasons.length) return;
+    event.preventDefault();
+    leaveDestination = destination.href;
+    leaveTrigger = link;
+    q("leave-reasons").replaceChildren(...reasons.map((reason) => element("li", reason)));
+    q("leave-dialog").showModal();
+  });
+  q("leave-cancel").addEventListener("click", () => q("leave-dialog").close());
+  q("leave-confirm").addEventListener("click", () => {
+    if (!leaveDestination) return;
+    const destination = leaveDestination;
+    navigationConfirmed = true;
+    q("leave-dialog").close();
+    window.location.assign(destination);
+  });
+  q("leave-dialog").addEventListener("close", () => {
+    if (!navigationConfirmed) leaveTrigger?.focus();
+    leaveDestination = null;
+    leaveTrigger = null;
+  });
+  window.addEventListener("pageshow", () => { navigationConfirmed = false; });
+  load();
+})();
