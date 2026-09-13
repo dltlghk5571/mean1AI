@@ -19,6 +19,7 @@ from playwright.sync_api import Browser, Page, Route, expect, sync_playwright
 
 from app.config import Settings
 from app.main import create_app
+from app.services.citizen import CitizenRateLimiter
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -101,8 +102,13 @@ def block_app_external_requests(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def isolated_page(
-    browser: Browser, report_app: ReportApp, request: pytest.FixtureRequest
+    browser: Browser,
+    report_app: ReportApp,
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[Page, None, None]:
+    # Tests share a loopback address, but each scenario needs its own request budget.
+    monkeypatch.setattr(report_app.app.state, "citizen_limiter", CitizenRateLimiter())
     # No channel, user_data_dir, persistent context, saved credentials, or CDP connection.
     context = browser.new_context(
         accept_downloads=True,
