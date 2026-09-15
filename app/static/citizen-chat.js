@@ -8,6 +8,9 @@
   const composer = q("composer");
   const history = q("history");
   const editForm = q("edit-form");
+  const entryAction = root.dataset.chatEntryAction || "";
+  const entryTopic = root.dataset.chatEntryTopic || "";
+  let entryPending = !!entryAction;
   let state = null;
   let busy = false;
   let pending = null;
@@ -387,8 +390,22 @@
     q("error").focus();
   }
 
+  function applyEntry() {
+    if (!entryPending || !state || busy || pending || sessionExpired) return;
+    if (state.stage !== "welcome" || state.draft.content || state.intake || state.extraction_preview) {
+      const sameTopic = entryTopic && state.intake?.template.id === entryTopic;
+      q("entry-note").hidden = !!sameTopic;
+      if (sameTopic) entryPending = false;
+      return;
+    }
+    entryPending = false;
+    q("entry-note").hidden = true;
+    send(entryAction, entryTopic ? { template_id: entryTopic } : {});
+  }
+
   async function load(announce = false) {
     if (busy) return;
+    let loaded = false;
     busy = true;
     q("error").hidden = true;
     q("busy").textContent = "대화를 불러오는 중이에요…";
@@ -400,18 +417,21 @@
       sessionExpired = false;
       busy = false;
       render(next, announce);
+      loaded = true;
     } catch (error) {
       showError(error);
     } finally {
       busy = false;
       controls();
     }
+    if (loaded) applyEntry();
   }
 
   async function deliver() {
     if (busy || !pending) return;
     busy = true;
     const sent = pending;
+    let delivered = false;
     q("error").hidden = true;
     editForm.querySelectorAll('[aria-invalid]').forEach((field) => field.removeAttribute('aria-invalid'));
     editForm.querySelectorAll('[data-chat-field-error]').forEach((note) => { note.textContent = ''; });
@@ -431,7 +451,12 @@
       if (sent.action === "choose_topic") q("topics").open = false;
       if (["say", "reset", "answer_question", "skip_question", "already_described", "finish_questions"].includes(sent.action)) input.value = "";
       if (sent.action === "revise_question") input.value = next.intake?.answers[sent.field_id]?.value || "";
+      if (sent.action !== "reset") {
+        entryPending = false;
+        q("entry-note").hidden = true;
+      }
       render(next, true);
+      delivered = true;
       if (sent.action === "confirm" && next.redirect) {
         navigationConfirmed = true;
         window.location.assign(next.redirect);
@@ -442,6 +467,7 @@
       busy = false;
       controls();
     }
+    if (delivered && sent.action === "reset") applyEntry();
   }
 
   function send(action, fields = {}) {

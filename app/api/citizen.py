@@ -20,15 +20,40 @@ DbSession = Annotated[Session, Depends(get_db)]
 logger = logging.getLogger(__name__)
 
 CATEGORIES = (
-    {"key": "road", "name": "도로·보도", "hint": "깨진 보도블록, 불편한 길", "icon": "road"},
-    {"key": "light", "name": "가로등", "hint": "어두운 골목, 꺼진 조명", "icon": "light"},
-    {"key": "waste", "name": "청소·쓰레기", "hint": "쌓인 쓰레기, 거리 청소", "icon": "waste"},
-    {"key": "park", "name": "공원·녹지", "hint": "공원 시설, 나무와 산책로", "icon": "park"},
+    {
+        "key": "road",
+        "name": "도로·보도",
+        "hint": "깨진 보도블록, 불편한 길",
+        "icon": "road",
+        "template_id": "road",
+    },
+    {
+        "key": "light",
+        "name": "가로등",
+        "hint": "어두운 골목, 꺼진 조명",
+        "icon": "light",
+        "template_id": "lighting",
+    },
+    {
+        "key": "waste",
+        "name": "쓰레기 무단투기",
+        "hint": "길가나 공터에 버려진 쓰레기",
+        "icon": "waste",
+        "template_id": "dumping",
+    },
+    {
+        "key": "park",
+        "name": "놀이터 시설",
+        "hint": "망가진 놀이기구·시설",
+        "icon": "park",
+        "template_id": "playground",
+    },
     {
         "key": "other",
         "name": "그 밖의 불편",
         "hint": "어떤 분야인지 몰라도 괜찮아요",
         "icon": "chat",
+        "template_id": "",
     },
 )
 
@@ -70,7 +95,8 @@ def home(request: Request) -> HTMLResponse:
 
 
 @router.get("/minwon/new", response_class=HTMLResponse)
-def new_complaint(request: Request, db: DbSession) -> HTMLResponse:
+def new_complaint(request: Request, db: DbSession, topic: str = "") -> HTMLResponse:
+    category = next((item for item in CATEGORIES if item["key"] == topic), None)
     return _session_page(
         request,
         db,
@@ -80,6 +106,11 @@ def new_complaint(request: Request, db: DbSession) -> HTMLResponse:
         club_mode=request.app.state.settings.chat_provider == "club",
         extraction_club=request.app.state.extraction_runner.settings.chat_extraction_provider
         == "club",
+        entry_topic=category["template_id"] if category else "",
+        entry_action=("choose_topic" if category["template_id"] else "complaint")
+        if category
+        else "",
+        entry_key=category["key"] if category else "",
     )
 
 

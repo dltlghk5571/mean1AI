@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+import pytest
 from PIL import Image
 from playwright.sync_api import Dialog, Locator, Page, Route, expect
 
@@ -43,6 +44,74 @@ def open_review(page: Page) -> None:
     click_turn(page, page.get_by_role("button", name="민원으로 접수할게요", exact=True))
     send_message(page, "가상 데모공원 정문 앞")
     expect(page.locator("[data-chat-review]")).to_be_visible()
+
+
+@pytest.mark.parametrize(
+    ("topic", "template_id"),
+    [
+        ("road", "road"),
+        ("light", "lighting"),
+        ("waste", "dumping"),
+        ("park", "playground"),
+        ("other", None),
+    ],
+)
+def test_home_selection_starts_description_and_survives_reload(
+    isolated_page: Page, report_app: ReportApp, topic: str, template_id: str | None
+) -> None:
+    page = isolated_page
+    page.goto(report_app.url + "/")
+    with page.expect_response(lambda response: response.url.endswith("/minwon/chat/turn")) as entry:
+        page.locator(f'a[href="/minwon/new?topic={topic}"]').click()
+    assert entry.value.status == 200
+    state = entry.value.json()
+    assert state["stage"] == "description" and not state["draft"]["content"]
+    assert (state["intake"]["template"]["id"] if state["intake"] else None) == template_id
+    expect(page.locator("#chat-message")).to_be_enabled()
+    expect(page.locator("[data-chat-entry-note]")).to_be_hidden()
+    with page.expect_response(
+        lambda response: response.url.endswith("/minwon/chat/open")
+    ) as resumed:
+        page.reload()
+    assert resumed.value.json() == state
+    expect(page.locator("#chat-message")).to_be_enabled()
+    with page.expect_response(
+        lambda response: response.url.endswith("/minwon/chat/turn")
+    ) as described:
+        page.locator("#chat-message").fill(DESCRIPTION)
+        page.get_by_role("button", name="메시지 보내기", exact=True).click()
+    after = described.value.json()
+    assert after["stage"] == "location" and after["draft"]["content"] == DESCRIPTION
+    assert after["revision"] == state["revision"] + 1
+
+
+def test_home_selection_preserves_active_draft_until_confirmed_reset(
+    citizen_page: Page, report_app: ReportApp
+) -> None:
+    page = citizen_page
+    open_review(page)
+    page.goto(report_app.url + "/")
+    page.locator('a[href="/minwon/new?topic=road"]').click()
+    expect(page.locator("[data-chat-review]")).to_be_visible()
+    expect(page.locator("[data-chat-entry-note]")).to_be_visible()
+    expect(page.locator("[data-draft-content]")).to_have_text(DESCRIPTION)
+    page.locator("[data-chat-reset]").click()
+    dialog = page.get_by_role("dialog", name="새 대화를 시작할까요?", exact=True)
+    dialog.get_by_role("button", name="계속 이야기하기", exact=True).click()
+    expect(page.locator("[data-draft-content]")).to_have_text(DESCRIPTION)
+    page.locator("[data-chat-reset]").click()
+    with page.expect_response(
+        lambda response: (
+            response.url.endswith("/minwon/chat/turn")
+            and (response.request.post_data_json or {}).get("action") == "choose_topic"
+        )
+    ) as entry:
+        dialog.get_by_role("button", name="새 대화 시작", exact=True).click()
+    state = entry.value.json()
+    assert state["stage"] == "description" and state["intake"]["template"]["id"] == "road"
+    assert not state["draft"]["content"] and not state["draft"]["location_text"]
+    expect(page.locator("#chat-message")).to_be_enabled()
+    expect(page.locator("[data-chat-entry-note]")).to_be_hidden()
 
 
 def test_unsent_text_cancel_keyboard_and_mobile_then_explicit_leave(

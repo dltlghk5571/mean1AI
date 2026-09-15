@@ -53,6 +53,31 @@ def review(client: TestClient) -> dict:
     return turn(client, state, "say", message="가상 데모공원 정문 앞")
 
 
+@pytest.mark.parametrize(
+    ("topic", "entry_action", "template_id"),
+    [
+        ("road", "choose_topic", "road"),
+        ("light", "choose_topic", "lighting"),
+        ("waste", "choose_topic", "dumping"),
+        ("park", "choose_topic", "playground"),
+        ("other", "complaint", ""),
+        ("not-registered", "", ""),
+    ],
+)
+def test_home_entry_hint_never_changes_existing_draft_on_get(
+    anonymous_client: TestClient, topic: str, entry_action: str, template_id: str
+) -> None:
+    before = review(anonymous_client)
+    page = anonymous_client.get("/minwon/new", params={"topic": topic})
+    assert page.status_code == 200
+    assert f'data-chat-entry-action="{entry_action}"' in page.text
+    assert f'data-chat-entry-topic="{template_id}"' in page.text
+    form_path = f"/minwon/form?topic={topic}" if entry_action else "/minwon/form"
+    assert f'href="{form_path}"' in page.text
+    resumed = anonymous_client.post("/minwon/chat/open", json={})
+    assert resumed.status_code == 200 and resumed.json() == before
+
+
 def test_chat_to_private_receipt_and_server_owned_draft(
     anonymous_client: TestClient, test_app: FastAPI
 ) -> None:
