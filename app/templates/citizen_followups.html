@@ -1,0 +1,28 @@
+<section class="followup-panel" id="followups" aria-labelledby="followups-title">
+  <header class="followup-heading"><div><p class="followup-eyebrow">같은 이야기, 이어서 전해요</p><h2 id="followups-title">추가 문의 <span>{{ followups.total }}</span></h2><p>궁금한 점이나 새로 알게 된 내용을 이 민원에 덧붙일 수 있어요.</p></div><a href="/minwon/{{ record.id }}#followups" class="followup-link" data-followup-refresh>새로고침 ↻</a></header>
+  {% if is_owner %}
+  <form class="followup-form" data-followup-form data-mode="citizen" action="/minwon/{{ record.id }}/follow-ups" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="request_key" value="{{ followup_key }}">
+    <label for="followup-body">담당자에게 전할 내용</label>
+    <textarea id="followup-body" name="body" rows="4" minlength="2" maxlength="2000" required placeholder="예: 어제보다 보도블록이 더 들떴어요. 확인 일정이 궁금합니다." aria-describedby="followup-help followup-count"></textarea>
+    <div class="followup-input-meta"><p id="followup-help">2~2,000자. 이름·연락처·상세 주소 등 개인정보는 적지 말아 주세요.</p><span id="followup-count" data-followup-count>0 / 2,000</span></div>
+    <label class="followup-consent"><input type="checkbox" name="confirmed" value="yes" required> 이 내용을 확인했으며, 담당자에게 전달하는 데 동의해요.</label>
+    <div class="followup-error" data-followup-error role="alert" tabindex="-1" hidden></div>
+    <div class="followup-actions"><p>추가 문의는 기존 접수번호 아래 저장돼요.</p><button type="submit">추가 문의 전달하기 <span aria-hidden="true">↗</span></button></div>
+    <noscript><p>추가 문의를 보내려면 브라우저의 JavaScript를 켜 주세요.</p></noscript>
+  </form>
+  {% else %}<p class="followup-note">조회 코드로 연결한 브라우저에서는 내용을 읽을 수 있어요. 추가 문의는 처음 접수한 브라우저의 유효한 세션에서 남겨 주세요.</p>{% endif %}
+  <div class="followup-history">
+    {% for item in followups['items'] %}
+    <article class="followup-thread" id="followup-{{ item.id }}" tabindex="-1">
+      <div class="followup-meta"><strong>내가 남긴 문의</strong><span class="followup-badge {{ 'is-answered' if item.answer else '' }}">{{ '답변 등록' if item.answer else '답변 대기' }}</span><time>{{ item.created_at }}</time></div>
+      <p class="followup-text">{{ item.body }}</p>
+      {% if item.urgent %}<p class="followup-danger">안전 확인이 필요한 표현이 있어요. 위험이 진행 중이면 이 화면의 답변을 기다리지 말고 112·119 등 긴급 신고 경로를 이용해 주세요.</p>{% endif %}
+      {% if item.answer %}<div class="followup-answer"><div class="followup-meta"><strong>담당자 답변</strong><time>{{ item.answered_at }}</time></div><p class="followup-text">{{ item.answer }}</p></div>{% else %}<p class="followup-waiting">담당자가 답변을 공개하면 이곳에서 확인할 수 있어요.</p>{% endif %}
+    </article>
+    {% else %}<div class="followup-empty"><strong>이어갈 이야기가 있나요?</strong><p>처리 일정이 궁금하거나 상황이 달라졌다면 편하게 남겨 주세요.</p></div>{% endfor %}
+  </div>
+  {% if followups.total > 20 %}<nav class="followup-pagination" aria-label="추가 문의 내역 페이지">{% if followups.page > 1 %}<a href="?followup_page={{ followups.page - 1 }}#followups">이전 내역</a>{% endif %}<span>{{ followups.page }} 페이지 · 최신순</span>{% if followups.has_next %}<a href="?followup_page={{ followups.page + 1 }}#followups">다음 내역</a>{% endif %}</nav>{% endif %}
+  <p class="followup-note">전화번호·이메일·주민등록번호 형식은 가려 저장합니다. 이름 등 모든 개인정보를 자동으로 찾지는 못합니다. 이 화면의 답변은 데모 안내입니다.</p>
+</section>

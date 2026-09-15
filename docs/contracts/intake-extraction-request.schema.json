@@ -1,0 +1,149 @@
+{
+  "$defs": {
+    "IntakeQuestion": {
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "pattern": "^[a-z_]{1,40}$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 60,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "question": {
+          "maxLength": 400,
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "choices": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Choices",
+          "type": "array"
+        },
+        "choices_only": {
+          "default": false,
+          "title": "Choices Only",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field_id",
+        "label",
+        "question"
+      ],
+      "title": "IntakeQuestion",
+      "type": "object"
+    },
+    "IntakeTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z-]{1,40}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 60,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "purpose": {
+          "enum": [
+            "complaint",
+            "information"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/IntakeQuestion"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "title",
+        "purpose",
+        "questions"
+      ],
+      "title": "IntakeTemplate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task": {
+      "const": "extract_intake",
+      "default": "extract_intake",
+      "title": "Task",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "source_text": {
+      "maxLength": 4000,
+      "minLength": 5,
+      "title": "Source Text",
+      "type": "string"
+    },
+    "templates": {
+      "items": {
+        "$ref": "#/$defs/IntakeTemplate"
+      },
+      "maxItems": 30,
+      "minItems": 1,
+      "title": "Templates",
+      "type": "array"
+    }
+  },
+  "required": [
+    "request_id",
+    "input_hash",
+    "model_id",
+    "source_text",
+    "templates"
+  ],
+  "title": "ExtractionRequest",
+  "type": "object"
+}

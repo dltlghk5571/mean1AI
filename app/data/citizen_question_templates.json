@@ -1,0 +1,86 @@
+[
+  {
+    "id": "road", "version": "20260908-v1", "title": "도로·보도가 불편해요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "facility_type", "label": "시설 종류", "question": "어느 부분이 불편한가요? 차도, 보도, 자전거길처럼 알려 주세요."},
+      {"field_id": "hazard_now", "label": "현재 안전 상태", "question": "지금 사람이 다칠 위험이 있나요? 가까운 상황을 골라 주세요.", "choices": ["지금 사람이 다칠 위험이 있어요.", "현재 다칠 위험은 보이지 않아요."], "choices_only": true}
+    ]
+  },
+  {
+    "id": "lighting", "version": "20260908-v1", "title": "가로등이 안 켜져요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "observed_time", "label": "발견 시점", "question": "언제부터 그랬나요? 어제 저녁처럼 대략 알려 주셔도 돼요."},
+      {"field_id": "facility_label", "label": "시설 표지", "question": "가로등에 적힌 번호나 구별할 만한 특징이 있나요? 확인하러 가까이 갈 필요는 없어요."}
+    ]
+  },
+  {
+    "id": "dumping", "version": "20260908-v1", "title": "쓰레기가 버려져 있어요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "observed_time", "label": "발견 시점", "question": "버려진 것을 언제 보셨나요? 대략적인 때를 알려 주세요."},
+      {"field_id": "photo_available", "label": "사진 준비 여부", "question": "이미 찍어 둔 사진이 있나요? 있다면 마지막 확인 화면에서 추가할 수 있어요. 사진 없이도 접수할 수 있어요.", "choices": ["찍어 둔 사진이 있어요.", "사진 없이 접수할게요."]}
+    ]
+  },
+  {
+    "id": "playground", "version": "20260908-v1", "title": "놀이터 시설이 고장 났어요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "facility_type", "label": "시설 종류", "question": "어떤 놀이시설인가요? 그네, 미끄럼틀처럼 알려 주세요."},
+      {"field_id": "hazard_now", "label": "현재 안전 상태", "question": "지금 사람이 다칠 위험이 있나요? 가까운 상황을 골라 주세요.", "choices": ["지금 사람이 다칠 위험이 있어요.", "현재 다칠 위험은 보이지 않아요."], "choices_only": true}
+    ]
+  },
+  {
+    "id": "sewer", "version": "20260908-v1", "title": "하수도·배수구가 불편해요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "facility_type", "label": "시설 종류", "question": "어느 곳의 문제인가요? 길의 배수구, 맨홀, 건물 안처럼 알려 주세요."},
+      {"field_id": "hazard_now", "label": "현재 안전 상태", "question": "지금 사람이 다칠 위험이 있나요? 가까운 상황을 골라 주세요.", "choices": ["지금 사람이 다칠 위험이 있어요.", "현재 다칠 위험은 보이지 않아요."], "choices_only": true}
+    ]
+  },
+  {
+    "id": "parking", "version": "20260908-v1", "title": "주차 때문에 불편해요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "observed_time", "label": "발견 시점", "question": "언제 있었던 일인가요? 지금도 계속되는지 함께 알려 주세요."},
+      {"field_id": "parking_area", "label": "주차 공간", "question": "어떤 공간인가요? 도로, 공영주차장, 건물 주차장처럼 알려 주세요. 차량번호는 적지 마세요."}
+    ]
+  },
+  {
+    "id": "construction-noise", "version": "20260908-v1", "title": "공사 소음이 불편해요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "observed_time", "label": "발생 시간", "question": "소음이 주로 언제 나나요? 시간대와 얼마나 계속되는지 알려 주세요."},
+      {"field_id": "noise_source", "label": "소음 발생 곳", "question": "소리가 나는 곳을 알고 계신가요? 건물 공사, 도로 작업처럼 아는 만큼만 알려 주세요."}
+    ]
+  },
+  {
+    "id": "street-tree", "version": "20260908-v1", "title": "가로수가 불편해요", "purpose": "complaint",
+    "questions": [
+      {"field_id": "facility_type", "label": "나무가 있는 공간", "question": "나무가 어디에 있나요? 길가, 공원 안, 건물 안쪽처럼 알려 주세요."},
+      {"field_id": "hazard_now", "label": "현재 안전 상태", "question": "지금 사람이 다칠 위험이 있나요? 가까운 상황을 골라 주세요.", "choices": ["지금 사람이 다칠 위험이 있어요.", "현재 다칠 위험은 보이지 않아요."], "choices_only": true}
+    ]
+  },
+  {
+    "id": "basic-livelihood", "version": "20260908-v1", "title": "생활비 지원이 궁금해요", "purpose": "information",
+    "questions": [
+      {"field_id": "support_topic", "label": "알아볼 지원", "question": "어떤 도움이 궁금한가요? 생활비, 집세처럼 알려 주세요. 소득 금액이나 계좌번호는 필요 없어요."},
+      {"field_id": "request_goal", "label": "원하는 안내", "question": "제도 설명, 신청 방법, 상담할 곳 중 어떤 안내를 원하시나요?"}
+    ]
+  },
+  {
+    "id": "emergency-welfare", "version": "20260908-v1", "title": "갑자기 생활이 어려워졌어요", "purpose": "information",
+    "questions": [
+      {"field_id": "immediate_help", "label": "도움이 필요한 시점", "question": "지금 긴급한 도움이 필요한 상황인가요? 가까운 상황을 골라 주세요.", "choices": ["지금 긴급한 도움이 필요해요.", "지원 제도를 미리 알아보고 싶어요."], "choices_only": true},
+      {"field_id": "support_topic", "label": "알아볼 지원", "question": "생활비, 거처 등 어떤 도움이 필요한가요? 자세한 개인 사정이나 증명서 없이 알려 주세요."}
+    ]
+  },
+  {
+    "id": "basic-pension", "version": "20260908-v1", "title": "기초연금 신청이 궁금해요", "purpose": "information",
+    "questions": [
+      {"field_id": "request_goal", "label": "원하는 안내", "question": "기초연금의 제도 설명, 신청 방법, 상담할 곳 중 무엇이 궁금한가요?"},
+      {"field_id": "application_stage", "label": "신청 단계", "question": "처음 알아보는 중인가요, 이미 신청한 뒤 궁금한 점이 생겼나요? 주민등록번호는 적지 마세요."}
+    ]
+  },
+  {
+    "id": "activity-support", "version": "20260908-v1", "title": "일상생활 도움을 알아보고 싶어요", "purpose": "information",
+    "questions": [
+      {"field_id": "request_goal", "label": "원하는 안내", "question": "장애인 활동지원의 제도 설명, 신청 방법, 상담할 곳 중 어떤 안내를 원하시나요?"},
+      {"field_id": "support_topic", "label": "알아볼 지원", "question": "집에서의 활동, 외출 등 어떤 도움이 궁금한가요? 진단명이나 증명사진은 필요 없어요."}
+    ]
+  }
+]

@@ -1,0 +1,158 @@
+{
+  "schema_version": "2",
+  "source_id": "seongnam-welfare",
+  "review_status": "pending",
+  "mode": "local_manifest",
+  "documents": [
+    {
+      "id": "SRC-d0a1d6e4ebe69157-3cf8b2dde183",
+      "source_id": "seongnam-welfare",
+      "source_url": null,
+      "title": "가상 생활지원",
+      "text": "가상 생활지원\n사업개요\n지원내용\n2025년 합성 지원 절차입니다. 실제 정책이 아닙니다.\n부가정보\n합성 신청 절차를 확인해 주세요.\n문의처: 가상복지국 > 가상업무과 > 가상업무팀 [전화번호]",
+      "content_hash": "3cf8b2dde183f66ca9a73dc9bf6cf0fb95c96f8db9847cbdd56861eb434692e1",
+      "fetched_at": null,
+      "ingested_at": "2026-09-09T09:46:00.731131Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "unverified; human review required",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": true
+    }
+  ],
+  "pages": [
+    {
+      "source_id": "seongnam-welfare",
+      "source_url": "https://www.seongnam.go.kr/wf-pm020101",
+      "page_kind": "welfare_list",
+      "extractor_version": "20260909-v2",
+      "input_kind": "saved_html",
+      "input_sha256": "21902a1d4ecdebbab1fa6476fd890b09647bf5e00169ea034ebc4821847f0005",
+      "processed_at": "2026-09-09T09:46:00.725195Z",
+      "synthetic": true,
+      "records_seen": 2,
+      "records_extracted": 2,
+      "extraction_complete": true,
+      "source_code": null,
+      "discovered_links": [
+        "https://www.seongnam.go.kr/wf-pm020101/9900000001",
+        "https://www.seongnam.go.kr/wf-pm020101/9900000002",
+        "https://www.seongnam.go.kr/wf-pm020101?curPage=2"
+      ],
+      "listing_items": [
+        {
+          "source_code": "9900000001",
+          "title": "가상 생활지원",
+          "source_url": "https://www.seongnam.go.kr/wf-pm020101/9900000001",
+          "summary": "합성 지원 절차를 안내합니다. [전화번호]",
+          "displayed_department": "가상복지국>가상지원과>가상안내팀",
+          "tags": [
+            "노년"
+          ]
+        },
+        {
+          "source_code": "9900000002",
+          "title": "가상 방문지원",
+          "source_url": "https://www.seongnam.go.kr/wf-pm020101/9900000002",
+          "summary": "합성 방문 상담 절차입니다.",
+          "displayed_department": "가상돌봄과",
+          "tags": [
+            "저소득"
+          ]
+        }
+      ],
+      "welfare_filters": [
+        {
+          "group": "생애주기",
+          "source_code": "srchCtgry_WLF_CRR_CYCL_7",
+          "label": "노년"
+        },
+        {
+          "group": "가구상황",
+          "source_code": "srchCtgry_WLF_HSHD_STTN_1",
+          "label": "저소득"
+        },
+        {
+          "group": "관심주제",
+          "source_code": "srchCtgry_WLF_ITRST_TPC_1",
+          "label": "생활지원"
+        }
+      ],
+      "reported_total": 2,
+      "body_contacts": [],
+      "footer_department": null,
+      "policy_year_mentions": [],
+      "work_rows": [],
+      "review_issues": [
+        "usage_review_required"
+      ],
+      "document_id": null
+    },
+    {
+      "source_id": "seongnam-welfare",
+      "source_url": "https://www.seongnam.go.kr/wf-pm020101/9900000001",
+      "page_kind": "welfare_detail",
+      "extractor_version": "20260909-v2",
+      "input_kind": "saved_html",
+      "input_sha256": "fa76b4a46993b2c3c8f40f72262d84ff1ebc9099da1862c7a9e38e3074441ea2",
+      "processed_at": "2026-09-09T09:46:00.731131Z",
+      "synthetic": true,
+      "records_seen": 1,
+      "records_extracted": 1,
+      "extraction_complete": true,
+      "source_code": "9900000001",
+      "discovered_links": [],
+      "listing_items": [],
+      "welfare_filters": [],
+      "reported_total": null,
+      "body_contacts": [
+        "가상복지국 > 가상업무과 > 가상업무팀"
+      ],
+      "footer_department": "가상복지국>가상지원과>가상안내팀",
+      "policy_year_mentions": [
+        2025
+      ],
+      "work_rows": [],
+      "review_issues": [
+        "department_labels_differ",
+        "policy_years_require_review",
+        "usage_review_required"
+      ],
+      "document_id": "SRC-d0a1d6e4ebe69157-3cf8b2dde183"
+    }
+  ],
+  "errors": [],
+  "visited": 2,
+  "remaining_links": 2,
+  "completed": false,
+  "reconciliation": {
+    "reported_totals": [
+      2
+    ],
+    "expected_total": 2,
+    "inventory_scope": "unfiltered_welfare_listing",
+    "reported_total_changed": false,
+    "unique_listing_items": 2,
+    "collected_detail_items": 1,
+    "undiscovered_item_count": 0,
+    "missing_detail_ids": [
+      "9900000002"
+    ],
+    "unlisted_detail_ids": [],
+    "missing_organization_codes": [],
+    "duplicate_listing_ids": [],
+    "conflicting_listing_ids": [],
+    "duplicate_page_urls": [],
+    "conflicting_page_urls": [],
+    "same_body_different_urls": [],
+    "list_detail_mismatches": [],
+    "issue_counts": {
+      "usage_review_required": 2,
+      "department_labels_differ": 1,
+      "policy_years_require_review": 1
+    },
+    "inventory_complete": false
+  },
+  "note": "Extraction completeness is not official accuracy, usage permission, or publication approval."
+}

@@ -1,0 +1,1426 @@
+{
+  "schema_version": "1",
+  "version": "seongnam-pilot-20260907-v1",
+  "documents": [
+    {
+      "id": "pilot-source-sujeong",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/pm04041101?orgSelect=orgSelect02&deptCode=37900000000",
+      "title": "수정구 조직도 · 대표 생활불편 업무분장",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n수정구 건설과의 도로관리팀·도로관리TF팀은 도로 관련 업무를 나누며, 도로조명팀은 가로등·보안등, 소하천관리팀은 하수도 관련 업무를 맡는 것으로 표시된다. 경제교통과 주차관리팀은 불법주정차, 환경위생과 환경보호팀은 공사장 소음 관련 업무를 표시한다. 도시미관과 청소행정팀은 불법투기, 녹지1·2팀은 지역·시설별 녹지 및 공원 업무를 표시한다. 도로관리팀의 명시된 동 범위를 수정구 전체로 확대하지 않으며 TF팀과의 경계는 재확인한다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "0ffe23d1a89eeaed596770def3f19cec0fc88e08bf0360ead9d249639cdc70db",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-jungwon",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/pm04041101?deptCode=38000000000&orgSelect=orgSelect02",
+      "title": "중원구 조직도 · 대표 생활불편 업무분장",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n중원구 건설과에서 도로관리팀은 도로·보도, 도로조명팀은 가로등·보안등, 소하천관리팀은 하수도 업무를 표시한다. 경제교통과 주차관리팀은 불법주정차, 환경위생과 환경보호팀은 공사장 소음 관련 업무를 표시한다. 도시미관과 청소행정팀은 불법투기, 녹지공원팀은 가로수와 어린이공원·놀이터 시설 관리를 표시한다. 사회복지과 노인복지팀에 기초연금 지급 업무가 표시된다. 시설 소유자와 관리기관은 주소만으로 확정하지 않는다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "e00a97981c36dca28a0ab3e839c590f87ba5c83da1288fc0644697e5fea39ef6",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-bundang-road",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/pm04041101?orgSelect=orgSelect02&deptCode=38100720000",
+      "title": "분당구 건설과 · 도로·보도·조명 업무분장",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n분당구 건설과에는 도로관리팀, 보도관리팀, 도로조명팀이 구분된다. 도로관리팀에는 포트홀 등 차도 업무, 보도관리팀에는 보도·자전거도로와 빗물받이, 도로조명팀에는 가로등·보안등 관련 업무가 표시된다. 세부 시설별 중첩 업무와 예외 관리기관은 사람이 확인해야 한다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "9af333b8e6b9e3f147461a2466f688cd8ec1860c4039ad494c6b26e311cb56e7",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-bundang-sewer",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/pm04041101?orgSelect=orgSelect02&deptCode=38100730000",
+      "title": "분당구 구조물관리과 · 하수도 업무분장",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n분당구 구조물관리과 소하천관리팀에 하수도 유지관리와 하수도 민원처리가 표시된다. 빗물받이는 건설과 보도관리팀의 별도 업무 표시가 있어 하수도와 일괄 배정하지 않는다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "4b96613138a86c98451dc0619ad43ea16580ea55b1996b4505ef11eb3be1e937",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-bundang-environment",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/pm04041101?orgSelect=orgSelect02&deptCode=38100700000",
+      "title": "분당구 환경자원과 · 청소·소음 업무분장",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n분당구 환경자원과 환경보호팀에는 특정공사·비산먼지 및 생활 소음·진동 관련 업무가 표시된다. 같은 과 청소행정팀에는 쓰레기 불법투기 관련 업무가 표시된다. 폐기물 종류·발생 장소와 소음 원인을 확인한 뒤 소관을 검토한다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "fb48abf3a7c88e2767ba59efd7c4bcd019bc6295124b66321b4e3aa305a6ba86",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-bundang-green",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/pm04041101?orgSelect=orgSelect02&deptCode=38100610000",
+      "title": "분당구 녹지공원과 · 공원·가로수 업무분장",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n분당구 녹지공원과 녹지1·2팀은 동별로 가로수와 녹지 관리를 나눈다. 공원1·2팀에는 어린이공원 및 보행자도로 시설 관련 업무가 표시된다. 공원2팀의 녹지 업무에는 야탑·이매·판교지구가 명시되지만 모든 시설 업무의 경계까지 확정한 것은 아니다. 근린공원 전체나 사유지 수목까지 이 팀들의 소관으로 확대하지 않는다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "97a919a3168f32a1647b0f17e3386e4768b6b09ec7bacd81415afceaadd89997",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-bundang-parking",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/pm04041101?orgSelect=orgSelect02&deptCode=38100540000",
+      "title": "분당구 경제교통과 · 주정차 업무분장",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n분당구 경제교통과 주차관리팀에 불법주정차 단속·계도 및 지역별 민원처리 업무가 표시된다. 일반 도로 주정차와 장애인전용구역·전기차 충전구역의 소관을 하나로 취급하지 않는다. 단속 여부나 과태료를 자동 판단하지 않는다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "3ae176153386a98552eaf227c94e9d320f21d310bf1ad68bc326a9bd4c56d457",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-basic-livelihood",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/wf-pm020101/25017",
+      "title": "국민기초생활보장제도 · 공식 사업 안내",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n성남시 복지사업 화면에서 원본 사업 번호 25017을 확인했다. 동 행정복지센터 방문 신청, 구 통합조사관리팀의 조사, 시의 결정 단계가 안내된다. 하단 담당 부서는 복지국 복지정책과 생활보장팀이다. 생활·의료·주거·교육 지원을 설명하지만 본문에 2025년 기준소득 표기가 남아 있다. 2026년 현재 자격·금액·세부 서류의 근거로 사용하지 않으며, 실제 신청 창구와 담당자 확인으로 연결하는 안내 후보만 작성했다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "02b8badce2365762be99f6f60872a9016ed106df8698425220921fdd603c55d5",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-emergency-welfare",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/wf-pm020101/24011",
+      "title": "긴급복지 지원사업 · 공식 사업 안내",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n성남시 복지사업 화면에서 원본 사업 번호 24011을 확인했다. 갑작스러운 위기 상황의 생활 안정을 위한 지원 안내이며, 주소지 동 행정복지센터 상담·신청 경로를 제시한다. 신청, 현장 확인, 지원 결정, 사후 조사 등의 절차가 표시된다. 하단 담당 부서는 복지국 복지정책과 생활보장팀이다. 현재 연도에 적용되는 금액·재산 기준은 별도 검증하지 않았으며 이 후보에서는 안내하지 않는다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "7d1c57f4f9e487a7c96f1dfb7aa3b91e20c344b427a48094e5585a7821aaa2d1",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-basic-pension",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/wf-pm020101/22006",
+      "title": "기초연금 · 담당 부서 표기 불일치 검토",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n성남시 복지사업 화면에서 원본 사업 번호 22006을 확인했다. 본문에는 동 행정복지센터·국민연금공단 접수, 구 통합조사관리팀 조사, 시 노인복지과 노인요양팀의 책정, 구 노인복지팀 지급 단계가 안내된다. 그러나 하단 담당 부서는 중원구 사회복지과 희망복지팀으로 표시된다. 중원구 조직도의 기초연금 지급 업무 표시는 노인복지팀이다. 게시물 관리 부서와 실제 처리 부서 차이인지 데이터 오류인지 확인되지 않았다. 담당 조직 대응은 비워 두고 수동 확인한다. 자격·금액은 확정 답변하지 않는다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "e4648d075166d437b0874381bdff2b9db9fdcd81cb51b9c8b7405e86aeba7ee7",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-activity-support",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/wf-pm020101/23002",
+      "title": "중증장애인 활동지원사업 · 담당 부서 표기 불일치 검토",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n성남시 복지사업 화면에서 원본 사업 번호 23002를 확인했다. 주소지 동 행정복지센터 신청, 방문 조사와 수급자격 심의 절차가 안내된다. 본문 문의처는 장애인복지과인데 하단 담당 부서는 행정기획조정실 총무과 의전팀으로 표시된다. 게시물 관리 부서와 실제 처리 부서 차이인지 데이터 오류인지 확인되지 않았다. 담당 조직 대응을 비워 두고 수동 확인한다. 건강·장애 서류와 계좌 사본을 이 챗봇에서 수집하지 않으며 자격·급여 시간은 확정하지 않는다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "2fc8d888729f5ffedc721e070b23cdfa5a6be8a7d30b5722db52708e90ea283f",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    },
+    {
+      "id": "pilot-source-design-notes",
+      "source_id": "seongnam-manual-pilot",
+      "source_url": "https://www.seongnam.go.kr/wf-pm020101",
+      "title": "대표 업무 선정 및 질문 설계 메모 · 프로젝트 작성",
+      "text": "2026-09-07 공식 웹 화면을 직접 읽고 사람이 작성한 조사 요약이다. 원본 HTML 추출물이나 공식 검수 완료 자료가 아니다. 본문 해시는 이 요약의 해시이며 공식 서버 응답의 해시가 아니다.\n복지사업 목록은 조회 시 총 303건을 표시했다. 이는 성남시 전체 민원 분류 개수가 아니다. 목록에는 생애주기 7, 가구상황 12, 관심주제 8의 필터가 보였다. 이번 대표 업무 12개와 pilot-* 분류·업무·조직 ID는 프로젝트가 만든 식별자이며 법정·공식 민원 분류 코드가 아니다. 생활불편 8개는 도로·조명·불법투기·어린이공원·하수도·주정차·공사소음·가로수다. 복지 안내 4개는 기초생활·긴급복지·기초연금·활동지원이다. required_information은 팀의 대화 질문안이며 공식 필수 서류가 아니다. 모두 선택으로 기록했다. 내용·위치 이외 질문의 상태 저장과 동적 연결은 아직 구현되지 않았다.\n조회일과 정책 시행일은 다르다. 게시·수정·시행일은 확인되지 않은 값을 채우지 않았다. 직원 이름·전화번호·실제 민원 원문은 저장하지 않았다. 개별 자료의 이용 허락은 추가 확인이 필요하므로 검색·학습 이용을 승인하지 않았다.",
+      "content_hash": "547253727d7e4af8486ae73d86f8b7ab40dc61ba004e754f19bb0cda2ac277cc",
+      "fetched_at": null,
+      "ingested_at": "2026-09-07T13:17:41.910433Z",
+      "published_at": null,
+      "updated_at": null,
+      "license_label": "개별 자료 이용 조건 검수 전. 성남시 저작권 정책(cn050401)을 확인했으며 포괄적 검색·학습 허용으로 해석하지 않음.",
+      "retrieval_use": "unknown",
+      "training_use": "unknown",
+      "synthetic": false
+    }
+  ],
+  "taxonomy": [
+    {
+      "id": "pilot-category-civic",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "생활불편 · 프로젝트 대표 분류",
+      "parent_id": null
+    },
+    {
+      "id": "pilot-category-welfare",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "복지 안내 · 프로젝트 대표 분류",
+      "parent_id": null
+    },
+    {
+      "id": "pilot-category-road",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "도로·보도 파손",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-lighting",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "가로등·보안등 고장",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-dumping",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "쓰레기 무단투기",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-playground",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "어린이공원·놀이터 시설 파손",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-sewer",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "공공 하수도·맨홀 역류",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-parking",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "일반 도로 불법주정차 신고 안내",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-construction-noise",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "공사장 소음 불편",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-street-tree",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "가로수 가지·통행 불편",
+      "parent_id": "pilot-category-civic"
+    },
+    {
+      "id": "pilot-category-basic-livelihood",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "기초생활보장 상담·신청 안내",
+      "parent_id": "pilot-category-welfare"
+    },
+    {
+      "id": "pilot-category-emergency-welfare",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "긴급복지 상담·신청 안내",
+      "parent_id": "pilot-category-welfare"
+    },
+    {
+      "id": "pilot-category-basic-pension",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "기초연금 상담·신청 안내",
+      "parent_id": "pilot-category-welfare"
+    },
+    {
+      "id": "pilot-category-activity-support",
+      "source_document_id": "pilot-source-design-notes",
+      "source_code": null,
+      "label": "장애인 활동지원 상담·신청 안내",
+      "parent_id": "pilot-category-welfare"
+    }
+  ],
+  "organizations": [
+    {
+      "id": "pilot-org-sj",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": "37900000000",
+      "name": "수정구",
+      "parent_id": null,
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-construction",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "건설과",
+      "parent_id": "pilot-org-sj",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-traffic",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "경제교통과",
+      "parent_id": "pilot-org-sj",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-environment",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "환경위생과",
+      "parent_id": "pilot-org-sj",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-appearance",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "도시미관과",
+      "parent_id": "pilot-org-sj",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-road",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "도로관리팀",
+      "parent_id": "pilot-org-sj-construction",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-lighting",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "도로조명팀",
+      "parent_id": "pilot-org-sj-construction",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-sewer",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "소하천관리팀",
+      "parent_id": "pilot-org-sj-construction",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-parking",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "주차관리팀",
+      "parent_id": "pilot-org-sj-traffic",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-noise",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "환경보호팀",
+      "parent_id": "pilot-org-sj-environment",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-sj-waste",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "청소행정팀",
+      "parent_id": "pilot-org-sj-appearance",
+      "jurisdiction": "수정구"
+    },
+    {
+      "id": "pilot-org-jw",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": "38000000000",
+      "name": "중원구",
+      "parent_id": null,
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-construction",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "건설과",
+      "parent_id": "pilot-org-jw",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-traffic",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "경제교통과",
+      "parent_id": "pilot-org-jw",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-environment",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "환경위생과",
+      "parent_id": "pilot-org-jw",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-appearance",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "도시미관과",
+      "parent_id": "pilot-org-jw",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-road",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "도로관리팀",
+      "parent_id": "pilot-org-jw-construction",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-lighting",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "도로조명팀",
+      "parent_id": "pilot-org-jw-construction",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-sewer",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "소하천관리팀",
+      "parent_id": "pilot-org-jw-construction",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-parking",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "주차관리팀",
+      "parent_id": "pilot-org-jw-traffic",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-noise",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "환경보호팀",
+      "parent_id": "pilot-org-jw-environment",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-jw-waste",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "청소행정팀",
+      "parent_id": "pilot-org-jw-appearance",
+      "jurisdiction": "중원구"
+    },
+    {
+      "id": "pilot-org-sj-road-tf",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "도로관리TF팀",
+      "parent_id": "pilot-org-sj-construction",
+      "jurisdiction": "수정구 · 도로관리팀과 세부 경계 재확인"
+    },
+    {
+      "id": "pilot-org-sj-green1",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "녹지1팀",
+      "parent_id": "pilot-org-sj-appearance",
+      "jurisdiction": "수정구 · 동·시설에 따라 구분"
+    },
+    {
+      "id": "pilot-org-sj-green2",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "name": "녹지2팀",
+      "parent_id": "pilot-org-sj-appearance",
+      "jurisdiction": "수정구 · 위례동·고등동 등, 나머지 경계 재확인"
+    },
+    {
+      "id": "pilot-org-jw-green",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "name": "녹지공원팀",
+      "parent_id": "pilot-org-jw-appearance",
+      "jurisdiction": "중원구 · 구 관리 시설 여부 확인"
+    },
+    {
+      "id": "pilot-org-bd",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": null,
+      "name": "분당구",
+      "parent_id": null,
+      "jurisdiction": "분당구"
+    },
+    {
+      "id": "pilot-org-bd-construction",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": "38100720000",
+      "name": "건설과",
+      "parent_id": "pilot-org-bd",
+      "jurisdiction": "분당구"
+    },
+    {
+      "id": "pilot-org-bd-structures",
+      "source_document_id": "pilot-source-bundang-sewer",
+      "source_code": "38100730000",
+      "name": "구조물관리과",
+      "parent_id": "pilot-org-bd",
+      "jurisdiction": "분당구"
+    },
+    {
+      "id": "pilot-org-bd-environment",
+      "source_document_id": "pilot-source-bundang-environment",
+      "source_code": "38100700000",
+      "name": "환경자원과",
+      "parent_id": "pilot-org-bd",
+      "jurisdiction": "분당구"
+    },
+    {
+      "id": "pilot-org-bd-green",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": "38100610000",
+      "name": "녹지공원과",
+      "parent_id": "pilot-org-bd",
+      "jurisdiction": "분당구"
+    },
+    {
+      "id": "pilot-org-bd-traffic",
+      "source_document_id": "pilot-source-bundang-parking",
+      "source_code": "38100540000",
+      "name": "경제교통과",
+      "parent_id": "pilot-org-bd",
+      "jurisdiction": "분당구"
+    },
+    {
+      "id": "pilot-org-bd-road",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": null,
+      "name": "도로관리팀",
+      "parent_id": "pilot-org-bd-construction",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-sidewalk",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": null,
+      "name": "보도관리팀",
+      "parent_id": "pilot-org-bd-construction",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-lighting",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": null,
+      "name": "도로조명팀",
+      "parent_id": "pilot-org-bd-construction",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-sewer",
+      "source_document_id": "pilot-source-bundang-sewer",
+      "source_code": null,
+      "name": "소하천관리팀",
+      "parent_id": "pilot-org-bd-structures",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-noise",
+      "source_document_id": "pilot-source-bundang-environment",
+      "source_code": null,
+      "name": "환경보호팀",
+      "parent_id": "pilot-org-bd-environment",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-waste",
+      "source_document_id": "pilot-source-bundang-environment",
+      "source_code": null,
+      "name": "청소행정팀",
+      "parent_id": "pilot-org-bd-environment",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-green1",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "name": "녹지1팀",
+      "parent_id": "pilot-org-bd-green",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-green2",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "name": "녹지2팀",
+      "parent_id": "pilot-org-bd-green",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-park1",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "name": "공원1팀",
+      "parent_id": "pilot-org-bd-green",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-park2",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "name": "공원2팀",
+      "parent_id": "pilot-org-bd-green",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-bd-parking",
+      "source_document_id": "pilot-source-bundang-parking",
+      "source_code": null,
+      "name": "주차관리팀",
+      "parent_id": "pilot-org-bd-traffic",
+      "jurisdiction": "분당구 · 세부 업무·위치 확인"
+    },
+    {
+      "id": "pilot-org-city",
+      "source_document_id": "pilot-source-basic-livelihood",
+      "source_code": null,
+      "name": "성남시",
+      "parent_id": null,
+      "jurisdiction": "성남시"
+    },
+    {
+      "id": "pilot-org-welfare-bureau",
+      "source_document_id": "pilot-source-basic-livelihood",
+      "source_code": null,
+      "name": "복지국",
+      "parent_id": "pilot-org-city",
+      "jurisdiction": "성남시"
+    },
+    {
+      "id": "pilot-org-welfare-policy",
+      "source_document_id": "pilot-source-basic-livelihood",
+      "source_code": null,
+      "name": "복지정책과",
+      "parent_id": "pilot-org-welfare-bureau",
+      "jurisdiction": "성남시"
+    },
+    {
+      "id": "pilot-org-livelihood",
+      "source_document_id": "pilot-source-basic-livelihood",
+      "source_code": null,
+      "name": "생활보장팀",
+      "parent_id": "pilot-org-welfare-policy",
+      "jurisdiction": "성남시 · 제도 안내 담당"
+    }
+  ],
+  "work_assignments": [
+    {
+      "id": "pilot-work-sj-road",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-road",
+      "description": "도로·보도 유지관리 업무가 표시됨. 수정구 다른 동을 자동으로 같은 팀에 배정하지 않는다.",
+      "jurisdiction": "신흥·태평·수진·단대·산성·양지동 및 분당수서간 도시고속화도로 · 현장 확인"
+    },
+    {
+      "id": "pilot-work-sj-road-tf",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-road-tf",
+      "description": "포트홀 응급복구와 보도 유지관리 업무가 함께 표시됨. 주소와 시설 정보를 확보한 뒤 담당자가 두 팀의 소관을 확인한다.",
+      "jurisdiction": "수정구 · 도로관리팀과 동별·시설별 경계 미확정"
+    },
+    {
+      "id": "pilot-work-jw-road",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-road",
+      "description": "도로 파손과 보도 유지관리 업무가 표시됨. 교량·사유지 등 예외 시설의 담당은 별도 확인한다.",
+      "jurisdiction": "중원구 · 도로·보도 관리기관 확인"
+    },
+    {
+      "id": "pilot-work-bd-road",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-road",
+      "description": "포트홀 등 차도 유지관리 업무가 표시됨. 보도는 보도관리팀 후보와 구분한다.",
+      "jurisdiction": "분당구 · 일반 차도, 예외 시설 확인"
+    },
+    {
+      "id": "pilot-work-bd-sidewalk",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-sidewalk",
+      "description": "보도·자전거도로 유지관리 및 빗물받이 정비 업무가 표시됨.",
+      "jurisdiction": "분당구 · 보도·자전거도로, 예외 시설 확인"
+    },
+    {
+      "id": "pilot-work-sj-lighting",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-lighting",
+      "description": "가로등·보안등 유지관리 업무가 표시됨. 교통신호등과 공동주택 내부 조명을 같은 업무로 취급하지 않는다.",
+      "jurisdiction": "수정구 · 가로등·보안등 관리기관 확인"
+    },
+    {
+      "id": "pilot-work-sj-waste",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-waste",
+      "description": "쓰레기 불법투기 관련 업무가 표시됨. 수거 요청과 처분 판단을 구분하며 행위자 식별정보를 요구하지 않는다.",
+      "jurisdiction": "수정구 · 폐기물 종류·현장 확인"
+    },
+    {
+      "id": "pilot-work-sj-noise",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-noise",
+      "description": "공사·소음 관련 환경 업무가 표시됨. 층간소음·항공소음 등 다른 원인은 별도로 분류 검토한다.",
+      "jurisdiction": "수정구 · 공사장 소음 여부 확인"
+    },
+    {
+      "id": "pilot-work-sj-parking",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-parking",
+      "description": "불법주정차 관련 업무가 표시됨. 장애인전용구역·전기차 충전구역·사유지와 구분하고 단속·과태료 판단을 맡기지 않는다.",
+      "jurisdiction": "수정구 · 일반 도로 주정차"
+    },
+    {
+      "id": "pilot-work-sj-sewer",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-sewer",
+      "description": "하수도 유지관리 및 민원처리 업무가 표시됨. 건물 내부 배관·상수도 누수·도로 빗물받이는 별도 소관 확인이 필요하다.",
+      "jurisdiction": "수정구 · 공공 하수도·맨홀 여부 확인"
+    },
+    {
+      "id": "pilot-work-jw-lighting",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-lighting",
+      "description": "가로등·보안등 유지관리 업무가 표시됨. 교통신호등과 공동주택 내부 조명을 같은 업무로 취급하지 않는다.",
+      "jurisdiction": "중원구 · 가로등·보안등 관리기관 확인"
+    },
+    {
+      "id": "pilot-work-jw-waste",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-waste",
+      "description": "쓰레기 불법투기 관련 업무가 표시됨. 수거 요청과 처분 판단을 구분하며 행위자 식별정보를 요구하지 않는다.",
+      "jurisdiction": "중원구 · 폐기물 종류·현장 확인"
+    },
+    {
+      "id": "pilot-work-jw-noise",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-noise",
+      "description": "공사·소음 관련 환경 업무가 표시됨. 층간소음·항공소음 등 다른 원인은 별도로 분류 검토한다.",
+      "jurisdiction": "중원구 · 공사장 소음 여부 확인"
+    },
+    {
+      "id": "pilot-work-jw-parking",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-parking",
+      "description": "불법주정차 관련 업무가 표시됨. 장애인전용구역·전기차 충전구역·사유지와 구분하고 단속·과태료 판단을 맡기지 않는다.",
+      "jurisdiction": "중원구 · 일반 도로 주정차"
+    },
+    {
+      "id": "pilot-work-jw-sewer",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-sewer",
+      "description": "하수도 유지관리 및 민원처리 업무가 표시됨. 건물 내부 배관·상수도 누수·도로 빗물받이는 별도 소관 확인이 필요하다.",
+      "jurisdiction": "중원구 · 공공 하수도·맨홀 여부 확인"
+    },
+    {
+      "id": "pilot-work-bd-lighting",
+      "source_document_id": "pilot-source-bundang-road",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-lighting",
+      "description": "가로등·보안등 유지관리 업무가 표시됨. 교통신호등과 공동주택 내부 조명을 같은 업무로 취급하지 않는다.",
+      "jurisdiction": "분당구 · 가로등·보안등 관리기관 확인"
+    },
+    {
+      "id": "pilot-work-bd-waste",
+      "source_document_id": "pilot-source-bundang-environment",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-waste",
+      "description": "쓰레기 불법투기 관련 업무가 표시됨. 수거 요청과 처분 판단을 구분하며 행위자 식별정보를 요구하지 않는다.",
+      "jurisdiction": "분당구 · 폐기물 종류·현장 확인"
+    },
+    {
+      "id": "pilot-work-bd-noise",
+      "source_document_id": "pilot-source-bundang-environment",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-noise",
+      "description": "공사·소음 관련 환경 업무가 표시됨. 층간소음·항공소음 등 다른 원인은 별도로 분류 검토한다.",
+      "jurisdiction": "분당구 · 공사장 소음 여부 확인"
+    },
+    {
+      "id": "pilot-work-bd-parking",
+      "source_document_id": "pilot-source-bundang-parking",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-parking",
+      "description": "불법주정차 관련 업무가 표시됨. 장애인전용구역·전기차 충전구역·사유지와 구분하고 단속·과태료 판단을 맡기지 않는다.",
+      "jurisdiction": "분당구 · 일반 도로 주정차"
+    },
+    {
+      "id": "pilot-work-bd-sewer",
+      "source_document_id": "pilot-source-bundang-sewer",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-sewer",
+      "description": "하수도 유지관리 및 민원처리 업무가 표시됨. 건물 내부 배관·상수도 누수·도로 빗물받이는 별도 소관 확인이 필요하다.",
+      "jurisdiction": "분당구 · 공공 하수도·맨홀 여부 확인"
+    },
+    {
+      "id": "pilot-work-sj-park1",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-green1",
+      "description": "어린이공원·놀이터 시설 유지관리 업무가 표시됨. 녹지2팀과 지역·전기시설 소관이 겹칠 수 있어 시설명 확인이 필요하다.",
+      "jurisdiction": "수정구 · 어린이공원·놀이터·소공원, 세부 구역 재확인"
+    },
+    {
+      "id": "pilot-work-sj-park2",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-green2",
+      "description": "놀이터·소공원 전기시설 및 물놀이장 관련 업무가 표시됨. 모든 놀이터 파손을 이 팀에 배정하지 않는다.",
+      "jurisdiction": "수정구 · 어린이놀이터·소공원 전기시설 등, 구역 재확인"
+    },
+    {
+      "id": "pilot-work-jw-park",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-green",
+      "description": "어린이공원·어린이놀이터 시설물 관리 업무가 표시됨. 근린공원 전체로 범위를 확장하지 않는다.",
+      "jurisdiction": "중원구 · 어린이공원·어린이놀이터"
+    },
+    {
+      "id": "pilot-work-bd-park1",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-park1",
+      "description": "어린이공원 시설 유지관리 업무가 표시됨. 공원명·시설 종류를 확인해 두 공원 팀의 소관을 검토한다.",
+      "jurisdiction": "분당구 · 어린이공원·보행자도로, 공원2팀과 경계 재확인"
+    },
+    {
+      "id": "pilot-work-bd-park2",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-park2",
+      "description": "공원·보행자도로 시설물 관리 업무가 표시됨. 명시된 녹지 구역을 모든 시설 업무의 확정 관할로 확대하지 않는다.",
+      "jurisdiction": "분당구 · 야탑·이매·판교지구 녹지 업무 표시, 시설 경계 재확인"
+    },
+    {
+      "id": "pilot-work-sj-tree1",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-green1",
+      "description": "해당 동의 가로수 및 녹지 관리 업무가 표시됨. 나무 위치와 소유·관리기관을 확인한다.",
+      "jurisdiction": "신흥·단대·산성·양지·복정·태평·수진동"
+    },
+    {
+      "id": "pilot-work-sj-tree2",
+      "source_document_id": "pilot-source-sujeong",
+      "source_code": null,
+      "organization_id": "pilot-org-sj-green2",
+      "description": "위례동과 고등동 등의 가로수·녹지 관리 업무가 표시됨. 나머지 지역을 추정 배정하지 않는다.",
+      "jurisdiction": "위례동·고등동 등 · 그 외 동 경계 재확인"
+    },
+    {
+      "id": "pilot-work-jw-tree",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "organization_id": "pilot-org-jw-green",
+      "description": "가로수 관리 업무가 표시됨. 산림·공원 수목·사유지 나무를 같은 소관으로 단정하지 않는다.",
+      "jurisdiction": "중원구 · 공공 가로수 여부 확인"
+    },
+    {
+      "id": "pilot-work-bd-tree1",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-green1",
+      "description": "해당 동의 가로수와 녹지대 관리 업무가 표시됨.",
+      "jurisdiction": "서현·분당·수내·정자·금곡·구미동"
+    },
+    {
+      "id": "pilot-work-bd-tree2",
+      "source_document_id": "pilot-source-bundang-green",
+      "source_code": null,
+      "organization_id": "pilot-org-bd-green2",
+      "description": "해당 동의 가로수 및 녹지대·공공공지 관리 업무가 표시됨. 목록 밖 지역은 소관을 확인한다.",
+      "jurisdiction": "야탑·이매·판교·운중·삼평·백현·동원·궁내동"
+    },
+    {
+      "id": "pilot-work-basic-guide",
+      "source_document_id": "pilot-source-basic-livelihood",
+      "source_code": null,
+      "organization_id": "pilot-org-livelihood",
+      "description": "본문의 신청·조사·결정 단계가 서로 다르므로 하단 안내 담당을 최종 접수 부서로 사용하지 않는다.",
+      "jurisdiction": "성남시 · 안내 담당, 실제 신청은 동 행정복지센터"
+    },
+    {
+      "id": "pilot-work-emergency-guide",
+      "source_document_id": "pilot-source-emergency-welfare",
+      "source_code": null,
+      "organization_id": "pilot-org-livelihood",
+      "description": "위기 상황 상담·신청을 안내하는 사업 담당 표시다. 지원 결정과 급여 지급은 사람의 확인 절차에 따른다.",
+      "jurisdiction": "성남시 · 안내 담당, 실제 신청은 주소지 동 행정복지센터"
+    }
+  ],
+  "services": [
+    {
+      "id": "pilot-service-road",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "도로·보도 파손",
+      "summary": "도로의 구멍이나 보도 파손을 설명하는 대표 접수 시나리오다. 세 구의 업무분장을 후보로 연결했다. 수정구의 팀별 관할과 분당구의 차도·보도 구분, 시설 관리기관을 확인한 뒤 담당자가 배정을 검토한다.",
+      "taxonomy_ids": [
+        "pilot-category-road"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-road",
+        "pilot-work-sj-road-tf",
+        "pilot-work-jw-road",
+        "pilot-work-bd-road",
+        "pilot-work-bd-sidewalk"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "content",
+          "question": "어떤 부분이 어떻게 망가졌나요?",
+          "required": false
+        },
+        {
+          "field_id": "location_text",
+          "question": "구·동과 가까운 건물이나 도로 위치를 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "facility_type",
+          "question": "차도, 보도, 자전거도로 중 어디인가요? 모르면 그대로 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "hazard_now",
+          "question": "지금 통행이 어렵거나 바로 다칠 위험이 있나요?",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-lighting",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "가로등·보안등 고장",
+      "summary": "길의 가로등이나 보안등 고장을 설명하는 시나리오다. 세 구 건설과 도로조명팀의 표시 업무를 연결했다. 신호등이나 건물 내부 조명은 별도 소관 확인이 필요하다.",
+      "taxonomy_ids": [
+        "pilot-category-lighting"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-lighting",
+        "pilot-work-jw-lighting",
+        "pilot-work-bd-lighting"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "고장 난 조명이 있는 구·동과 가까운 건물을 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "content",
+          "question": "불이 꺼졌나요, 깜빡이나요, 시설이 파손됐나요?",
+          "required": false
+        },
+        {
+          "field_id": "observed_time",
+          "question": "언제 확인했고 지금도 같은 상태인가요?",
+          "required": false
+        },
+        {
+          "field_id": "facility_label",
+          "question": "안전한 곳에서 보이는 관리번호가 있으면 알려 주세요. 없어도 괜찮아요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-dumping",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "쓰레기 무단투기",
+      "summary": "길 등에 버려진 쓰레기의 수거·현장 확인을 요청하는 시나리오다. 각 구 청소행정팀을 후보로 연결했다. 누가 버렸는지, 처벌할 수 있는지는 자동 판단하지 않는다.",
+      "taxonomy_ids": [
+        "pilot-category-dumping"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-waste",
+        "pilot-work-jw-waste",
+        "pilot-work-bd-waste"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "쓰레기가 쌓인 구·동과 정확한 장소를 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "content",
+          "question": "어떤 쓰레기가 어느 정도 쌓여 있나요?",
+          "required": false
+        },
+        {
+          "field_id": "observed_time",
+          "question": "언제부터 보였고 반복해서 버려지는 곳인가요?",
+          "required": false
+        },
+        {
+          "field_id": "photo_available",
+          "question": "안전하게 찍은 현장 사진이 있나요? 사진 없이도 설명할 수 있어요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-playground",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "어린이공원·놀이터 시설 파손",
+      "summary": "어린이공원이나 놀이터의 망가진 시설을 알리는 시나리오다. 공원 이름·시설 종류와 구 관리 여부를 먼저 확인한다. 모든 공원 또는 공동주택 놀이터를 동일 부서로 배정하지 않는다.",
+      "taxonomy_ids": [
+        "pilot-category-playground"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-park1",
+        "pilot-work-sj-park2",
+        "pilot-work-jw-park",
+        "pilot-work-bd-park1",
+        "pilot-work-bd-park2"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "어느 구·동의 공원이나 놀이터인가요? 이름을 모르면 주변 건물을 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "content",
+          "question": "어떤 시설이 어떻게 망가졌나요?",
+          "required": false
+        },
+        {
+          "field_id": "facility_type",
+          "question": "동네 공원인가요, 아파트 안 놀이터인가요? 모르면 확인을 맡길 수 있어요.",
+          "required": false
+        },
+        {
+          "field_id": "hazard_now",
+          "question": "사람이 이용 중이거나 바로 다칠 위험이 있나요?",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-sewer",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "공공 하수도·맨홀 역류",
+      "summary": "하수도나 맨홀 주변의 막힘·역류를 알리는 시나리오다. 수정·중원구는 건설과, 분당구는 구조물관리과의 소하천관리팀 업무가 확인된다. 상수도 누수·실내 배관·도로 빗물받이는 별도 소관을 확인한다.",
+      "taxonomy_ids": [
+        "pilot-category-sewer"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-sewer",
+        "pilot-work-jw-sewer",
+        "pilot-work-bd-sewer"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "물이 넘치는 구·동과 가까운 건물을 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "facility_type",
+          "question": "도로 맨홀, 도로 가장자리 배수구, 건물 안 중 어디인가요? 모르면 설명만 해 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "content",
+          "question": "막힘, 역류, 악취 중 어떤 문제가 보이나요?",
+          "required": false
+        },
+        {
+          "field_id": "hazard_now",
+          "question": "지금 물이 계속 넘치거나 통행에 위험이 있나요?",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-parking",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "일반 도로 불법주정차 신고 안내",
+      "summary": "일반 도로의 주정차 문제를 설명하는 시나리오다. 각 구 경제교통과 주차관리팀을 후보로 연결했다. 공식 신고의 촬영 간격·요건과 단속 여부는 담당자 확인 대상이며, 이 시제품 접수는 안전신문고 전송이 아니다.",
+      "taxonomy_ids": [
+        "pilot-category-parking"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-parking",
+        "pilot-work-jw-parking",
+        "pilot-work-bd-parking"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "어느 구·동의 어떤 도로나 시설 입구인가요?",
+          "required": false
+        },
+        {
+          "field_id": "content",
+          "question": "차량 때문에 어떤 통행 문제가 생겼나요?",
+          "required": false
+        },
+        {
+          "field_id": "observed_time",
+          "question": "언제 확인했고 지금도 차량이 있나요?",
+          "required": false
+        },
+        {
+          "field_id": "parking_area",
+          "question": "일반 도로, 장애인전용구역, 전기차 충전구역, 사유지 중 어디인가요?",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-construction-noise",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "공사장 소음 불편",
+      "summary": "공사장에서 발생하는 소음 불편을 설명하는 시나리오다. 수정·중원구 환경위생과, 분당구 환경자원과의 환경보호팀 업무를 연결했다. 소음 기준 초과나 위법 여부는 판단하지 않는다.",
+      "taxonomy_ids": [
+        "pilot-category-construction-noise"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-noise",
+        "pilot-work-jw-noise",
+        "pilot-work-bd-noise"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "소음이 발생하는 공사장의 구·동과 위치를 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "content",
+          "question": "어떤 소리가 들리고 생활에 어떤 불편이 있나요?",
+          "required": false
+        },
+        {
+          "field_id": "observed_time",
+          "question": "주로 어느 시간에 얼마나 오래 들리나요?",
+          "required": false
+        },
+        {
+          "field_id": "noise_source",
+          "question": "공사장 소음이 맞나요? 원인을 모르면 그대로 알려 주세요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-street-tree",
+      "source_document_id": "pilot-source-jungwon",
+      "source_code": null,
+      "title": "가로수 가지·통행 불편",
+      "summary": "길가 가로수의 가지가 통행을 방해하거나 파손된 상황을 알리는 시나리오다. 세 구의 지역별 녹지 담당 업무를 연결했다. 산림·공원 수목·사유지 나무와 구분하고 벌목 허용 여부는 판단하지 않는다.",
+      "taxonomy_ids": [
+        "pilot-category-street-tree"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-sj-tree1",
+        "pilot-work-sj-tree2",
+        "pilot-work-jw-tree",
+        "pilot-work-bd-tree1",
+        "pilot-work-bd-tree2"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "location_text",
+          "question": "문제가 있는 나무의 구·동과 가까운 도로나 건물을 알려 주세요.",
+          "required": false
+        },
+        {
+          "field_id": "content",
+          "question": "가지가 길을 막거나 부러진 부분이 있나요?",
+          "required": false
+        },
+        {
+          "field_id": "facility_type",
+          "question": "도로변 가로수인가요, 공원이나 건물 안 나무인가요?",
+          "required": false
+        },
+        {
+          "field_id": "hazard_now",
+          "question": "지금 가지가 떨어질 위험이나 전선 접촉이 보이나요? 가까이 가지 않아도 돼요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-basic-livelihood",
+      "source_document_id": "pilot-source-basic-livelihood",
+      "source_code": "25017",
+      "title": "기초생활보장 상담·신청 안내",
+      "summary": "생계·주거 등 생활 지원 제도를 찾는 정보 안내 시나리오다. 공식 페이지가 안내하는 동 행정복지센터 신청 경로를 확인한다. 본문에 이전 연도 기준이 남아 있어 금액·수급 자격은 답변 근거에서 제외했다. 챗봇 문의만으로 급여 신청이 완료되지 않는다.",
+      "taxonomy_ids": [
+        "pilot-category-basic-livelihood"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-basic-guide"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "support_topic",
+          "question": "생활비, 주거, 의료, 교육 중 어떤 도움이 가장 필요한가요? 자세한 개인정보는 쓰지 않아도 돼요.",
+          "required": false
+        },
+        {
+          "field_id": "location_text",
+          "question": "안내받을 지역의 구·동을 알려 주세요. 상세 집 주소는 필요하지 않아요.",
+          "required": false
+        },
+        {
+          "field_id": "request_goal",
+          "question": "제도 설명을 원하시나요, 신청 창구 안내를 원하시나요?",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-emergency-welfare",
+      "source_document_id": "pilot-source-emergency-welfare",
+      "source_code": "24011",
+      "title": "긴급복지 상담·신청 안내",
+      "summary": "갑작스러운 생활 위기로 지원을 찾는 정보 안내 시나리오다. 주소지 동 행정복지센터 상담·신청 경로를 안내하는 후보이며 지원 가능 여부·금액은 담당자가 확인한다. 긴급한 위험을 일반 질문이나 사진 대기로 지연시키지 않는다.",
+      "taxonomy_ids": [
+        "pilot-category-emergency-welfare"
+      ],
+      "work_assignment_ids": [
+        "pilot-work-emergency-guide"
+      ],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "support_topic",
+          "question": "생활비, 거처, 의료 등 지금 어떤 도움이 필요한가요? 불편한 사정은 자세히 쓰지 않아도 돼요.",
+          "required": false
+        },
+        {
+          "field_id": "location_text",
+          "question": "상담을 연결할 구·동을 알려 주세요. 상세 집 주소는 필요하지 않아요.",
+          "required": false
+        },
+        {
+          "field_id": "immediate_help",
+          "question": "지금 당장 안전이나 오늘 생활을 위한 도움이 필요한 상황인가요?",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-basic-pension",
+      "source_document_id": "pilot-source-basic-pension",
+      "source_code": "22006",
+      "title": "기초연금 상담·신청 안내",
+      "summary": "기초연금 제도와 상담·신청 창구를 찾는 시나리오다. 본문의 접수·조사·결정·지급 담당과 하단 담당 부서 표기가 달라 조직 매핑을 보류했다. 수급 가능 여부나 지급액을 단정하지 않고 공식 창구의 확인으로 연결한다.",
+      "taxonomy_ids": [
+        "pilot-category-basic-pension"
+      ],
+      "work_assignment_ids": [],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "request_goal",
+          "question": "기초연금 설명, 신청 방법, 신청 후 진행 확인 중 무엇이 궁금한가요?",
+          "required": false
+        },
+        {
+          "field_id": "location_text",
+          "question": "상담받을 구·동을 알려 주세요. 상세 집 주소는 필요하지 않아요.",
+          "required": false
+        },
+        {
+          "field_id": "application_stage",
+          "question": "처음 신청하려는지, 이미 신청한 내용이 궁금한지 알려 주세요. 모르면 건너뛰어도 돼요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    },
+    {
+      "id": "pilot-service-activity-support",
+      "source_document_id": "pilot-source-activity-support",
+      "source_code": "23002",
+      "title": "장애인 활동지원 상담·신청 안내",
+      "summary": "일상생활에 필요한 활동지원 제도와 신청 창구를 찾는 시나리오다. 공식 사업명은 중증장애인 활동지원사업이다. 본문 문의처와 하단 담당 부서가 달라 조직 매핑을 보류했다. 자격·지원시간을 판단하거나 진단서·장애 증명·계좌 사본을 챗봇에 제출하도록 요구하지 않는다.",
+      "taxonomy_ids": [
+        "pilot-category-activity-support"
+      ],
+      "work_assignment_ids": [],
+      "regions": [
+        "SEONGNAM"
+      ],
+      "required_information": [
+        {
+          "field_id": "request_goal",
+          "question": "활동지원 제도 설명, 신청 방법, 이용 중 문의 중 무엇이 필요한가요?",
+          "required": false
+        },
+        {
+          "field_id": "location_text",
+          "question": "상담을 연결할 구·동을 알려 주세요. 상세 집 주소는 필요하지 않아요.",
+          "required": false
+        },
+        {
+          "field_id": "support_topic",
+          "question": "어떤 일상 활동에 도움이 필요한지 편한 만큼만 알려 주세요. 진단명이나 증명서 없이 설명할 수 있어요.",
+          "required": false
+        }
+      ],
+      "effective_from": null,
+      "effective_until": null,
+      "requires_human_review": true
+    }
+  ]
+}

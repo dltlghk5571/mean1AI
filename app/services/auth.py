@@ -53,7 +53,7 @@ class AuthenticatedUser:
 
     @property
     def permissions(self) -> list[str]:
-        permissions = ["complaint:read", "audit:read"]
+        permissions = ["complaint:read", "audit:read", "incident:read"]
         if self.can_triage:
             permissions.extend(
                 [
@@ -61,10 +61,12 @@ class AuthenticatedUser:
                     "complaint:reprocess",
                     "location:confirm",
                     "duplicate:review",
+                    "incident:manage",
                 ]
             )
         if self.can_review:
             permissions.append("complaint:approve")
+            permissions.append("incident:publish")
         return permissions
 
 

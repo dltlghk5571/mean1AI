@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block body_class %}incident-page{% endblock %}
+{% block topbar_title %}공통 현장 사건{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/incidents.css') }}">
+<script defer src="{{ url_for('static', path='/incidents.js') }}"></script>
+<div class="incident-shell">
+  {% if error %}<p class="incident-error" role="alert" tabindex="-1">{{ error }}</p>{% endif %}
+  {% block incident_content %}{% endblock %}
+</div>
+{% endblock %}

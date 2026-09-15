@@ -1,0 +1,124 @@
+{
+  "$defs": {
+    "ComparisonInput": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "enum": [
+            "current",
+            "candidate"
+          ],
+          "title": "Ref",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "title": "Title",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 4000,
+          "title": "Content",
+          "type": "string"
+        },
+        "location": {
+          "maxLength": 300,
+          "title": "Location",
+          "type": "string"
+        },
+        "content_truncated": {
+          "title": "Content Truncated",
+          "type": "boolean"
+        },
+        "category": {
+          "maxLength": 80,
+          "title": "Category",
+          "type": "string"
+        },
+        "submitted_at": {
+          "format": "date-time",
+          "title": "Submitted At",
+          "type": "string"
+        },
+        "urgency": {
+          "enum": [
+            "normal",
+            "high",
+            "critical"
+          ],
+          "title": "Urgency",
+          "type": "string"
+        },
+        "field_status": {
+          "enum": [
+            "none",
+            "checking",
+            "in_progress",
+            "resolved"
+          ],
+          "title": "Field Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "title",
+        "content",
+        "location",
+        "content_truncated",
+        "category",
+        "submitted_at",
+        "urgency",
+        "field_status"
+      ],
+      "title": "ComparisonInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task": {
+      "const": "compare_incidents",
+      "default": "compare_incidents",
+      "title": "Task",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "current": {
+      "$ref": "#/$defs/ComparisonInput"
+    },
+    "candidate": {
+      "$ref": "#/$defs/ComparisonInput"
+    }
+  },
+  "required": [
+    "request_id",
+    "input_hash",
+    "model_id",
+    "current",
+    "candidate"
+  ],
+  "title": "ComparisonRequest",
+  "type": "object"
+}

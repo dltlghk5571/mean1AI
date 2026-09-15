@@ -1,0 +1,215 @@
+{
+  "$defs": {
+    "AnswerSuggestion": {
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "pattern": "^[a-z_]{1,40}$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        },
+        "quote": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field_id",
+        "value",
+        "quote"
+      ],
+      "title": "AnswerSuggestion",
+      "type": "object"
+    },
+    "ExtractionProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "abstained": {
+          "title": "Abstained",
+          "type": "boolean"
+        },
+        "reason": {
+          "enum": [
+            "supported",
+            "ambiguous",
+            "multiple_issues",
+            "insufficient_information"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "purpose": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PurposeSuggestion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TopicSuggestion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "location": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LocationSuggestion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "answers": {
+          "items": {
+            "$ref": "#/$defs/AnswerSuggestion"
+          },
+          "maxItems": 4,
+          "title": "Answers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "abstained",
+        "reason",
+        "purpose",
+        "topic",
+        "location",
+        "answers"
+      ],
+      "title": "ExtractionProposal",
+      "type": "object"
+    },
+    "LocationSuggestion": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        },
+        "quote": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "quote"
+      ],
+      "title": "LocationSuggestion",
+      "type": "object"
+    },
+    "PurposeSuggestion": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "complaint",
+            "information"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "quote": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "quote"
+      ],
+      "title": "PurposeSuggestion",
+      "type": "object"
+    },
+    "TopicSuggestion": {
+      "additionalProperties": false,
+      "properties": {
+        "template_id": {
+          "pattern": "^[a-z-]{1,40}$",
+          "title": "Template Id",
+          "type": "string"
+        },
+        "quote": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "template_id",
+        "quote"
+      ],
+      "title": "TopicSuggestion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "execution_mode": {
+      "enum": [
+        "model",
+        "synthetic"
+      ],
+      "title": "Execution Mode",
+      "type": "string"
+    },
+    "proposal": {
+      "$ref": "#/$defs/ExtractionProposal"
+    }
+  },
+  "required": [
+    "request_id",
+    "input_hash",
+    "model_id",
+    "execution_mode",
+    "proposal"
+  ],
+  "title": "ExtractionResponse",
+  "type": "object"
+}

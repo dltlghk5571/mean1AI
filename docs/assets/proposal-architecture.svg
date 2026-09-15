@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="780" viewBox="0 0 1600 780" role="img" aria-labelledby="title desc">
+  <title id="title">성남 민원 AI의 시민 이용 흐름과 두 모델 역할</title>
+  <desc id="desc">시민 대화, 진행과 자료 조회, 시민 확인과 동의, 내부 접수, 담당자 검토와 답변, 내 민원 조회가 연결된다. 승인 자료 도구는 구현됐으며 두 LLM은 실제 연결 대기 상태다.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#52616c" stroke-width="1.6"/></marker>
+    <style>
+      text { font-family: 'Malgun Gothic', 'Noto Sans CJK KR', sans-serif; fill: #203b34; }
+      .head { font-size: 34px; font-weight: 700; }
+      .label { font-size: 26px; font-weight: 700; }
+      .body { font-size: 20px; }
+      .small { font-size: 20px; fill: #52616c; }
+      .built { fill: #eef7f1; stroke: #428067; stroke-width: 2; }
+      .planned { fill: #f7f4fb; stroke: #8469a5; stroke-width: 2; stroke-dasharray: 9 6; }
+      .line { fill: none; stroke: #52616c; stroke-width: 2.5; marker-end: url(#arrow); }
+      .planned-line { fill: none; stroke: #8469a5; stroke-width: 2.5; stroke-dasharray: 8 6; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1600" height="780" fill="white"/>
+  <text x="40" y="55" class="head">상황 설명에서 내 민원 답변까지</text>
+  <text x="40" y="91" class="small">2026-09-15 기준 · 현재 접수는 시제품 내부 접수</text>
+  <rect x="275" y="135" width="250" height="150" rx="16" class="built"/>
+  <text x="300" y="177" class="label">승인 자료·도구</text>
+  <text x="300" y="216" class="body">검색·필요 정보 조회</text>
+  <text x="300" y="253" class="small">실자료 적용은 검수 대기</text>
+  <rect x="600" y="135" width="300" height="150" rx="16" class="planned"/>
+  <text x="625" y="177" class="label">대화 LLM</text>
+  <text x="625" y="216" class="body">목적·원문 추출·다음 행동</text>
+  <text x="625" y="253" class="small">실제 모델 연결 대기</text>
+  <rect x="1010" y="135" width="345" height="150" rx="16" class="planned"/>
+  <text x="1035" y="177" class="label">분류 LLM</text>
+  <text x="1035" y="216" class="body">업무 후보·보류·사건 비교</text>
+  <text x="1035" y="253" class="small">실제 모델 연결 대기</text>
+  <path d="M400 285 V385" class="line"/>
+  <path d="M750 285 V320 H450 V385" class="planned-line"/>
+  <path d="M930 385 V340 H1090 V290" class="planned-line"/>
+  <text x="950" y="326" class="small">접수 후 분류 요청</text>
+  <path d="M1220 285 V385" class="planned-line"/>
+  <rect x="40" y="390" width="220" height="165" rx="16" class="built"/>
+  <text x="66" y="435" class="label">시민 대화</text>
+  <text x="66" y="475" class="body">상황 설명·모름</text>
+  <text x="66" y="512" class="body">큰 글자·키보드</text>
+  <rect x="300" y="390" width="220" height="165" rx="16" class="built"/>
+  <text x="323" y="435" class="label">진행·자료 조회</text>
+  <text x="323" y="475" class="body">안내 또는 접수 준비</text>
+  <text x="323" y="512" class="body">권한·제안 검증</text>
+  <rect x="560" y="390" width="220" height="165" rx="16" class="built"/>
+  <text x="583" y="435" class="label">시민 확인·동의</text>
+  <text x="583" y="475" class="body">정리 내용·사진 수정</text>
+  <text x="583" y="512" class="body">최종 접수 동의</text>
+  <rect x="820" y="390" width="220" height="165" rx="16" class="built"/>
+  <text x="847" y="435" class="label">내부 접수</text>
+  <text x="847" y="475" class="body">민원·처리 큐 저장</text>
+  <text x="847" y="512" class="body">재전송 중복 방지</text>
+  <rect x="1080" y="390" width="220" height="165" rx="16" class="built"/>
+  <text x="1103" y="435" class="label">담당자 검토</text>
+  <text x="1103" y="475" class="body">분류·공통 사건 확인</text>
+  <text x="1103" y="512" class="body">개별 답변 공개</text>
+  <rect x="1340" y="390" width="220" height="165" rx="16" class="built"/>
+  <text x="1365" y="435" class="label">내 민원 조회</text>
+  <text x="1365" y="475" class="body">본인 기록·진행</text>
+  <text x="1365" y="512" class="body">공개 답변·추가 문의</text>
+  <path d="M262 472 H293" class="line"/><path d="M522 472 H553" class="line"/>
+  <path d="M782 472 H813" class="line"/><path d="M1042 472 H1073" class="line"/>
+  <path d="M1302 472 H1333" class="line"/>
+  <path d="M410 555 V610 H660" class="line"/>
+  <text x="685" y="619" class="body">정보 안내는 근거를 설명하고 마침 · 접수 기록을 만들지 않음</text>
+  <rect x="40" y="675" width="22" height="22" rx="4" class="built"/>
+  <text x="76" y="695" class="small">시제품 구현</text>
+  <rect x="260" y="675" width="22" height="22" rx="4" class="planned"/>
+  <text x="296" y="695" class="small">실제 모델 연결 대기</text>
+  <text x="40" y="743" class="small">모델은 제안만 반환한다. 시민 동의·저장·자료 실행·답변 공개는 앱과 권한 있는 사용자가 담당한다.</text>
+</svg>

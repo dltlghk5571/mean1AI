@@ -1,0 +1,136 @@
+{
+  "$defs": {
+    "ComparisonEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "enum": [
+            "current",
+            "candidate"
+          ],
+          "title": "Ref",
+          "type": "string"
+        },
+        "field": {
+          "enum": [
+            "title",
+            "content",
+            "location"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "quote": {
+          "maxLength": 180,
+          "minLength": 4,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "field",
+        "quote"
+      ],
+      "title": "ComparisonEvidence",
+      "type": "object"
+    },
+    "ComparisonProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "relation": {
+          "$ref": "#/$defs/Relation"
+        },
+        "summary": {
+          "maxLength": 400,
+          "minLength": 5,
+          "title": "Summary",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ComparisonEvidence"
+          },
+          "maxItems": 6,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "differences": {
+          "items": {
+            "maxLength": 180,
+            "minLength": 2,
+            "type": "string"
+          },
+          "maxItems": 5,
+          "title": "Differences",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "maxLength": 180,
+            "minLength": 2,
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "relation",
+        "summary",
+        "evidence",
+        "differences",
+        "questions"
+      ],
+      "title": "ComparisonProposal",
+      "type": "object"
+    },
+    "Relation": {
+      "enum": [
+        "same_incident",
+        "related_distinct",
+        "recurrence",
+        "uncertain"
+      ],
+      "title": "Relation",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "proposal": {
+      "$ref": "#/$defs/ComparisonProposal"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "input_hash",
+    "model_id",
+    "proposal"
+  ],
+  "title": "ComparisonResponse",
+  "type": "object"
+}

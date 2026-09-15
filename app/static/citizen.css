@@ -2,7 +2,7 @@
 :root {
   --ink:#17382f;
   --text:#304a42;
-  --muted:#677c73;
+  --muted:#52685e;
   --green:#176749;
   --green-dark:#104c36;
   --mint:#eaf6ef;
@@ -28,7 +28,7 @@ html {
 
 body {
   margin:0;
-  font-size:15px;
+  font-size:0.9375rem;
   line-height:1.65;
   word-break:keep-all
 }
@@ -78,16 +78,16 @@ h1 {
 }
 
 h2 {
-  font-size:28px;
+  font-size:1.75rem;
   line-height:1.4
 }
 
 h3 {
-  font-size:18px
+  font-size:1.125rem
 }
 
 small {
-  font-size:12px
+  font-size:0.75rem
 }
 
 code {
@@ -149,7 +149,7 @@ main:focus {
 .demo-strip {
   background:#edf3eb;
   color:#5c7467;
-  font-size:11px;
+  font-size:0.6875rem;
   letter-spacing:-.015em
 }
 
@@ -162,7 +162,7 @@ main:focus {
 }
 
 .demo-label {
-  font-size:9px;
+  font-size:0.5625rem;
   font-weight:800;
   letter-spacing:.07em;
   border:1px solid #a7bba9;
@@ -188,7 +188,7 @@ main:focus {
   align-items:center;
   gap:12px;
   color:var(--ink);
-  font-size:21px;
+  font-size:1.3125rem;
   letter-spacing:-.06em;
   white-space:nowrap
 }
@@ -207,7 +207,7 @@ main:focus {
   background:var(--green);
   border-radius:13px 13px 13px 4px;
   color:#fff;
-  font:800 16px system-ui;
+  font:800 1rem system-ui;
   letter-spacing:-.07em
 }
 
@@ -226,7 +226,7 @@ main:focus {
   align-items:center;
   gap:34px;
   height:100%;
-  font-size:14px;
+  font-size:0.875rem;
   font-weight:700
 }
 
@@ -256,7 +256,7 @@ main:focus {
 .staff-link {
   margin-left:auto;
   color:var(--muted);
-  font-size:12px;
+  font-size:0.75rem;
   white-space:nowrap
 }
 
@@ -280,7 +280,7 @@ main:focus {
 }
 
 .eyebrow {
-  font-size:12px;
+  font-size:0.75rem;
   font-weight:750;
   letter-spacing:.02em;
   color:var(--green);
@@ -307,7 +307,7 @@ main:focus {
 }
 
 .hero h1 {
-  font-size:clamp(36px,3.8vw,51px);
+  font-size:clamp(2.25rem,calc(3.8vw * var(--citizen-text-scale, 1)),3.1875rem);
   font-weight:800;
   letter-spacing:-.065em;
   line-height:1.34
@@ -329,7 +329,7 @@ main:focus {
 }
 
 .hero-description {
-  font-size:15px;
+  font-size:0.9375rem;
   color:#637968;
   line-height:1.95;
   margin-top:21px;
@@ -351,7 +351,7 @@ main:focus {
   padding:11px 21px;
   border-radius:10px;
   font-weight:700;
-  font-size:14px;
+  font-size:0.875rem;
   line-height:1.5;
   white-space:nowrap;
   transition:background .18s,box-shadow .18s,transform .18s;
@@ -404,7 +404,7 @@ main:focus {
   align-items:center;
   gap:5px;
   margin-top:16px;
-  font-size:11px;
+  font-size:0.6875rem;
   color:#697e6d
 }
 
@@ -433,7 +433,7 @@ main:focus {
   right:10px;
   letter-spacing:.12em;
   color:#759577;
-  font-size:10px
+  font-size:0.625rem
 }
 
 .art-note {
@@ -459,14 +459,14 @@ main:focus {
 }
 
 .art-note strong {
-  font-size:12px;
+  font-size:0.75rem;
   display:block;
   color:#315140
 }
 
 .art-note small {
   color:#819084;
-  font-size:10px
+  font-size:0.625rem
 }
 
 .topics-section {
@@ -486,7 +486,7 @@ main:focus {
 }
 
 .section-heading>p {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted);
   line-height:1.9;
   text-align:right
@@ -551,12 +551,12 @@ main:focus {
 }
 
 .topic-card h3 {
-  font-size:17px;
+  font-size:1.0625rem;
   margin-bottom:5px
 }
 
 .topic-card p {
-  font-size:11px;
+  font-size:0.6875rem;
   line-height:1.75;
   color:var(--muted);
   letter-spacing:-.035em
@@ -566,7 +566,7 @@ main:focus {
   position:absolute;
   top:20px;
   right:19px;
-  font-size:18px;
+  font-size:1.125rem;
   color:#97a899
 }
 
@@ -591,14 +591,14 @@ main:focus {
 }
 
 .how-inner h2 {
-  font-size:26px
+  font-size:1.625rem
 }
 
 .text-link {
   display:inline-flex;
   align-items:center;
   gap:9px;
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:700;
   color:var(--green);
   background:none;
@@ -628,7 +628,7 @@ main:focus {
   height:55px;
   border-radius:17px;
   border:1px solid #d9e3d4;
-  color:#5b855c;
+  color:#4e683c;
   background:#f9fcf5;
   margin-bottom:20px
 }
@@ -650,16 +650,16 @@ main:focus {
   display:grid;
   place-items:center;
   border-radius:50%;
-  font:600 9px system-ui
+  font:600 0.5625rem system-ui
 }
 
 .how-steps h3 {
-  font-size:16px;
+  font-size:1rem;
   margin-bottom:8px
 }
 
 .how-steps p {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted);
   line-height:1.9
 }
@@ -687,7 +687,7 @@ main:focus {
   justify-content:space-between;
   gap:15px;
   cursor:pointer;
-  font-size:14px;
+  font-size:0.875rem;
   font-weight:700;
   color:var(--ink);
   min-height:27px;
@@ -699,7 +699,7 @@ main:focus {
 }
 
 .faq-list summary span {
-  font:300 23px system-ui;
+  font:300 1.4375rem system-ui;
   color:#789077
 }
 
@@ -709,7 +709,7 @@ main:focus {
 
 .faq-list details p {
   padding-top:13px;
-  font-size:13px;
+  font-size:0.8125rem;
   line-height:1.95;
   color:var(--muted)
 }
@@ -728,7 +728,7 @@ main:focus {
 }
 
 .footer-brand {
-  font-size:16px;
+  font-size:1rem;
   font-weight:750;
   letter-spacing:-.055em;
   color:#596e5a;
@@ -738,7 +738,7 @@ main:focus {
 }
 
 .footer-brand span {
-  font-size:8px;
+  font-size:0.5rem;
   letter-spacing:.07em;
   border:1px solid #b9c7b6;
   border-radius:3px;
@@ -747,20 +747,20 @@ main:focus {
 }
 
 .footer-inner p {
-  font-size:11px;
+  font-size:0.6875rem;
   color:#73836f;
   margin:9px 0 3px
 }
 
 .footer-inner small {
-  font-size:10px;
+  font-size:0.625rem;
   color:#758171;
   line-height:1.8;
   display:block
 }
 
 .footer-inner>a {
-  font-size:11px;
+  font-size:0.6875rem;
   color:#73836f;
   padding-top:5px;
   white-space:nowrap
@@ -781,7 +781,7 @@ main:focus {
   align-items:center;
   gap:8px;
   color:var(--muted);
-  font-size:12px;
+  font-size:0.75rem;
   padding-block:7px;
   margin-bottom:23px
 }
@@ -796,13 +796,13 @@ main:focus {
 }
 
 .page-heading h1 {
-  font-size:34px;
+  font-size:2.125rem;
   overflow-wrap:anywhere
 }
 
 .page-heading>p:last-child {
   margin-top:13px;
-  font-size:14px;
+  font-size:0.875rem;
   color:var(--muted)
 }
 
@@ -823,7 +823,7 @@ main:focus {
   align-items:center;
   gap:9px;
   color:#79867b;
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:600
 }
 
@@ -842,7 +842,7 @@ main:focus {
   place-items:center;
   background:#e7ede4;
   border-radius:50%;
-  font-size:12px
+  font-size:0.75rem
 }
 
 .progress-steps li[aria-current] {
@@ -887,18 +887,18 @@ main:focus {
 }
 
 .surface-heading h2 {
-  font-size:21px;
+  font-size:1.3125rem;
   line-height:1.5
 }
 
 .surface-heading .eyebrow {
-  font-size:10px;
+  font-size:0.625rem;
   letter-spacing:.08em;
   margin-bottom:6px
 }
 
 .surface-heading>div>p:last-child:not(.eyebrow) {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted);
   margin-top:7px
 }
@@ -908,7 +908,7 @@ main:focus {
 }
 
 .required-note {
-  font-size:11px;
+  font-size:0.6875rem;
   color:#7e877b;
   white-space:nowrap;
   padding-top:28px
@@ -923,12 +923,12 @@ main:focus {
   background:#f0f6ec;
   border-radius:9px;
   padding:12px 14px;
-  font-size:12px;
+  font-size:0.75rem;
   margin-bottom:23px
 }
 
 .selected-topic small {
-  font-size:10px;
+  font-size:0.625rem;
   color:#6c846b;
   margin-left:auto
 }
@@ -946,7 +946,7 @@ main:focus {
 }
 
 .field>span:first-child {
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:700;
   color:var(--ink)
 }
@@ -957,7 +957,7 @@ main:focus {
 }
 
 .field>span>small {
-  font-size:10px;
+  font-size:0.625rem;
   font-weight:400;
   background:#f0f2ed;
   color:var(--muted);
@@ -975,13 +975,13 @@ main:focus {
   padding:12px 14px;
   outline:0;
   transition:border .15s,box-shadow .15s;
-  font-size:14px;
+  font-size:0.875rem;
   line-height:1.8
 }
 
 .field input::placeholder,.field textarea::placeholder {
   color:#8d9a8e;
-  font-size:13px
+  font-size:0.8125rem
 }
 
 .field input:focus,.field textarea:focus {
@@ -999,7 +999,7 @@ main:focus {
 }
 
 .field-help {
-  font-size:11px;
+  font-size:0.6875rem;
   color:#7d8c7d;
   font-weight:400;
   line-height:1.8
@@ -1034,7 +1034,7 @@ main:focus {
 
 .field-error {
   color:#a34431;
-  font-size:12px;
+  font-size:0.75rem;
   line-height:1.65
 }
 
@@ -1055,12 +1055,12 @@ main:focus {
 }
 
 .example-row p {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted)
 }
 
 .example-row .text-link {
-  font-size:12px
+  font-size:0.75rem
 }
 
 .form-actions {
@@ -1096,7 +1096,7 @@ main:focus {
 }
 
 .helper-card h2 {
-  font-size:16px;
+  font-size:1rem;
   margin-bottom:22px
 }
 
@@ -1114,7 +1114,7 @@ main:focus {
   display:grid;
   grid-template-columns:21px 1fr;
   gap:2px 8px;
-  font-size:12px
+  font-size:0.75rem
 }
 
 .helper-card li:before {
@@ -1126,19 +1126,19 @@ main:focus {
   text-align:center;
   background:#f7faef;
   line-height:20px;
-  font-size:10px;
+  font-size:0.625rem;
   color:#789069;
   margin-top:1px
 }
 
 .helper-card li b {
   color:#486548;
-  font-size:12px
+  font-size:0.75rem
 }
 
 .helper-card li span {
   color:#7b8b73;
-  font-size:11px
+  font-size:0.6875rem
 }
 
 .aside-note {
@@ -1147,7 +1147,7 @@ main:focus {
   gap:10px;
   padding:21px 14px 0;
   color:#7b8d75;
-  font-size:11px
+  font-size:0.6875rem
 }
 
 .aside-note .icon {
@@ -1163,7 +1163,7 @@ main:focus {
   border-radius:10px;
   padding:16px 18px;
   margin-bottom:18px;
-  font-size:13px
+  font-size:0.8125rem
 }
 
 .notice {
@@ -1173,7 +1173,7 @@ main:focus {
   background:#f7f1e2;
   border-radius:11px;
   padding:15px;
-  font-size:12px;
+  font-size:0.75rem;
   color:#7d7453;
   line-height:1.85
 }
@@ -1191,7 +1191,7 @@ main:focus {
 
 .notice strong {
   color:#4a6846;
-  font-size:12px
+  font-size:0.75rem
 }
 
 .review-content {
@@ -1203,14 +1203,14 @@ main:focus {
 }
 
 .review-content dt {
-  font-size:11px;
+  font-size:0.6875rem;
   color:var(--muted);
   margin-bottom:9px
 }
 
 .review-content dd {
   margin:0;
-  font-size:14px;
+  font-size:0.875rem;
   line-height:1.9;
   overflow-wrap:anywhere;
   color:var(--text)
@@ -1245,20 +1245,20 @@ main:focus {
 }
 
 .consent-box strong {
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--ink);
   font-weight:650
 }
 
 .consent-box strong b {
-  font-size:11px;
+  font-size:0.6875rem;
   font-weight:500;
   color:var(--green);
   white-space:nowrap
 }
 
 .consent-box small {
-  font-size:11px;
+  font-size:0.6875rem;
   line-height:1.85;
   color:var(--muted);
   display:block;
@@ -1298,17 +1298,17 @@ main:focus {
 }
 
 .receipt-heading .eyebrow {
-  font-size:11px;
+  font-size:0.6875rem;
   margin-bottom:10px
 }
 
 .receipt-heading h1 {
-  font-size:35px
+  font-size:2.1875rem
 }
 
 .receipt-heading>p:last-child {
   color:var(--muted);
-  font-size:13px;
+  font-size:0.8125rem;
   line-height:1.9;
   margin-top:14px
 }
@@ -1327,14 +1327,14 @@ main:focus {
 }
 
 .receipt-top>span:first-child {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted);
   font-weight:650
 }
 
 .receipt-top small {
   display:inline-block;
-  font-size:9px;
+  font-size:0.5625rem;
   background:#f1f3ec;
   color:#8b947e;
   border-radius:4px;
@@ -1350,7 +1350,7 @@ main:focus {
   padding:4px 10px;
   background:#eef1e8;
   color:#687659;
-  font-size:10px;
+  font-size:0.625rem;
   font-weight:750;
   white-space:nowrap
 }
@@ -1365,7 +1365,7 @@ main:focus {
 
 .status-pill.checking {
   background:#edf4e6;
-  color:#638143
+  color:#466426
 }
 
 .status-pill.answered {
@@ -1374,7 +1374,7 @@ main:focus {
 }
 
 .receipt-card h2 {
-  font-size:20px;
+  font-size:1.25rem;
   overflow-wrap:anywhere
 }
 
@@ -1398,7 +1398,7 @@ main:focus {
 }
 
 .receipt-data dt {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted)
 }
 
@@ -1408,13 +1408,13 @@ main:focus {
   align-items:center;
   justify-content:space-between;
   gap:6px;
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--ink);
   min-height:28px
 }
 
 .receipt-data code {
-  font-size:14px;
+  font-size:0.875rem;
   font-weight:650;
   letter-spacing:.035em
 }
@@ -1448,7 +1448,7 @@ main:focus {
 }
 
 .receipt-demo-note {
-  font-size:10px;
+  font-size:0.625rem;
   color:#86917f;
   text-align:center;
   margin-top:19px
@@ -1478,7 +1478,7 @@ main:focus {
   border-radius:50%;
   background:#edf5e7;
   color:#718964;
-  font-size:12px;
+  font-size:0.75rem;
   font-weight:700;
   min-width:27px;
   height:27px
@@ -1509,31 +1509,31 @@ main:focus {
 }
 
 .empty-state h3 {
-  font-size:18px;
+  font-size:1.125rem;
   margin-bottom:10px
 }
 
 .empty-state p {
-  font-size:12px;
+  font-size:0.75rem;
   line-height:1.9
 }
 
 .empty-state .button {
   margin-top:24px;
-  font-size:12px;
+  font-size:0.75rem;
   min-height:43px
 }
 
 .empty-state h1 {
-  font-size:28px;
+  font-size:1.75rem;
   margin-bottom:13px
 }
 
 .records-footnote {
   border-top:1px solid #ebefe5;
   padding-top:18px;
-  color:#88917e;
-  font-size:10px;
+  color:#596d60;
+  font-size:0.625rem;
   line-height:1.9
 }
 
@@ -1549,11 +1549,11 @@ main:focus {
 }
 
 .lookup-card h2 {
-  font-size:21px
+  font-size:1.3125rem
 }
 
 .lookup-card>p {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted);
   line-height:1.95;
   margin-top:10px
@@ -1568,14 +1568,14 @@ main:focus {
 }
 
 .lookup-card .field input {
-  font-size:13px
+  font-size:0.8125rem
 }
 
 .lookup-card .lookup-note {
   display:flex;
   align-items:center;
   gap:6px;
-  font-size:10px;
+  font-size:0.625rem;
   justify-content:center;
   margin-top:17px;
   color:#879580
@@ -1608,12 +1608,12 @@ main:focus {
 }
 
 .record-item small {
-  font-size:10px;
+  font-size:0.625rem;
   color:#8b9684
 }
 
 .record-item h3 {
-  font-size:17px;
+  font-size:1.0625rem;
   margin:14px 0 9px;
   overflow-wrap:anywhere
 }
@@ -1623,7 +1623,7 @@ main:focus {
   align-items:center;
   justify-content:space-between;
   gap:10px;
-  font-size:11px;
+  font-size:0.6875rem;
   color:#899681
 }
 
@@ -1649,16 +1649,16 @@ main:focus {
 }
 
 .detail-meta code {
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--muted)
 }
 
 .detail-shell .page-heading h1 {
-  font-size:30px
+  font-size:1.875rem
 }
 
 .detail-shell .page-heading>p:last-child {
-  font-size:12px
+  font-size:0.75rem
 }
 
 .status-track {
@@ -1675,8 +1675,8 @@ main:focus {
 .status-track li {
   position:relative;
   text-align:center;
-  font-size:12px;
-  color:#8b9981;
+  font-size:0.75rem;
+  color:#52685e;
   display:flex;
   flex-direction:column;
   align-items:center
@@ -1711,16 +1711,16 @@ main:focus {
 }
 
 .status-track strong {
-  font-size:12px
+  font-size:0.75rem
 }
 
 .status-track small {
-  font-size:10px;
+  font-size:0.625rem;
   margin-top:4px
 }
 
 .status-track li.complete {
-  color:#6c8e53
+  color:#4e683c
 }
 
 .status-track li.complete>span {
@@ -1763,11 +1763,11 @@ main:focus {
 
 .answer-waiting .text-link {
   margin-top:23px;
-  font-size:11px
+  font-size:0.6875rem
 }
 
 .answer-waiting h3 {
-  font-size:17px
+  font-size:1.0625rem
 }
 
 .answer-meta {
@@ -1779,12 +1779,12 @@ main:focus {
 }
 
 .answer-meta small {
-  font-size:10px;
+  font-size:0.625rem;
   color:var(--muted)
 }
 
 .published-answer {
-  font-size:13px;
+  font-size:0.8125rem;
   margin-bottom:25px
 }
 
@@ -1797,7 +1797,7 @@ main:focus {
 }
 
 .detail-bottom .text-link {
-  font-size:12px
+  font-size:0.75rem
 }
 
 .toast {
@@ -1812,7 +1812,7 @@ main:focus {
   color:#fff;
   padding:13px 21px;
   border-radius:10px;
-  font-size:13px;
+  font-size:0.8125rem;
   box-shadow:0 6px 30px #16372335
 }
 
@@ -1821,7 +1821,7 @@ main:focus {
     min-height:557px
   }
   .hero h1 {
-    font-size:53px
+    font-size:3.3125rem
   }
 }
 
@@ -1833,14 +1833,14 @@ main:focus {
     gap:40px
   }
   .hero h1 {
-    font-size:40px
+    font-size:2.5rem
   }
   .hero-actions {
     gap:9px
   }
   .button.large {
     padding:13px 16px;
-    font-size:13px
+    font-size:0.8125rem
   }
   .hero-actions .large>.icon:first-child {
     display:none
@@ -1857,10 +1857,10 @@ main:focus {
     right:-8px
   }
   .art-note strong {
-    font-size:10px
+    font-size:0.625rem
   }
   .art-note small {
-    font-size:9px
+    font-size:0.5625rem
   }
   .art-note>span {
     padding:8px
@@ -1873,10 +1873,10 @@ main:focus {
     min-height:184px
   }
   .topic-card h3 {
-    font-size:15px
+    font-size:0.9375rem
   }
   .topic-card p {
-    font-size:10px
+    font-size:0.625rem
   }
   .topic-arrow {
     right:13px
@@ -1888,13 +1888,13 @@ main:focus {
     gap:16px
   }
   .how-inner h2 {
-    font-size:23px
+    font-size:1.4375rem
   }
   .how-steps h3 {
-    font-size:14px
+    font-size:0.875rem
   }
   .how-steps p {
-    font-size:11px
+    font-size:0.6875rem
   }
   .form-layout {
     grid-template-columns:minmax(0,1fr) 237px;
@@ -1907,7 +1907,7 @@ main:focus {
     padding:21px 18px
   }
   .helper-card h2 {
-    font-size:15px
+    font-size:0.9375rem
   }
   .lookup-layout {
     grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
@@ -1917,7 +1917,7 @@ main:focus {
     padding:25px
   }
   .my-records .surface-heading h2 {
-    font-size:18px
+    font-size:1.125rem
   }
 }
 
@@ -1926,7 +1926,7 @@ main:focus {
     width:calc(100% - 40px)
   }
   .demo-strip {
-    font-size:10px
+    font-size:0.625rem
   }
   .demo-strip .container {
     gap:7px;
@@ -1940,19 +1940,19 @@ main:focus {
     align-content:center
   }
   .brand {
-    font-size:17px;
+    font-size:1.0625rem;
     gap:9px
   }
   .brand-mark {
     width:35px;
     height:35px;
     border-radius:11px 11px 11px 4px;
-    font-size:14px
+    font-size:0.875rem
   }
   .primary-nav {
     margin-left:auto;
     gap:20px;
-    font-size:12px;
+    font-size:0.75rem;
     height:78px
   }
   .staff-link {
@@ -1965,14 +1965,14 @@ main:focus {
     gap:0
   }
   .hero h1 {
-    font-size:33px
+    font-size:2.0625rem
   }
   .hero-copy .eyebrow {
-    font-size:10px;
+    font-size:0.625rem;
     margin-bottom:16px
   }
   .hero-description {
-    font-size:12px;
+    font-size:0.75rem;
     margin-top:18px
   }
   .hero-actions {
@@ -1980,7 +1980,7 @@ main:focus {
     margin-top:22px
   }
   .button.large {
-    font-size:11px;
+    font-size:0.6875rem;
     padding:12px 12px;
     min-height:47px
   }
@@ -1989,7 +1989,7 @@ main:focus {
     height:15px
   }
   .hero-note {
-    font-size:9px;
+    font-size:0.5625rem;
     margin-top:12px
   }
   .hero-note .icon {
@@ -2001,7 +2001,7 @@ main:focus {
     margin-left:-13%
   }
   .art-caption {
-    font-size:8px;
+    font-size:0.5rem;
     right:-3px;
     top:7px
   }
@@ -2015,10 +2015,10 @@ main:focus {
     display:none
   }
   .art-note strong {
-    font-size:9px
+    font-size:0.5625rem
   }
   .art-note small {
-    font-size:8px
+    font-size:0.5rem
   }
   .topics-section {
     padding-block:40px
@@ -2029,13 +2029,13 @@ main:focus {
     gap:10px
   }
   .section-heading>p {
-    font-size:10px
+    font-size:0.625rem
   }
   .eyebrow {
-    font-size:10px
+    font-size:0.625rem
   }
   .section-heading h2 {
-    font-size:23px
+    font-size:1.4375rem
   }
   .topic-grid {
     grid-template-columns:repeat(3,minmax(0,1fr))
@@ -2058,10 +2058,10 @@ main:focus {
     height:23px
   }
   .topic-card h3 {
-    font-size:15px
+    font-size:0.9375rem
   }
   .topic-card p {
-    font-size:10px
+    font-size:0.625rem
   }
   .how-section {
     padding-block:36px
@@ -2077,17 +2077,17 @@ main:focus {
     gap:15px
   }
   .how-inner .text-link {
-    font-size:11px;
+    font-size:0.6875rem;
     white-space:nowrap
   }
   .how-steps {
     gap:23px
   }
   .how-steps h3 {
-    font-size:14px
+    font-size:0.875rem
   }
   .how-steps p {
-    font-size:11px
+    font-size:0.6875rem
   }
   .help-section {
     grid-template-columns:1fr;
@@ -2095,10 +2095,10 @@ main:focus {
     padding-block:39px 43px
   }
   .faq-list summary {
-    font-size:13px
+    font-size:0.8125rem
   }
   .faq-list details p {
-    font-size:12px
+    font-size:0.75rem
   }
   .footer-inner {
     flex-direction:column;
@@ -2108,29 +2108,29 @@ main:focus {
     padding-block:27px
   }
   .footer-inner p {
-    font-size:10px
+    font-size:0.625rem
   }
   .footer-inner small {
-    font-size:9px
+    font-size:0.5625rem
   }
   .footer-inner>a {
-    font-size:10px
+    font-size:0.625rem
   }
   .page-shell {
     padding-block:23px 49px
   }
   .page-heading h1 {
-    font-size:28px
+    font-size:1.75rem
   }
   .page-heading>p:last-child {
-    font-size:12px;
+    font-size:0.75rem;
     margin-top:10px
   }
   .page-heading {
     margin-bottom:27px
   }
   .back-link {
-    font-size:11px;
+    font-size:0.6875rem;
     margin-bottom:20px
   }
   .progress-steps {
@@ -2138,7 +2138,7 @@ main:focus {
     margin-bottom:26px
   }
   .progress-steps li {
-    font-size:12px;
+    font-size:0.75rem;
     gap:7px
   }
   .progress-steps li:not(:last-child):after {
@@ -2158,16 +2158,16 @@ main:focus {
   }
   .aside-note {
     padding:16px 0 0;
-    font-size:11px
+    font-size:0.6875rem
   }
   .form-surface {
     padding:26px
   }
   .surface-heading h2 {
-    font-size:20px
+    font-size:1.25rem
   }
   .form-alert {
-    font-size:12px
+    font-size:0.75rem
   }
   .lookup-layout {
     grid-template-columns:1fr
@@ -2193,30 +2193,30 @@ main:focus {
     justify-content:start
   }
   .my-records .surface-heading h2 {
-    font-size:20px
+    font-size:1.25rem
   }
   .receipt-shell {
     padding-top:44px;
     max-width:630px
   }
   .receipt-heading h1 {
-    font-size:30px
+    font-size:1.875rem
   }
   .receipt-card {
     padding:27px
   }
   .receipt-heading>p:last-child {
-    font-size:12px
+    font-size:0.75rem
   }
   .receipt-data code {
-    font-size:13px
+    font-size:0.8125rem
   }
   .detail-grid {
     gap:19px;
     grid-template-columns:1fr
   }
   .detail-shell .page-heading h1 {
-    font-size:26px
+    font-size:1.625rem
   }
   .status-track {
     padding:20px 15px
@@ -2225,7 +2225,7 @@ main:focus {
     padding:26px
   }
   .detail-bottom .text-link {
-    font-size:11px
+    font-size:0.6875rem
   }
 }
 
@@ -2234,12 +2234,12 @@ main:focus {
     width:calc(100% - 36px)
   }
   .demo-strip .container {
-    font-size:9px;
+    font-size:0.5625rem;
     gap:7px;
     padding-block:6px
   }
   .demo-label {
-    font-size:8px
+    font-size:0.5rem
   }
   .header-inner {
     height:71px;
@@ -2248,16 +2248,16 @@ main:focus {
   .primary-nav {
     height:71px;
     gap:17px;
-    font-size:11px
+    font-size:0.6875rem
   }
   .brand {
-    font-size:16px;
+    font-size:1rem;
     gap:8px
   }
   .brand-mark {
     width:31px;
     height:33px;
-    font-size:12px;
+    font-size:0.75rem;
     border-radius:9px 9px 9px 3px
   }
   .hero-inner {
@@ -2269,15 +2269,15 @@ main:focus {
     min-height:0
   }
   .hero h1 {
-    font-size:36px;
+    font-size:2.25rem;
     line-height:1.37
   }
   .hero-copy .eyebrow {
-    font-size:10px;
+    font-size:0.625rem;
     margin-bottom:15px
   }
   .hero-description {
-    font-size:12px;
+    font-size:0.75rem;
     margin-top:16px;
     line-height:1.9
   }
@@ -2286,7 +2286,7 @@ main:focus {
     gap:9px
   }
   .button.large {
-    font-size:12px;
+    font-size:0.75rem;
     min-height:49px;
     padding:13px 17px
   }
@@ -2296,7 +2296,7 @@ main:focus {
     height:17px
   }
   .hero-note {
-    font-size:9px;
+    font-size:0.5625rem;
     margin-top:13px
   }
   .hero-art {
@@ -2315,7 +2315,7 @@ main:focus {
     margin-top:-2%
   }
   .art-caption {
-    font-size:8px;
+    font-size:0.5rem;
     top:13px;
     right:7px
   }
@@ -2326,10 +2326,10 @@ main:focus {
     padding:10px 13px
   }
   .art-note strong {
-    font-size:10px
+    font-size:0.625rem
   }
   .art-note small {
-    font-size:8px
+    font-size:0.5rem
   }
   .art-note>span {
     display:grid;
@@ -2347,7 +2347,7 @@ main:focus {
     margin-bottom:21px
   }
   .section-heading>p {
-    font-size:11px;
+    font-size:0.6875rem;
     text-align:left;
     margin-top:11px
   }
@@ -2355,7 +2355,7 @@ main:focus {
     display:none
   }
   .section-heading h2 {
-    font-size:22px
+    font-size:1.375rem
   }
   .topic-grid {
     grid-template-columns:repeat(2,minmax(0,1fr));
@@ -2375,7 +2375,7 @@ main:focus {
     height:22px
   }
   .topic-card p {
-    font-size:10px;
+    font-size:0.625rem;
     max-width:130px
   }
   .topic-card:last-child {
@@ -2405,10 +2405,10 @@ main:focus {
     align-items:end
   }
   .how-inner h2 {
-    font-size:22px
+    font-size:1.375rem
   }
   .how-inner .text-link {
-    font-size:10px;
+    font-size:0.625rem;
     gap:4px;
     padding-bottom:3px
   }
@@ -2444,11 +2444,11 @@ main:focus {
     height:23px
   }
   .how-steps h3 {
-    font-size:14px;
+    font-size:0.875rem;
     margin:0
   }
   .how-steps p {
-    font-size:10px
+    font-size:0.625rem
   }
   .how-steps p br {
     display:none
@@ -2457,7 +2457,7 @@ main:focus {
     width:23px;
     min-width:23px;
     height:23px;
-    font-size:8px;
+    font-size:0.5rem;
     right:-7px;
     bottom:-6px
   }
@@ -2465,7 +2465,7 @@ main:focus {
     padding-block:34px 32px
   }
   .faq-list summary {
-    font-size:12px;
+    font-size:0.75rem;
     line-height:1.7
   }
   .faq-list details {
@@ -2473,26 +2473,26 @@ main:focus {
     margin-bottom:14px
   }
   .faq-list details p {
-    font-size:11px
+    font-size:0.6875rem
   }
   .footer-inner small {
-    font-size:9px
+    font-size:0.5625rem
   }
   .page-heading h1 {
-    font-size:26px
+    font-size:1.625rem
   }
   .page-heading .eyebrow {
-    font-size:10px
+    font-size:0.625rem
   }
   .page-heading>p:last-child {
-    font-size:11px
+    font-size:0.6875rem
   }
   .progress-steps {
     gap:11px;
     justify-content:space-between
   }
   .progress-steps li {
-    font-size:11px;
+    font-size:0.6875rem;
     gap:6px
   }
   .progress-steps li:not(:last-child):after {
@@ -2501,7 +2501,7 @@ main:focus {
   .progress-steps li>span {
     width:24px;
     height:24px;
-    font-size:10px
+    font-size:0.625rem
   }
   .progress-steps li[aria-current]>span {
     box-shadow:0 0 0 3px #e6f0e4
@@ -2515,14 +2515,14 @@ main:focus {
     margin-bottom:23px
   }
   .surface-heading h2 {
-    font-size:18px
+    font-size:1.125rem
   }
   .required-note {
-    font-size:9px;
+    font-size:0.5625rem;
     padding-top:24px
   }
   .selected-topic {
-    font-size:11px;
+    font-size:0.6875rem;
     padding:11px
   }
   .selected-topic small {
@@ -2532,18 +2532,18 @@ main:focus {
     margin-bottom:20px
   }
   .field>span:first-child {
-    font-size:12px
+    font-size:0.75rem
   }
   .field input,.field textarea {
-    font-size:16px;
+    font-size:1rem;
     padding:11px 12px;
     line-height:1.75
   }
   .field input::placeholder,.field textarea::placeholder {
-    font-size:11px
+    font-size:0.6875rem
   }
   .field-help {
-    font-size:10px
+    font-size:0.625rem
   }
   .field-help-row {
     flex-direction:column;
@@ -2551,7 +2551,7 @@ main:focus {
   }
   .field-help-row>span:last-child {
     align-self:end;
-    font-size:10px
+    font-size:0.625rem
   }
   .input-icon>input {
     padding-left:35px
@@ -2567,7 +2567,7 @@ main:focus {
     flex-wrap:wrap
   }
   .example-row p,.example-row .text-link {
-    font-size:10px
+    font-size:0.625rem
   }
   .example-row .icon {
     width:14px
@@ -2579,7 +2579,7 @@ main:focus {
   .form-actions .button {
     min-height:45px;
     padding:11px 15px;
-    font-size:12px
+    font-size:0.75rem
   }
   .form-actions>.primary {
     min-width:0
@@ -2598,7 +2598,7 @@ main:focus {
     display:none
   }
   .helper-card h2 {
-    font-size:15px;
+    font-size:0.9375rem;
     margin-bottom:15px
   }
   .helper-card ol {
@@ -2607,20 +2607,20 @@ main:focus {
   .helper-card li {
     grid-template-columns:21px 1fr 1.6fr;
     align-items:center;
-    font-size:11px
+    font-size:0.6875rem
   }
   .helper-card li:before {
     grid-row:span 1
   }
   .helper-card li b {
-    font-size:11px
+    font-size:0.6875rem
   }
   .helper-card li span {
-    font-size:10px
+    font-size:0.625rem
   }
   .aside-note {
     padding:17px 9px 0;
-    font-size:10px
+    font-size:0.625rem
   }
   .aside-note br {
     display:none
@@ -2628,52 +2628,52 @@ main:focus {
   .notice {
     padding:13px;
     gap:8px;
-    font-size:11px
+    font-size:0.6875rem
   }
   .notice>.icon {
     width:17px;
     height:17px
   }
   .notice strong {
-    font-size:11px
+    font-size:0.6875rem
   }
   .review-content dd {
-    font-size:13px
+    font-size:0.8125rem
   }
   .review-content dt {
-    font-size:10px
+    font-size:0.625rem
   }
   .consent-box {
     padding:14px 12px;
     gap:10px
   }
   .consent-box strong {
-    font-size:11px
+    font-size:0.6875rem
   }
   .consent-box small {
-    font-size:10px
+    font-size:0.625rem
   }
   .consent-box strong b {
-    font-size:10px
+    font-size:0.625rem
   }
   .receipt-shell {
     padding-top:43px
   }
   .receipt-heading h1 {
-    font-size:28px
+    font-size:1.75rem
   }
   .receipt-heading .eyebrow {
-    font-size:10px
+    font-size:0.625rem
   }
   .receipt-heading>p:last-child {
-    font-size:11px
+    font-size:0.6875rem
   }
   .receipt-card {
     padding:24px 20px;
     border-radius:15px
   }
   .receipt-card h2 {
-    font-size:18px
+    font-size:1.125rem
   }
   .receipt-data {
     margin-top:20px
@@ -2684,14 +2684,14 @@ main:focus {
     margin-bottom:12px
   }
   .receipt-data dt {
-    font-size:10px
+    font-size:0.625rem
   }
   .receipt-data dd {
-    font-size:12px;
+    font-size:0.75rem;
     line-height:1.8
   }
   .receipt-data code {
-    font-size:13px;
+    font-size:0.8125rem;
     letter-spacing:.01em
   }
   .receipt-data .lookup-code-row {
@@ -2701,7 +2701,7 @@ main:focus {
     gap:9px
   }
   .receipt-actions .button {
-    font-size:11px;
+    font-size:0.6875rem;
     padding:11px 15px
   }
   .receipt-actions .icon {
@@ -2709,69 +2709,69 @@ main:focus {
     height:16px
   }
   .receipt-demo-note {
-    font-size:9px
+    font-size:0.5625rem
   }
   .lookup-card,.my-records {
     padding:24px 21px;
     border-radius:15px
   }
   .lookup-card h2 {
-    font-size:19px
+    font-size:1.1875rem
   }
   .lookup-card>p {
-    font-size:11px
+    font-size:0.6875rem
   }
   .lookup-card form {
     display:block;
     margin-top:22px
   }
   .lookup-card .field input {
-    font-size:16px
+    font-size:1rem
   }
   .lookup-card .field input::placeholder {
-    font-size:12px
+    font-size:0.75rem
   }
   .lookup-card .button {
-    font-size:12px
+    font-size:0.75rem
   }
   .lookup-card .lookup-note {
-    font-size:9px
+    font-size:0.5625rem
   }
   .my-records .surface-heading h2 {
-    font-size:17px
+    font-size:1.0625rem
   }
   .my-records .surface-heading>div>p:last-child {
-    font-size:10px
+    font-size:0.625rem
   }
   .empty-state {
     padding:33px 0
   }
   .empty-state h3 {
-    font-size:16px
+    font-size:1rem
   }
   .empty-state p {
-    font-size:11px
+    font-size:0.6875rem
   }
   .records-footnote {
-    font-size:9px
+    font-size:0.5625rem
   }
   .record-item h3 {
-    font-size:16px
+    font-size:1rem
   }
   .record-item small {
-    font-size:9px
+    font-size:0.5625rem
   }
   .record-item p {
-    font-size:10px
+    font-size:0.625rem
   }
   .detail-shell .page-heading h1 {
-    font-size:24px
+    font-size:1.5rem
   }
   .detail-shell .page-heading>p:last-child {
-    font-size:10px
+    font-size:0.625rem
   }
   .detail-meta code {
-    font-size:10px
+    font-size:0.625rem
   }
   .status-track {
     padding:20px 12px;
@@ -2786,10 +2786,10 @@ main:focus {
     height:17px
   }
   .status-track strong {
-    font-size:11px
+    font-size:0.6875rem
   }
   .status-track small {
-    font-size:9px
+    font-size:0.5625rem
   }
   .status-track li:not(:last-child):after {
     top:18px;
@@ -2801,29 +2801,29 @@ main:focus {
     border-radius:15px
   }
   .detail-grid .surface-heading h2 {
-    font-size:18px
+    font-size:1.125rem
   }
   .detail-grid .surface-heading .eyebrow {
-    font-size:9px
+    font-size:0.5625rem
   }
   .answer-waiting h3 {
-    font-size:16px
+    font-size:1rem
   }
   .published-answer {
-    font-size:12px
+    font-size:0.75rem
   }
   .detail-bottom {
     flex-direction:column;
     gap:15px
   }
   .detail-bottom .button {
-    font-size:12px
+    font-size:0.75rem
   }
   .detail-bottom .text-link {
-    font-size:10px
+    font-size:0.625rem
   }
   .toast {
-    font-size:12px;
+    font-size:0.75rem;
     padding:12px 17px;
     bottom:19px;
     word-break:keep-all
@@ -2835,22 +2835,22 @@ main:focus {
     width:calc(100% - 28px)
   }
   .brand {
-    font-size:14px;
+    font-size:0.875rem;
     gap:6px
   }
   .primary-nav {
     gap:13px;
-    font-size:10px
+    font-size:0.625rem
   }
   .hero h1 {
-    font-size:32px
+    font-size:2rem
   }
   .hero-actions {
     gap:8px
   }
   .button.large {
     padding:12px 13px;
-    font-size:11px
+    font-size:0.6875rem
   }
   .hero-actions .large>.icon:first-child {
     display:none
@@ -2860,34 +2860,34 @@ main:focus {
     max-height:226px
   }
   .section-heading h2 {
-    font-size:20px
+    font-size:1.25rem
   }
   .topic-card {
     padding:17px 13px
   }
   .topic-card h3 {
-    font-size:14px
+    font-size:0.875rem
   }
   .how-inner h2 {
-    font-size:20px
+    font-size:1.25rem
   }
   .hero-note {
-    font-size:8px
+    font-size:0.5rem
   }
   .form-surface {
     padding:22px 17px
   }
   .surface-heading h2 {
-    font-size:17px
+    font-size:1.0625rem
   }
   .required-note {
-    font-size:8px
+    font-size:0.5rem
   }
   .receipt-data code {
-    font-size:11px
+    font-size:0.6875rem
   }
   .receipt-actions .button {
-    font-size:10px;
+    font-size:0.625rem;
     padding:10px 12px
   }
   .helper-card li {
@@ -2898,7 +2898,7 @@ main:focus {
     grid-row:span 2
   }
   .progress-steps li {
-    font-size:10px
+    font-size:0.625rem
   }
 }
 
@@ -2914,7 +2914,7 @@ main:focus {
 
 .lookup-recovery {
   margin-top: 19px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: #687e60;
 }
 
@@ -2924,7 +2924,7 @@ main:focus {
 }
 
 .lookup-recovery p {
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.9;
   padding-top: 9px;
 }

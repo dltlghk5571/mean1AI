@@ -1,0 +1,171 @@
+{
+  "$defs": {
+    "ClassificationProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "abstained": {
+          "title": "Abstained",
+          "type": "boolean"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Category"
+        },
+        "subcategory": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Subcategory"
+        },
+        "urgency": {
+          "$ref": "#/$defs/Urgency"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/ClubCandidate"
+          },
+          "maxItems": 3,
+          "title": "Candidates",
+          "type": "array"
+        },
+        "missing_information": {
+          "items": {
+            "maxLength": 300,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Missing Information",
+          "type": "array"
+        },
+        "evidence_summary": {
+          "maxLength": 500,
+          "minLength": 5,
+          "title": "Evidence Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "abstained",
+        "category",
+        "subcategory",
+        "urgency",
+        "candidates",
+        "missing_information",
+        "evidence_summary"
+      ],
+      "title": "ClassificationProposal",
+      "type": "object"
+    },
+    "ClubCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "department_id": {
+          "pattern": "^[A-Z0-9][A-Z0-9_]{2,63}$",
+          "title": "Department Id",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "reason": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "department_id",
+        "confidence",
+        "reason"
+      ],
+      "title": "ClubCandidate",
+      "type": "object"
+    },
+    "Urgency": {
+      "enum": [
+        "normal",
+        "high",
+        "critical"
+      ],
+      "title": "Urgency",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "request_id": {
+      "format": "uuid",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "input_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "model_id": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "catalog_version": {
+      "maxLength": 80,
+      "minLength": 3,
+      "title": "Catalog Version",
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Catalog Sha256",
+      "type": "string"
+    },
+    "execution_mode": {
+      "enum": [
+        "synthetic",
+        "model"
+      ],
+      "title": "Execution Mode",
+      "type": "string"
+    },
+    "proposal": {
+      "$ref": "#/$defs/ClassificationProposal"
+    }
+  },
+  "required": [
+    "request_id",
+    "input_hash",
+    "model_id",
+    "catalog_version",
+    "catalog_sha256",
+    "execution_mode",
+    "proposal"
+  ],
+  "title": "ClubClassifyResponse",
+  "type": "object"
+}
